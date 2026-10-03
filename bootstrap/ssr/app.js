@@ -2396,20 +2396,20 @@ var renderPromise = createInertiaApp({
 			"./pages/Cabinet/Schedule.tsx": () => import("./assets/Schedule-oxMoJuwJ.js"),
 			"./pages/Cabinet/Stats.tsx": () => import("./assets/Stats-ynDeoiC2.js"),
 			"./pages/Clinics/Index.tsx": () => import("./assets/Index-BaIZEcru.js"),
-			"./pages/Clinics/Show.tsx": () => import("./assets/Show-LUJu56VM.js"),
+			"./pages/Clinics/Show.tsx": () => import("./assets/Show-BENObCfl.js"),
 			"./pages/Collections/Compare.tsx": () => import("./assets/Compare-CycihU2b.js"),
 			"./pages/Collections/Favorites.tsx": () => import("./assets/Favorites-C-32pX82.js"),
-			"./pages/Concerns/Show.tsx": () => import("./assets/Show-Cc-u7svt.js"),
-			"./pages/Directions/Index.tsx": () => import("./assets/Index-qqbdAaBA.js"),
-			"./pages/Directions/Show.tsx": () => import("./assets/Show-CQ3fIRZO.js"),
+			"./pages/Concerns/Show.tsx": () => import("./assets/Show-BT7TfBNQ.js"),
+			"./pages/Directions/Index.tsx": () => import("./assets/Index-DYnFX1GU.js"),
+			"./pages/Directions/Show.tsx": () => import("./assets/Show-BIjqfkR2.js"),
 			"./pages/Doctors/Index.tsx": () => import("./assets/Index-DNvWMadu.js"),
 			"./pages/Doctors/Show.tsx": () => import("./assets/Show-2UHLC4BN.js"),
 			"./pages/Error.tsx": () => import("./assets/Error-BXaUTvGo.js"),
-			"./pages/Home.tsx": () => import("./assets/Home-BASpPFH2.js"),
+			"./pages/Home.tsx": () => import("./assets/Home-BPN1XpEe.js"),
 			"./pages/Page.tsx": () => import("./assets/Page-CuJmJuyn.js"),
 			"./pages/Prices/Index.tsx": () => import("./assets/Index-Bw_XKiCb.js"),
 			"./pages/Reviews/Index.tsx": () => import("./assets/Index-Bm9RzJWG.js"),
-			"./pages/Search/Index.tsx": () => import("./assets/Index-ajzPhgw7.js")
+			"./pages/Search/Index.tsx": () => import("./assets/Index-C3v3Y73P.js")
 		});
 		const module = await (pages[`./pages/${name}.tsx`] || pages[`./pages/${name}.jsx`] || pages[`./Pages/${name}.tsx`] || pages[`./Pages/${name}.jsx`])?.();
 		if (!module) throw new Error(`Page not found: ${name}`);

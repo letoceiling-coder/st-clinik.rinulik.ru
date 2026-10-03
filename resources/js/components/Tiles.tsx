@@ -11,16 +11,22 @@ function specialtySeed(slug: string, index: number): number {
 
 export function ConcernChips({ concerns, scroll = true }: { concerns: ConcernData[]; scroll?: boolean }) {
     const city = useCity();
+    const chips = concerns.map((c) => (
+        <Link key={c.slug} href={city.concern(c.slug)} className="chip chip--soft chip--lg" title={c.hint ?? undefined}>
+            <span className="chip-icon">
+                <Icon name={c.icon ?? 'tooth'} size={16} />
+            </span>
+            {c.name}
+        </Link>
+    ));
+
+    if (!scroll) {
+        return <div className="chip-row">{chips}</div>;
+    }
+
     return (
-        <div className={scroll ? 'chip-scroll' : 'chip-row'}>
-            {concerns.map((c) => (
-                <Link key={c.slug} href={city.concern(c.slug)} className="chip chip--soft chip--lg" title={c.hint ?? undefined}>
-                    <span className="chip-icon">
-                        <Icon name={c.icon ?? 'tooth'} size={16} />
-                    </span>
-                    {c.name}
-                </Link>
-            ))}
+        <div className="scroll-wrap">
+            <div className="chip-scroll">{chips}</div>
         </div>
     );
 }
@@ -28,6 +34,7 @@ export function ConcernChips({ concerns, scroll = true }: { concerns: ConcernDat
 export function SpecialtyCircles({ specialties }: { specialties: SpecialtyData[] }) {
     const city = useCity();
     return (
+        <div className="scroll-wrap">
         <div className="cat-scroll" role="list" aria-label="Направления">
             {specialties.map((s, index) => (
                 <Link key={s.slug} href={city.direction(s.slug)} className="cat" role="listitem">
@@ -39,6 +46,7 @@ export function SpecialtyCircles({ specialties }: { specialties: SpecialtyData[]
                     <span className="cat__name">{s.name}</span>
                 </Link>
             ))}
+        </div>
         </div>
     );
 }

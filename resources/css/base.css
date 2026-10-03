@@ -8,6 +8,8 @@ html {
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
     scroll-padding-top: calc(var(--header-h) + 16px);
+    overflow-x: clip;
+    max-width: 100%;
 }
 
 body {
@@ -133,6 +135,7 @@ table {
 
 .section {
     padding-block: var(--space-12);
+    overflow-x: clip;
 }
 .section--tight {
     padding-block: var(--space-8);

@@ -387,15 +387,22 @@
     color: var(--color-primary-text);
     margin-left: -8px;
 }
+.scroll-wrap {
+    overflow: hidden;
+    max-width: 100%;
+    width: 100%;
+}
 .chip-scroll {
     display: flex;
     gap: 10px;
     overflow-x: auto;
-    padding: 4px var(--gutter) 10px;
-    margin-inline: calc(var(--gutter) * -1);
+    padding: 4px 0 10px;
+    max-width: 100%;
+    width: 100%;
     scroll-snap-type: x proximity;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
 }
 .chip-scroll::-webkit-scrollbar {
     display: none;

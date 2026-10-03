@@ -1,0 +1,17 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+
+class DatabaseSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $this->call(FoundationSeeder::class);
+
+        if (config('app.seed_demo', true)) {
+            $this->call(DemoSeeder::class);
+        }
+    }
+}

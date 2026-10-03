@@ -1,0 +1,48 @@
+name: st-clinik
+
+networks:
+  st-clinik_net:
+    name: st-clinik_net
+    driver: bridge
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: st-clinik-app:local
+    container_name: st-clinik-app
+    restart: unless-stopped
+    env_file: /opt/st-clinik/.env
+    environment:
+      SEED_ON_BOOT: "true"
+    volumes:
+      - /opt/st-clinik/.env:/var/www/html/.env:ro
+      - st-clinik-storage:/var/www/html/storage
+      - st-clinik-sqlite:/var/www/html/database
+      - st-clinik-public:/var/www/html/public-export
+    networks:
+      - st-clinik_net
+
+  web:
+    image: nginx:1.27-alpine
+    container_name: st-clinik-web
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "127.0.0.1:18744:80"
+      - "172.17.0.1:18744:80"
+    volumes:
+      - ./nginx/app.conf:/etc/nginx/conf.d/default.conf:ro
+      - st-clinik-public:/var/www/html/public:ro
+    networks:
+      - st-clinik_net
+
+volumes:
+  st-clinik-storage:
+    name: st-clinik-storage
+  st-clinik-sqlite:
+    name: st-clinik-sqlite
+  st-clinik-public:
+    name: st-clinik-public
