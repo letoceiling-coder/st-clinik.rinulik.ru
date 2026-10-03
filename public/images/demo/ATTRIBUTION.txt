@@ -1,0 +1,2 @@
+Demo images sourced via Openverse API (CC0 / CC BY / CC BY-SA).
+Review licenses at https://openverse.org before production use.

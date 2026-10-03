@@ -1,0 +1,373 @@
+{
+  "resources/css/app.css": [
+    "/build/assets/manrope-cyrillic-ext-wght-normal-C8S-KRRz.woff2",
+    "/build/assets/manrope-cyrillic-wght-normal-Dvxsihut.woff2",
+    "/build/assets/manrope-greek-wght-normal-DL7QRZyv.woff2",
+    "/build/assets/manrope-vietnamese-wght-normal-usUDDRr7.woff2",
+    "/build/assets/manrope-latin-ext-wght-normal-Ch3YOpNY.woff2",
+    "/build/assets/manrope-latin-wght-normal-DHIcAJRg.woff2"
+  ],
+  "resources/js/app.tsx": [
+    "/build/assets/manrope-cyrillic-ext-wght-normal-C8S-KRRz.woff2",
+    "/build/assets/manrope-cyrillic-wght-normal-Dvxsihut.woff2",
+    "/build/assets/manrope-greek-wght-normal-DL7QRZyv.woff2",
+    "/build/assets/manrope-vietnamese-wght-normal-usUDDRr7.woff2",
+    "/build/assets/manrope-latin-ext-wght-normal-Ch3YOpNY.woff2",
+    "/build/assets/manrope-latin-wght-normal-DHIcAJRg.woff2"
+  ],
+  "resources/js/components/Catalog.tsx": [
+    "/build/assets/Catalog-BDO6w_cg.js"
+  ],
+  "resources/js/components/ClinicCard.tsx": [
+    "/build/assets/ClinicCard-DDz1EaqG.js"
+  ],
+  "resources/js/components/ClinicParts.tsx": [
+    "/build/assets/ClinicParts-C6-j6FfM.js"
+  ],
+  "resources/js/components/CollectionButtons.tsx": [
+    "/build/assets/CollectionButtons-BeMeUc6q.js"
+  ],
+  "resources/js/components/CollectionViews.tsx": [
+    "/build/assets/CollectionViews-CsCFm_Uc.js"
+  ],
+  "resources/js/components/Dash.tsx": [
+    "/build/assets/Dash-CaoYUPpG.js"
+  ],
+  "resources/js/components/DoctorCard.tsx": [
+    "/build/assets/DoctorCard-BO2YSSIl.js"
+  ],
+  "resources/js/components/FilterPanel.tsx": [
+    "/build/assets/Catalog-BDO6w_cg.js"
+  ],
+  "resources/js/components/Icon.tsx": [
+    "/build/assets/Icon-DBH8JZC9.js"
+  ],
+  "resources/js/components/LeadContext.tsx": [
+    "/build/assets/manrope-cyrillic-ext-wght-normal-C8S-KRRz.woff2",
+    "/build/assets/manrope-cyrillic-wght-normal-Dvxsihut.woff2",
+    "/build/assets/manrope-greek-wght-normal-DL7QRZyv.woff2",
+    "/build/assets/manrope-vietnamese-wght-normal-usUDDRr7.woff2",
+    "/build/assets/manrope-latin-ext-wght-normal-Ch3YOpNY.woff2",
+    "/build/assets/manrope-latin-wght-normal-DHIcAJRg.woff2"
+  ],
+  "resources/js/components/LeadModal.tsx": [
+    "/build/assets/manrope-cyrillic-ext-wght-normal-C8S-KRRz.woff2",
+    "/build/assets/manrope-cyrillic-wght-normal-Dvxsihut.woff2",
+    "/build/assets/manrope-greek-wght-normal-DL7QRZyv.woff2",
+    "/build/assets/manrope-vietnamese-wght-normal-usUDDRr7.woff2",
+    "/build/assets/manrope-latin-ext-wght-normal-Ch3YOpNY.woff2",
+    "/build/assets/manrope-latin-wght-normal-DHIcAJRg.woff2"
+  ],
+  "resources/js/components/PhotoArt.tsx": [
+    "/build/assets/PhotoArt-Ds-2t9uu.js"
+  ],
+  "resources/js/components/ReviewCard.tsx": [
+    "/build/assets/ReviewCard-BB213JCW.js"
+  ],
+  "resources/js/components/ReviewForm.tsx": [
+    "/build/assets/Show-LUJu56VM.js"
+  ],
+  "resources/js/components/SearchBox.tsx": [
+    "/build/assets/manrope-cyrillic-ext-wght-normal-C8S-KRRz.woff2",
+    "/build/assets/manrope-cyrillic-wght-normal-Dvxsihut.woff2",
+    "/build/assets/manrope-greek-wght-normal-DL7QRZyv.woff2",
+    "/build/assets/manrope-vietnamese-wght-normal-usUDDRr7.woff2",
+    "/build/assets/manrope-latin-ext-wght-normal-Ch3YOpNY.woff2",
+    "/build/assets/manrope-latin-wght-normal-DHIcAJRg.woff2"
+  ],
+  "resources/js/components/Tiles.tsx": [
+    "/build/assets/Tiles-yXDMQSCy.js"
+  ],
+  "resources/js/components/ToastHost.tsx": [
+    "/build/assets/manrope-cyrillic-ext-wght-normal-C8S-KRRz.woff2",
+    "/build/assets/manrope-cyrillic-wght-normal-Dvxsihut.woff2",
+    "/build/assets/manrope-greek-wght-normal-DL7QRZyv.woff2",
+    "/build/assets/manrope-vietnamese-wght-normal-usUDDRr7.woff2",
+    "/build/assets/manrope-latin-ext-wght-normal-Ch3YOpNY.woff2",
+    "/build/assets/manrope-latin-wght-normal-DHIcAJRg.woff2"
+  ],
+  "resources/js/components/ui/Button.tsx": [
+    "/build/assets/Button-D4s3iLUi.js"
+  ],
+  "resources/js/components/ui/Fields.tsx": [
+    "/build/assets/manrope-cyrillic-ext-wght-normal-C8S-KRRz.woff2",
+    "/build/assets/manrope-cyrillic-wght-normal-Dvxsihut.woff2",
+    "/build/assets/manrope-greek-wght-normal-DL7QRZyv.woff2",
+    "/build/assets/manrope-vietnamese-wght-normal-usUDDRr7.woff2",
+    "/build/assets/manrope-latin-ext-wght-normal-Ch3YOpNY.woff2",
+    "/build/assets/manrope-latin-wght-normal-DHIcAJRg.woff2"
+  ],
+  "resources/js/components/ui/Misc.tsx": [
+    "/build/assets/manrope-cyrillic-ext-wght-normal-C8S-KRRz.woff2",
+    "/build/assets/manrope-cyrillic-wght-normal-Dvxsihut.woff2",
+    "/build/assets/manrope-greek-wght-normal-DL7QRZyv.woff2",
+    "/build/assets/manrope-vietnamese-wght-normal-usUDDRr7.woff2",
+    "/build/assets/manrope-latin-ext-wght-normal-Ch3YOpNY.woff2",
+    "/build/assets/manrope-latin-wght-normal-DHIcAJRg.woff2"
+  ],
+  "resources/js/components/ui/Overlay.tsx": [
+    "/build/assets/manrope-cyrillic-ext-wght-normal-C8S-KRRz.woff2",
+    "/build/assets/manrope-cyrillic-wght-normal-Dvxsihut.woff2",
+    "/build/assets/manrope-greek-wght-normal-DL7QRZyv.woff2",
+    "/build/assets/manrope-vietnamese-wght-normal-usUDDRr7.woff2",
+    "/build/assets/manrope-latin-ext-wght-normal-Ch3YOpNY.woff2",
+    "/build/assets/manrope-latin-wght-normal-DHIcAJRg.woff2"
+  ],
+  "resources/js/layouts/AccountLayout.tsx": [
+    "/build/assets/manrope-cyrillic-ext-wght-normal-C8S-KRRz.woff2",
+    "/build/assets/manrope-cyrillic-wght-normal-Dvxsihut.woff2",
+    "/build/assets/manrope-greek-wght-normal-DL7QRZyv.woff2",
+    "/build/assets/manrope-vietnamese-wght-normal-usUDDRr7.woff2",
+    "/build/assets/manrope-latin-ext-wght-normal-Ch3YOpNY.woff2",
+    "/build/assets/manrope-latin-wght-normal-DHIcAJRg.woff2"
+  ],
+  "resources/js/layouts/AdminLayout.tsx": [
+    "/build/assets/manrope-cyrillic-ext-wght-normal-C8S-KRRz.woff2",
+    "/build/assets/manrope-cyrillic-wght-normal-Dvxsihut.woff2",
+    "/build/assets/manrope-greek-wght-normal-DL7QRZyv.woff2",
+    "/build/assets/manrope-vietnamese-wght-normal-usUDDRr7.woff2",
+    "/build/assets/manrope-latin-ext-wght-normal-Ch3YOpNY.woff2",
+    "/build/assets/manrope-latin-wght-normal-DHIcAJRg.woff2"
+  ],
+  "resources/js/layouts/AuthLayout.tsx": [
+    "/build/assets/manrope-cyrillic-ext-wght-normal-C8S-KRRz.woff2",
+    "/build/assets/manrope-cyrillic-wght-normal-Dvxsihut.woff2",
+    "/build/assets/manrope-greek-wght-normal-DL7QRZyv.woff2",
+    "/build/assets/manrope-vietnamese-wght-normal-usUDDRr7.woff2",
+    "/build/assets/manrope-latin-ext-wght-normal-Ch3YOpNY.woff2",
+    "/build/assets/manrope-latin-wght-normal-DHIcAJRg.woff2"
+  ],
+  "resources/js/layouts/CabinetLayout.tsx": [
+    "/build/assets/manrope-cyrillic-ext-wght-normal-C8S-KRRz.woff2",
+    "/build/assets/manrope-cyrillic-wght-normal-Dvxsihut.woff2",
+    "/build/assets/manrope-greek-wght-normal-DL7QRZyv.woff2",
+    "/build/assets/manrope-vietnamese-wght-normal-usUDDRr7.woff2",
+    "/build/assets/manrope-latin-ext-wght-normal-Ch3YOpNY.woff2",
+    "/build/assets/manrope-latin-wght-normal-DHIcAJRg.woff2"
+  ],
+  "resources/js/layouts/CityPicker.tsx": [
+    "/build/assets/manrope-cyrillic-ext-wght-normal-C8S-KRRz.woff2",
+    "/build/assets/manrope-cyrillic-wght-normal-Dvxsihut.woff2",
+    "/build/assets/manrope-greek-wght-normal-DL7QRZyv.woff2",
+    "/build/assets/manrope-vietnamese-wght-normal-usUDDRr7.woff2",
+    "/build/assets/manrope-latin-ext-wght-normal-Ch3YOpNY.woff2",
+    "/build/assets/manrope-latin-wght-normal-DHIcAJRg.woff2"
+  ],
+  "resources/js/layouts/DashboardShell.tsx": [
+    "/build/assets/manrope-cyrillic-ext-wght-normal-C8S-KRRz.woff2",
+    "/build/assets/manrope-cyrillic-wght-normal-Dvxsihut.woff2",
+    "/build/assets/manrope-greek-wght-normal-DL7QRZyv.woff2",
+    "/build/assets/manrope-vietnamese-wght-normal-usUDDRr7.woff2",
+    "/build/assets/manrope-latin-ext-wght-normal-Ch3YOpNY.woff2",
+    "/build/assets/manrope-latin-wght-normal-DHIcAJRg.woff2"
+  ],
+  "resources/js/layouts/Logo.tsx": [
+    "/build/assets/manrope-cyrillic-ext-wght-normal-C8S-KRRz.woff2",
+    "/build/assets/manrope-cyrillic-wght-normal-Dvxsihut.woff2",
+    "/build/assets/manrope-greek-wght-normal-DL7QRZyv.woff2",
+    "/build/assets/manrope-vietnamese-wght-normal-usUDDRr7.woff2",
+    "/build/assets/manrope-latin-ext-wght-normal-Ch3YOpNY.woff2",
+    "/build/assets/manrope-latin-wght-normal-DHIcAJRg.woff2"
+  ],
+  "resources/js/layouts/PublicLayout.tsx": [
+    "/build/assets/manrope-cyrillic-ext-wght-normal-C8S-KRRz.woff2",
+    "/build/assets/manrope-cyrillic-wght-normal-Dvxsihut.woff2",
+    "/build/assets/manrope-greek-wght-normal-DL7QRZyv.woff2",
+    "/build/assets/manrope-vietnamese-wght-normal-usUDDRr7.woff2",
+    "/build/assets/manrope-latin-ext-wght-normal-Ch3YOpNY.woff2",
+    "/build/assets/manrope-latin-wght-normal-DHIcAJRg.woff2"
+  ],
+  "resources/js/lib/auth.ts": [
+    "/build/assets/manrope-cyrillic-ext-wght-normal-C8S-KRRz.woff2",
+    "/build/assets/manrope-cyrillic-wght-normal-Dvxsihut.woff2",
+    "/build/assets/manrope-greek-wght-normal-DL7QRZyv.woff2",
+    "/build/assets/manrope-vietnamese-wght-normal-usUDDRr7.woff2",
+    "/build/assets/manrope-latin-ext-wght-normal-Ch3YOpNY.woff2",
+    "/build/assets/manrope-latin-wght-normal-DHIcAJRg.woff2"
+  ],
+  "resources/js/lib/city.ts": [
+    "/build/assets/manrope-cyrillic-ext-wght-normal-C8S-KRRz.woff2",
+    "/build/assets/manrope-cyrillic-wght-normal-Dvxsihut.woff2",
+    "/build/assets/manrope-greek-wght-normal-DL7QRZyv.woff2",
+    "/build/assets/manrope-vietnamese-wght-normal-usUDDRr7.woff2",
+    "/build/assets/manrope-latin-ext-wght-normal-Ch3YOpNY.woff2",
+    "/build/assets/manrope-latin-wght-normal-DHIcAJRg.woff2"
+  ],
+  "resources/js/lib/collections.ts": [
+    "/build/assets/manrope-cyrillic-ext-wght-normal-C8S-KRRz.woff2",
+    "/build/assets/manrope-cyrillic-wght-normal-Dvxsihut.woff2",
+    "/build/assets/manrope-greek-wght-normal-DL7QRZyv.woff2",
+    "/build/assets/manrope-vietnamese-wght-normal-usUDDRr7.woff2",
+    "/build/assets/manrope-latin-ext-wght-normal-Ch3YOpNY.woff2",
+    "/build/assets/manrope-latin-wght-normal-DHIcAJRg.woff2"
+  ],
+  "resources/js/lib/demo-images.ts": [
+    "/build/assets/demo-images-CwyQSe03.js"
+  ],
+  "resources/js/lib/entities.ts": [
+    "/build/assets/CollectionViews-CsCFm_Uc.js"
+  ],
+  "resources/js/lib/format.ts": [
+    "/build/assets/format-Cjg0FGVI.js"
+  ],
+  "resources/js/lib/seo.ts": [
+    "/build/assets/manrope-cyrillic-ext-wght-normal-C8S-KRRz.woff2",
+    "/build/assets/manrope-cyrillic-wght-normal-Dvxsihut.woff2",
+    "/build/assets/manrope-greek-wght-normal-DL7QRZyv.woff2",
+    "/build/assets/manrope-vietnamese-wght-normal-usUDDRr7.woff2",
+    "/build/assets/manrope-latin-ext-wght-normal-Ch3YOpNY.woff2",
+    "/build/assets/manrope-latin-wght-normal-DHIcAJRg.woff2"
+  ],
+  "resources/js/lib/toast.ts": [
+    "/build/assets/manrope-cyrillic-ext-wght-normal-C8S-KRRz.woff2",
+    "/build/assets/manrope-cyrillic-wght-normal-Dvxsihut.woff2",
+    "/build/assets/manrope-greek-wght-normal-DL7QRZyv.woff2",
+    "/build/assets/manrope-vietnamese-wght-normal-usUDDRr7.woff2",
+    "/build/assets/manrope-latin-ext-wght-normal-Ch3YOpNY.woff2",
+    "/build/assets/manrope-latin-wght-normal-DHIcAJRg.woff2"
+  ],
+  "resources/js/pages/Account/Compare.tsx": [
+    "/build/assets/Compare-D2WDZmjP.js"
+  ],
+  "resources/js/pages/Account/Favorites.tsx": [
+    "/build/assets/Favorites-DlTNlf9G.js"
+  ],
+  "resources/js/pages/Account/History.tsx": [
+    "/build/assets/History-bqdY8oFW.js"
+  ],
+  "resources/js/pages/Account/Leads.tsx": [
+    "/build/assets/Leads-CB9yAHAJ.js"
+  ],
+  "resources/js/pages/Account/Notifications.tsx": [
+    "/build/assets/Notifications-Bu5tFctj.js"
+  ],
+  "resources/js/pages/Account/Overview.tsx": [
+    "/build/assets/Overview-CzndFLY2.js"
+  ],
+  "resources/js/pages/Account/Profile.tsx": [
+    "/build/assets/Profile-CV2-QBVU.js"
+  ],
+  "resources/js/pages/Account/Reviews.tsx": [
+    "/build/assets/Reviews-BwXWzyV2.js"
+  ],
+  "resources/js/pages/Admin/Audit.tsx": [
+    "/build/assets/Audit-CxMSv0L8.js"
+  ],
+  "resources/js/pages/Admin/Clinics.tsx": [
+    "/build/assets/Clinics-Bd2Kwn9v.js"
+  ],
+  "resources/js/pages/Admin/Complaints.tsx": [
+    "/build/assets/Complaints-qQ5yqYE0.js"
+  ],
+  "resources/js/pages/Admin/Dashboard.tsx": [
+    "/build/assets/Dashboard-CHwN65UD.js"
+  ],
+  "resources/js/pages/Admin/Dictionary.tsx": [
+    "/build/assets/Dictionary-Ey_zSLk7.js"
+  ],
+  "resources/js/pages/Admin/Doctors.tsx": [
+    "/build/assets/Doctors-IHxSm2Hz.js"
+  ],
+  "resources/js/pages/Admin/Duplicates.tsx": [
+    "/build/assets/Duplicates-CNjf5HXo.js"
+  ],
+  "resources/js/pages/Admin/Moderation.tsx": [
+    "/build/assets/Moderation-DoCqAO1q.js"
+  ],
+  "resources/js/pages/Admin/Reviews.tsx": [
+    "/build/assets/Reviews-CMtogLP5.js"
+  ],
+  "resources/js/pages/Admin/Roles.tsx": [
+    "/build/assets/Roles-DJetN2kN.js"
+  ],
+  "resources/js/pages/Admin/Users.tsx": [
+    "/build/assets/Users-BPqpWRWr.js"
+  ],
+  "resources/js/pages/Auth/Login.tsx": [
+    "/build/assets/Login-CJWe91WT.js"
+  ],
+  "resources/js/pages/Auth/Register.tsx": [
+    "/build/assets/Register-D0ZTvM4B.js"
+  ],
+  "resources/js/pages/Cabinet/BranchForm.tsx": [
+    "/build/assets/BranchForm-BAamllBv.js"
+  ],
+  "resources/js/pages/Cabinet/Branches.tsx": [
+    "/build/assets/Branches-BF8QYS_Z.js"
+  ],
+  "resources/js/pages/Cabinet/Dashboard.tsx": [
+    "/build/assets/Dashboard-DhTnl5R4.js"
+  ],
+  "resources/js/pages/Cabinet/DoctorForm.tsx": [
+    "/build/assets/DoctorForm-CSXwheMX.js"
+  ],
+  "resources/js/pages/Cabinet/Doctors.tsx": [
+    "/build/assets/Doctors-B-wcWlG3.js"
+  ],
+  "resources/js/pages/Cabinet/Documents.tsx": [
+    "/build/assets/Documents-DdwRA-nr.js"
+  ],
+  "resources/js/pages/Cabinet/Leads.tsx": [
+    "/build/assets/Leads-Bgyh_u87.js"
+  ],
+  "resources/js/pages/Cabinet/Photos.tsx": [
+    "/build/assets/Photos-DFn_VNNR.js"
+  ],
+  "resources/js/pages/Cabinet/Prices.tsx": [
+    "/build/assets/Prices-CufGopAr.js"
+  ],
+  "resources/js/pages/Cabinet/Reviews.tsx": [
+    "/build/assets/Reviews--UHfVCwv.js"
+  ],
+  "resources/js/pages/Cabinet/Schedule.tsx": [
+    "/build/assets/Schedule-oxMoJuwJ.js"
+  ],
+  "resources/js/pages/Cabinet/Stats.tsx": [
+    "/build/assets/Stats-ynDeoiC2.js"
+  ],
+  "resources/js/pages/Clinics/Index.tsx": [
+    "/build/assets/Index-BaIZEcru.js"
+  ],
+  "resources/js/pages/Clinics/Show.tsx": [
+    "/build/assets/Show-LUJu56VM.js"
+  ],
+  "resources/js/pages/Collections/Compare.tsx": [
+    "/build/assets/Compare-CycihU2b.js"
+  ],
+  "resources/js/pages/Collections/Favorites.tsx": [
+    "/build/assets/Favorites-C-32pX82.js"
+  ],
+  "resources/js/pages/Concerns/Show.tsx": [
+    "/build/assets/Show-Cc-u7svt.js"
+  ],
+  "resources/js/pages/Directions/Index.tsx": [
+    "/build/assets/Index-qqbdAaBA.js"
+  ],
+  "resources/js/pages/Directions/Show.tsx": [
+    "/build/assets/Show-CQ3fIRZO.js"
+  ],
+  "resources/js/pages/Doctors/Index.tsx": [
+    "/build/assets/Index-DNvWMadu.js"
+  ],
+  "resources/js/pages/Doctors/Show.tsx": [
+    "/build/assets/Show-2UHLC4BN.js"
+  ],
+  "resources/js/pages/Error.tsx": [
+    "/build/assets/Error-BXaUTvGo.js"
+  ],
+  "resources/js/pages/Home.tsx": [
+    "/build/assets/Home-BASpPFH2.js"
+  ],
+  "resources/js/pages/Page.tsx": [
+    "/build/assets/Page-CuJmJuyn.js"
+  ],
+  "resources/js/pages/Prices/Index.tsx": [
+    "/build/assets/Index-Bw_XKiCb.js"
+  ],
+  "resources/js/pages/Reviews/Index.tsx": [
+    "/build/assets/Index-Bm9RzJWG.js"
+  ],
+  "resources/js/pages/Search/Index.tsx": [
+    "/build/assets/Index-ajzPhgw7.js"
+  ]
+}
