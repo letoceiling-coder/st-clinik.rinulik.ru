@@ -1649,6 +1649,53 @@ a.page-btn:hover {
 .ad-slot__banner--static {
     pointer-events: none;
 }
+.ad-slot__banner--demo {
+    border-style: dashed;
+    border-color: color-mix(in srgb, var(--color-primary) 45%, var(--color-border));
+    background: color-mix(in srgb, var(--color-primary) 4%, var(--color-surface));
+}
+.ad-slot__banner--demo:hover {
+    border-color: color-mix(in srgb, var(--color-primary) 65%, var(--color-border));
+    box-shadow: none;
+}
+.ad-slot--demo-mode .ad-slot__label::after {
+    content: ' · демо';
+    font-weight: 400;
+    letter-spacing: normal;
+    text-transform: none;
+}
+.ad-slot__demo {
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: var(--space-xs);
+    width: 100%;
+    height: 100%;
+    min-height: 120px;
+    padding: var(--space-lg) var(--space-md);
+    text-align: center;
+}
+.ad-slot__demo-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    background: color-mix(in srgb, var(--color-primary) 14%, var(--color-surface));
+    color: var(--color-primary-text);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.ad-slot__demo-title {
+    font-size: var(--text-base);
+    font-weight: 600;
+}
+.ad-slot__demo-text,
+.ad-slot__demo-size {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+}
 .ad-slot__media {
     position: relative;
     width: 100%;
@@ -1917,4 +1964,64 @@ a.page-btn:hover {
 .integration-form {
     padding-top: var(--space-md);
     border-top: 1px solid var(--color-border);
+}
+.integration-card {
+    min-width: 0;
+}
+.integration-meta code {
+    word-break: break-all;
+}
+.integration-card__tools {
+    gap: var(--space-sm);
+}
+.integration-form__actions {
+    padding-top: var(--space-xs);
+}
+
+/* ---------- Жалобы (админка) ---------- */
+.complaint-card__reason {
+    flex: 1 1 auto;
+    min-width: 0;
+    word-break: break-word;
+}
+.complaint-card__comment,
+.complaint-card__review {
+    word-break: break-word;
+}
+.complaint-card__head .badge {
+    flex: none;
+}
+
+/* ---------- Кнопки в карточках (админка) ---------- */
+.card-actions {
+    flex-wrap: wrap;
+}
+.card-actions__btn {
+    flex: 1 1 160px;
+}
+@media (max-width: 767px) {
+    .integration-card__head {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .integration-card__tools {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+    }
+    .integration-card__tools .btn,
+    .integration-card__toggle {
+        width: 100%;
+    }
+    .integration-form__actions .btn {
+        width: 100%;
+    }
+    .card-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .card-actions__btn {
+        flex: none;
+        width: 100%;
+    }
 }

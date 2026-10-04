@@ -90,13 +90,11 @@ export default function Home({ stats, concerns, popular_services, specialties, t
                 </div>
             </section>
 
-            {banner_home.length > 0 ? (
-                <section className="section section--tight">
-                    <div className="container">
-                        <AdSlot banners={banner_home} slot="home" />
-                    </div>
-                </section>
-            ) : null}
+            <section className="section section--tight">
+                <div className="container">
+                    <AdSlot banners={banner_home} slot="home" demoWhenEmpty />
+                </div>
+            </section>
 
             <section className="section section--tight" aria-labelledby="concerns-h">
                 <div className="container">

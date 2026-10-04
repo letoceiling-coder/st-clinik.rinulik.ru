@@ -37,3 +37,13 @@ export function bannerSpecForCode(code: string): BannerSpec | null {
 
     return null;
 }
+
+export function bannerSpecForSlot(slot: BannerSlot): BannerSpec {
+    return slot === 'home' ? BANNER_SPECS.banner_home : BANNER_SPECS.banner_catalog;
+}
+
+/** Сколько баннеров может быть в слоте по умолчанию (до настройки лимитов в админке). */
+export const BANNER_SLOT_CAPACITY: Record<BannerSlot, number> = {
+    home: 1,
+    catalog: 2,
+};

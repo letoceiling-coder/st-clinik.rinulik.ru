@@ -72,7 +72,7 @@ function GroupCard({ group }: { group: Group }) {
                     <h2 className="integration-card__title">{group.title}</h2>
                     <p className="text-sm text-muted">{group.description}</p>
                 </div>
-                <div className="row row--wrap" style={{ gap: 8 }}>
+                <div className="row row--wrap integration-card__tools">
                     <Badge tone={group.status.configured ? 'success' : 'warning'}>
                         {group.status.configured ? 'Настроено' : `Заполнено ${group.status.filled}/${group.status.total}`}
                     </Badge>
@@ -81,7 +81,7 @@ function GroupCard({ group }: { group: Group }) {
                             Документация
                         </a>
                     ) : null}
-                    <Button type="button" size="sm" variant="outline" onClick={() => setOpen((v) => !v)}>
+                    <Button type="button" size="sm" variant="outline" className="integration-card__toggle" onClick={() => setOpen((v) => !v)}>
                         {open ? 'Свернуть' : 'Настроить'}
                     </Button>
                 </div>
@@ -130,8 +130,8 @@ function GroupCard({ group }: { group: Group }) {
                                 />
                             ),
                         )}
-                        <div className="row row--wrap" style={{ gap: 8 }}>
-                            <Button type="submit" disabled={form.processing}>
+                        <div className="integration-form__actions">
+                            <Button type="submit" block disabled={form.processing}>
                                 Сохранить
                             </Button>
                         </div>
@@ -150,7 +150,7 @@ export default function AdminIntegrations({ groups, yookassa_ready, app_url }: P
                 text="Ключи API, OAuth и платёжные сервисы. Значения хранятся в базе и применяются без правки .env на сервере."
             />
 
-            <p className="text-sm text-muted">
+            <p className="text-sm text-muted integration-meta">
                 Базовый URL сайта: <code>{app_url}</code>
                 {yookassa_ready ? (
                     <>

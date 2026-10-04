@@ -27,20 +27,32 @@ export default function Complaints({ complaints, filters }: { complaints: Pagina
                 </SelectField>
             </FilterBar>
             {complaints.data.map((c) => (
-                <article key={c.id} className="card stack">
-                    <div className="row row--between">
-                        <b>{c.reason}</b>
+                <article key={c.id} className="card stack complaint-card">
+                    <div className="row row--between row--wrap complaint-card__head">
+                        <b className="complaint-card__reason">{c.reason}</b>
                         <StatusBadge status={c.status} />
                     </div>
-                    <p>{c.comment}</p>
+                    <p className="complaint-card__comment">{c.comment}</p>
                     <p className="text-sm text-muted">{c.reporter} ({c.reporter_role}) · {c.created_at}</p>
-                    {c.review ? <blockquote className="card card--muted">{c.review.author} · {c.review.clinic}<br />{c.review.body}</blockquote> : null}
+                    {c.review ? (
+                        <blockquote className="card card--muted complaint-card__review">
+                            {c.review.author} · {c.review.clinic}
+                            <br />
+                            {c.review.body}
+                        </blockquote>
+                    ) : null}
                     {c.status === 'open' ? (
-                        <div className="row">
-                            <Button size="sm" onClick={() => decide(c.id, 'uphold')}>Скрыть отзыв</Button>
-                            <Button size="sm" variant="secondary" onClick={() => decide(c.id, 'reject')}>Оставить отзыв</Button>
+                        <div className="row card-actions">
+                            <Button size="sm" block className="card-actions__btn" onClick={() => decide(c.id, 'uphold')}>
+                                Скрыть отзыв
+                            </Button>
+                            <Button size="sm" variant="secondary" block className="card-actions__btn" onClick={() => decide(c.id, 'reject')}>
+                                Оставить отзыв
+                            </Button>
                         </div>
-                    ) : <p className="text-sm text-muted">{c.resolution}</p>}
+                    ) : (
+                        <p className="text-sm text-muted">{c.resolution}</p>
+                    )}
                 </article>
             ))}
             <PagerSafe page={complaints} />
