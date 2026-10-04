@@ -14,11 +14,11 @@ export function LogoMark({ size = 36 }: { size?: number }) {
 }
 
 export default function Logo({ to = '/', suffix }: { to?: string; suffix?: string }) {
-    const { app } = usePage<SharedProps>().props;
+    const appName = usePage<SharedProps>().props.app?.name ?? 'СтомКлиник';
     return (
-        <Link href={to} className="logo" aria-label={`${app.name} — на главную`}>
+        <Link href={to} className="logo" aria-label={`${appName} — на главную`}>
             <LogoMark />
-            <span className="logo__text">{app.name}</span>
+            <span className="logo__text">{appName}</span>
             {suffix ? <span className="logo__suffix">{suffix}</span> : null}
         </Link>
     );

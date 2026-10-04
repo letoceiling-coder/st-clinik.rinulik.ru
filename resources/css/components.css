@@ -1417,6 +1417,17 @@ a.page-btn:hover {
     max-width: 760px;
     line-height: 1.7;
 }
+.tz-page .prose {
+    max-width: 900px;
+}
+.prose h1 {
+    font-size: var(--fs-2xl);
+    margin: 2.5rem 0 1rem;
+    line-height: 1.25;
+}
+.prose h1:first-child {
+    margin-top: 0;
+}
 .prose h2 {
     font-size: var(--fs-xl);
     margin: 2rem 0 0.75rem;
@@ -1441,6 +1452,15 @@ a.page-btn:hover {
 .prose a {
     color: var(--color-primary-text);
     text-decoration: underline;
+}
+.prose hr {
+    border: 0;
+    height: 1px;
+    background: var(--color-border);
+    margin: 2rem 0;
+}
+.prose strong {
+    font-weight: 600;
 }
 
 /* ---------- Фото (локальные демо-ассеты) ---------- */

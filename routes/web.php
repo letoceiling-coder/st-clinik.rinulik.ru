@@ -30,6 +30,7 @@ Route::get('/', HomeController::class)->name('home');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/clinics/{slug}', [ClinicController::class, 'show'])->name('clinics.show');
 Route::get('/doctors/{slug}', [DoctorController::class, 'show'])->name('doctors.show');
+Route::get('/tz', [PageController::class, 'tz'])->name('tz');
 Route::get('/pages/{slug}', [PageController::class, 'show'])->name('pages.show');
 foreach (['privacy', 'consent', 'review-rules', 'terms', 'about', 'for-clinics'] as $alias) {
     Route::get("/$alias", [PageController::class, 'show'])->defaults('slug', $alias)->name("alias.$alias");

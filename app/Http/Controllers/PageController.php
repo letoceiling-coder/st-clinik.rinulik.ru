@@ -27,4 +27,20 @@ class PageController extends Controller
             ],
         ], $seoData);
     }
+
+    public function tz(Seo $seo): Response
+    {
+        $path = base_path('tz.md');
+        abort_unless(is_readable($path), 404);
+
+        $seoData = $seo->private('Техническое задание');
+        $seoData['description'] = 'Техническое задание на разработку веб-платформы поиска стоматологических клиник, врачей и онлайн-записи.';
+
+        return $this->page('Tz', [
+            'page' => [
+                'html' => Str::markdown((string) file_get_contents($path), ['html_input' => 'strip', 'allow_unsafe_links' => false]),
+                'updated_at' => date('Y-m-d', (int) filemtime($path)),
+            ],
+        ], $seoData);
+    }
 }
