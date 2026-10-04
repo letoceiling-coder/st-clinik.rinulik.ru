@@ -747,6 +747,81 @@
     color: #ddd8d4;
 }
 
+.star-input {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+.star-input label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    color: #ddd8d4;
+    transition: color 0.15s var(--ease), background-color 0.15s var(--ease), transform 0.15s var(--ease);
+}
+.star-input label:hover,
+.star-input label:focus-within {
+    background: color-mix(in srgb, var(--color-star) 12%, transparent);
+    transform: scale(1.05);
+}
+.star-input label.is-on {
+    color: var(--color-star);
+}
+
+.review-form {
+    margin-top: var(--space-6);
+}
+.review-form__head .card-title {
+    margin-bottom: var(--space-3);
+}
+.review-form__rating {
+    border: 0;
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+}
+.review-form__rating .field__label {
+    margin-bottom: 8px;
+}
+.review-form__rating-hint {
+    margin: 8px 0 0;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--color-muted);
+}
+.review-form__checks {
+    padding: var(--space-3);
+    border-radius: var(--radius-16);
+    background: var(--color-surface-muted);
+}
+.review-form__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: center;
+}
+@media (max-width: 640px) {
+    .review-form {
+        padding: var(--space-4);
+    }
+    .star-input {
+        gap: 6px;
+    }
+    .star-input label {
+        width: 40px;
+        height: 40px;
+    }
+    .review-form__checks {
+        padding: var(--space-3) var(--space-2);
+    }
+}
+
 /* ---------- Карточки ---------- */
 .card {
     background: #fff;
