@@ -7,10 +7,12 @@ use App\Models\ClinicService;
 use App\Models\Service;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
+use OpenSpout\Common\Entity\Cell;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Reader\SheetInterface;
 use OpenSpout\Reader\XLSX\Reader;
 use OpenSpout\Writer\XLSX\Writer;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PriceListExcel
@@ -39,9 +41,9 @@ class PriceListExcel
 
     public function templateResponse(Clinic $clinic): StreamedResponse
     {
-        return $this->stream('price-list-template.xlsx', function (Writer $writer) use ($clinic): void {
-            $services = $this->catalogServices();
+        $services = $this->catalogServices();
 
+        return $this->streamWithValidations('price-list-template.xlsx', function (Writer $writer) use ($clinic, $services): void {
             $this->writeWorkbook($writer, function (Writer $priceWriter) use ($clinic, $services): void {
                 $priceWriter->addRow(Row::fromValues(self::HEADERS));
 
@@ -52,27 +54,31 @@ class PriceListExcel
                     ->sortBy(fn (ClinicService $p) => ($p->service->specialty?->name ?? '').$p->service->name)
                     ->values();
 
+                $dataRowCount = 0;
+
                 if ($prices->isNotEmpty()) {
                     foreach ($prices as $price) {
                         $priceWriter->addRow(Row::fromValues($this->priceRowValues($price)));
                     }
-
-                    return;
+                    $dataRowCount = $prices->count();
+                } else {
+                    foreach ($services->take(3) as $service) {
+                        $priceWriter->addRow(Row::fromValues([
+                            $service->specialty?->name ?? '',
+                            $service->name,
+                            $service->slug,
+                            $service->price_hint_from ?? '',
+                            '',
+                            'нет',
+                            '',
+                        ]));
+                    }
+                    $dataRowCount = min(3, $services->count());
                 }
 
-                foreach ($services->take(3) as $service) {
-                    $priceWriter->addRow(Row::fromValues([
-                        $service->specialty?->name ?? '',
-                        $service->name,
-                        $service->slug,
-                        $service->price_hint_from ?? '',
-                        '',
-                        'нет',
-                        '',
-                    ]));
-                }
+                $this->writeTemplateInputRows($priceWriter, 1 + $dataRowCount);
             }, $services);
-        });
+        }, $services->count());
     }
 
     public function exportResponse(Clinic $clinic): StreamedResponse
@@ -354,6 +360,43 @@ class PriceListExcel
         return null;
     }
 
+    private function writeTemplateInputRows(Writer $writer, int $lastFilledRow): void
+    {
+        for ($row = $lastFilledRow + 1; $row <= PriceListExcelValidations::TEMPLATE_MAX_ROW; $row++) {
+            $writer->addRow(new Row([
+                Cell::fromValue($this->specialtyFormula($row)),
+                Cell::fromValue(''),
+                Cell::fromValue($this->slugFormula($row)),
+                Cell::fromValue(''),
+                Cell::fromValue(''),
+                Cell::fromValue(''),
+                Cell::fromValue(''),
+            ]));
+        }
+    }
+
+    private function specialtyFormula(int $row): string
+    {
+        return sprintf(
+            '=IF($B%d="","",INDEX(\'%s\'!$A:$A,MATCH($B%d,\'%s\'!$B:$B,0)))',
+            $row,
+            self::SHEET_CATALOG,
+            $row,
+            self::SHEET_CATALOG,
+        );
+    }
+
+    private function slugFormula(int $row): string
+    {
+        return sprintf(
+            '=IF($B%d="","",INDEX(\'%s\'!$C:$C,MATCH($B%d,\'%s\'!$B:$B,0)))',
+            $row,
+            self::SHEET_CATALOG,
+            $row,
+            self::SHEET_CATALOG,
+        );
+    }
+
     /** @param callable(Writer): void $writer */
     private function stream(string $filename, callable $writer): StreamedResponse
     {
@@ -362,6 +405,35 @@ class PriceListExcel
             $excel->openToFile('php://output');
             $writer($excel);
             $excel->close();
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
+    }
+
+    /** @param callable(Writer): void $writer */
+    private function streamWithValidations(string $filename, callable $writer, int $catalogServiceCount): StreamedResponse
+    {
+        return response()->streamDownload(function () use ($writer, $catalogServiceCount): void {
+            $tmp = tempnam(sys_get_temp_dir(), 'price_xlsx_');
+            if ($tmp === false) {
+                throw new RuntimeException('Не удалось создать временный файл Excel.');
+            }
+
+            $path = $tmp.'.xlsx';
+            if (! rename($tmp, $path)) {
+                throw new RuntimeException('Не удалось создать временный файл Excel.');
+            }
+
+            $excel = new Writer;
+            $excel->openToFile($path);
+            $writer($excel);
+            $excel->close();
+
+            app(PriceListExcelValidations::class)->apply($path, $catalogServiceCount);
+
+            readfile($path);
+            unlink($path);
         }, $filename, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="'.$filename.'"',

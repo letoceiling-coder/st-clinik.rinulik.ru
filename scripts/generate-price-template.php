@@ -2,6 +2,7 @@
 
 use App\Models\Service;
 use App\Services\Cabinet\PriceListExcel;
+use App\Services\Cabinet\PriceListExcelValidations;
 use Illuminate\Contracts\Console\Kernel;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Reader\XLSX\Reader;
@@ -54,6 +55,8 @@ foreach ($services as $service) {
 }
 
 $writer->close();
+
+app(PriceListExcelValidations::class)->apply($path, $services->count());
 
 $reader = new Reader;
 $reader->open($path);
