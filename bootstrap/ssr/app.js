@@ -258,6 +258,38 @@ function Drawer({ open, onClose, title, children, side = "right", footer }) {
 		})
 	}) });
 }
+/** Полноэкранный просмотр изображений с кнопкой закрытия, Esc и кликом по фону. */
+function Lightbox({ open, onClose, title, children }) {
+	const ref = useRef(null);
+	useOverlay(open, onClose, ref);
+	if (!open) return null;
+	return /* @__PURE__ */ jsx(Portal, { children: /* @__PURE__ */ jsxs("div", {
+		ref,
+		className: "lightbox",
+		role: "dialog",
+		"aria-modal": "true",
+		"aria-label": title ?? "Просмотр фото",
+		tabIndex: -1,
+		onMouseDown: (e) => {
+			if (e.target === e.currentTarget) onClose();
+		},
+		children: [
+			/* @__PURE__ */ jsx(IconButton, {
+				className: "lightbox__close",
+				icon: "x",
+				label: "Закрыть",
+				onClick: onClose,
+				variant: "secondary",
+				round: true
+			}),
+			title ? /* @__PURE__ */ jsx("p", {
+				className: "lightbox__title",
+				children: title
+			}) : null,
+			children
+		]
+	}) });
+}
 /** Закрытие по клику вне элемента и Esc (для поповеров). */
 function useDismiss(open, onClose, ref) {
 	useEffect(() => {
@@ -1949,7 +1981,7 @@ function SideNav({ items, onNavigate }) {
 	});
 }
 function DashboardShell({ children, items, brandSuffix, aside, mobileLabel }) {
-	const { auth } = usePage().props;
+	const { auth, demo } = usePage().props;
 	const user = auth?.user;
 	const { url } = usePage();
 	const [open, setOpen] = useState(false);
@@ -1964,89 +1996,100 @@ function DashboardShell({ children, items, brandSuffix, aside, mobileLabel }) {
 		}),
 		/* @__PURE__ */ jsxs("div", {
 			className: "shell",
-			children: [/* @__PURE__ */ jsx("header", {
-				className: "shell__top",
-				children: /* @__PURE__ */ jsxs("div", {
-					className: "shell__top-row",
-					children: [
-						/* @__PURE__ */ jsx("button", {
-							type: "button",
-							className: "icon-link show-tablet",
-							onClick: () => setOpen(true),
-							"aria-label": `Открыть меню: ${mobileLabel}`,
-							children: /* @__PURE__ */ jsx(Icon, {
-								name: "menu",
-								size: 24
-							})
-						}),
-						/* @__PURE__ */ jsx(Logo, { suffix: brandSuffix }),
-						/* @__PURE__ */ jsx("span", { className: "grow" }),
-						/* @__PURE__ */ jsx(Link, {
-							href: "/",
-							className: "btn btn--outline btn--sm hide-mobile",
-							children: "На сайт"
-						}),
-						user ? /* @__PURE__ */ jsx("div", {
-							className: "shell__user hide-mobile",
-							children: /* @__PURE__ */ jsxs("span", {
-								className: "text-sm",
+			children: [
+				/* @__PURE__ */ jsx("header", {
+					className: "shell__top",
+					children: /* @__PURE__ */ jsxs("div", {
+						className: "shell__top-row",
+						children: [
+							/* @__PURE__ */ jsx("button", {
+								type: "button",
+								className: "icon-link show-tablet",
+								onClick: () => setOpen(true),
+								"aria-label": `Открыть меню: ${mobileLabel}`,
+								children: /* @__PURE__ */ jsx(Icon, {
+									name: "menu",
+									size: 24
+								})
+							}),
+							/* @__PURE__ */ jsx(Logo, { suffix: brandSuffix }),
+							/* @__PURE__ */ jsx("span", { className: "grow" }),
+							/* @__PURE__ */ jsx(Link, {
+								href: "/",
+								className: "btn btn--outline btn--sm hide-mobile",
+								children: "На сайт"
+							}),
+							user ? /* @__PURE__ */ jsx("div", {
+								className: "shell__user hide-mobile",
+								children: /* @__PURE__ */ jsxs("span", {
+									className: "text-sm",
+									children: [
+										/* @__PURE__ */ jsx("b", { children: user.name }),
+										/* @__PURE__ */ jsx("br", {}),
+										/* @__PURE__ */ jsx("span", {
+											className: "text-muted text-xs",
+											children: accountLabel(user)
+										})
+									]
+								})
+							}) : null,
+							/* @__PURE__ */ jsxs(Link, {
+								href: "/logout",
+								method: "post",
+								as: "button",
+								className: "btn btn--ghost btn--sm",
+								type: "button",
 								children: [
-									/* @__PURE__ */ jsx("b", { children: user.name }),
-									/* @__PURE__ */ jsx("br", {}),
+									/* @__PURE__ */ jsx(Icon, {
+										name: "logout",
+										size: 18
+									}),
+									" ",
 									/* @__PURE__ */ jsx("span", {
-										className: "text-muted text-xs",
-										children: accountLabel(user)
+										className: "hide-mobile",
+										children: "Выйти"
 									})
 								]
 							})
-						}) : null,
-						/* @__PURE__ */ jsxs(Link, {
-							href: "/logout",
-							method: "post",
-							as: "button",
-							className: "btn btn--ghost btn--sm",
-							type: "button",
-							children: [
-								/* @__PURE__ */ jsx(Icon, {
-									name: "logout",
-									size: 18
-								}),
-								" ",
-								/* @__PURE__ */ jsx("span", {
-									className: "hide-mobile",
-									children: "Выйти"
-								})
-							]
-						})
-					]
+						]
+					})
+				}),
+				demo ? /* @__PURE__ */ jsxs("div", {
+					className: "demo-banner",
+					role: "status",
+					children: [/* @__PURE__ */ jsx(Icon, {
+						name: "info",
+						size: 18
+					}), /* @__PURE__ */ jsxs("span", { children: [/* @__PURE__ */ jsx("b", { children: demo.label }), " — демонстрационный режим для согласования функционала и дизайна. Изменения могут сохраняться в системе."] })]
+				}) : null,
+				/* @__PURE__ */ jsxs("div", {
+					className: "shell__body container container--wide",
+					children: [/* @__PURE__ */ jsxs("aside", {
+						className: "shell__side hide-tablet",
+						children: [aside, /* @__PURE__ */ jsx(SideNav, { items })]
+					}), /* @__PURE__ */ jsxs("main", {
+						id: "main",
+						tabIndex: -1,
+						className: "shell__main",
+						children: [/* @__PURE__ */ jsx("div", {
+							className: "show-tablet shell__crumb",
+							children: /* @__PURE__ */ jsxs("button", {
+								type: "button",
+								className: "chip",
+								onClick: () => setOpen(true),
+								children: [
+									/* @__PURE__ */ jsx(Icon, {
+										name: "menu",
+										size: 16
+									}),
+									" ",
+									current?.label ?? mobileLabel
+								]
+							})
+						}), children]
+					})]
 				})
-			}), /* @__PURE__ */ jsxs("div", {
-				className: "shell__body container container--wide",
-				children: [/* @__PURE__ */ jsxs("aside", {
-					className: "shell__side hide-tablet",
-					children: [aside, /* @__PURE__ */ jsx(SideNav, { items })]
-				}), /* @__PURE__ */ jsxs("main", {
-					id: "main",
-					tabIndex: -1,
-					className: "shell__main",
-					children: [/* @__PURE__ */ jsx("div", {
-						className: "show-tablet shell__crumb",
-						children: /* @__PURE__ */ jsxs("button", {
-							type: "button",
-							className: "chip",
-							onClick: () => setOpen(true),
-							children: [
-								/* @__PURE__ */ jsx(Icon, {
-									name: "menu",
-									size: 16
-								}),
-								" ",
-								current?.label ?? mobileLabel
-							]
-						})
-					}), children]
-				})]
-			})]
+			]
 		}),
 		/* @__PURE__ */ jsxs(Drawer, {
 			open,
@@ -2078,6 +2121,20 @@ var ALL = [
 		icon: "shield",
 		group: "Работа",
 		perm: "admin.moderation"
+	},
+	{
+		href: "/admin/promotions",
+		label: "Продвижение",
+		icon: "sparkle",
+		group: "Работа",
+		perm: "admin.promotions"
+	},
+	{
+		href: "/admin/integrations",
+		label: "Интеграции",
+		icon: "settings",
+		group: "Система",
+		perm: "admin.integrations"
 	},
 	{
 		href: "/admin/complaints",
@@ -2308,6 +2365,12 @@ var ITEMS = [
 		group: "Профиль"
 	},
 	{
+		href: "/clinic-cabinet/promotions",
+		label: "Продвижение",
+		icon: "sparkle",
+		group: "Работа"
+	},
+	{
 		href: "/clinic-cabinet/documents",
 		label: "Документы",
 		icon: "file",
@@ -2390,55 +2453,58 @@ function CabinetLayout({ children }) {
 var renderPromise = createInertiaApp({
 	resolve: async (name, page) => {
 		const pages = /* #__PURE__ */ Object.assign({
-			"./pages/Account/Compare.tsx": () => import("./assets/Compare-CdaCzFg6.js"),
-			"./pages/Account/Favorites.tsx": () => import("./assets/Favorites-BcLocmNv.js"),
+			"./pages/Account/Compare.tsx": () => import("./assets/Compare-BZp7ljVE.js"),
+			"./pages/Account/Favorites.tsx": () => import("./assets/Favorites-Bq9CLQFj.js"),
 			"./pages/Account/History.tsx": () => import("./assets/History-CXJxxHVi.js"),
-			"./pages/Account/Leads.tsx": () => import("./assets/Leads-Rq1BYeAj.js"),
+			"./pages/Account/Leads.tsx": () => import("./assets/Leads-CuqytL9c.js"),
 			"./pages/Account/Notifications.tsx": () => import("./assets/Notifications-D6vGEftR.js"),
 			"./pages/Account/Overview.tsx": () => import("./assets/Overview-J843BDtf.js"),
-			"./pages/Account/Profile.tsx": () => import("./assets/Profile-DcuGAPyQ.js"),
-			"./pages/Account/Reviews.tsx": () => import("./assets/Reviews-CbBl4fV-.js"),
-			"./pages/Admin/Audit.tsx": () => import("./assets/Audit-DAIDFdgN.js"),
-			"./pages/Admin/Clinics.tsx": () => import("./assets/Clinics-BcYqCKN3.js"),
-			"./pages/Admin/Complaints.tsx": () => import("./assets/Complaints-DUBcEKI2.js"),
+			"./pages/Account/Profile.tsx": () => import("./assets/Profile-CduNuPkm.js"),
+			"./pages/Account/Reviews.tsx": () => import("./assets/Reviews-Br9R_eoF.js"),
+			"./pages/Admin/Audit.tsx": () => import("./assets/Audit-DRfCHE_x.js"),
+			"./pages/Admin/Clinics.tsx": () => import("./assets/Clinics-BMiNMrc2.js"),
+			"./pages/Admin/Complaints.tsx": () => import("./assets/Complaints-Dqt8E9Vl.js"),
 			"./pages/Admin/Dashboard.tsx": () => import("./assets/Dashboard-CCv_fAZc.js"),
-			"./pages/Admin/Dictionary.tsx": () => import("./assets/Dictionary-KCX_-YJT.js"),
-			"./pages/Admin/Doctors.tsx": () => import("./assets/Doctors-Bqu0mljn.js"),
+			"./pages/Admin/Dictionary.tsx": () => import("./assets/Dictionary-CjCROHIC.js"),
+			"./pages/Admin/Doctors.tsx": () => import("./assets/Doctors-Cg5Cw8_E.js"),
 			"./pages/Admin/Duplicates.tsx": () => import("./assets/Duplicates-5S5A6Drs.js"),
-			"./pages/Admin/Moderation.tsx": () => import("./assets/Moderation-Cxlu9OGL.js"),
-			"./pages/Admin/Reviews.tsx": () => import("./assets/Reviews-BBsucXfk.js"),
-			"./pages/Admin/Roles.tsx": () => import("./assets/Roles-ynd5uf8q.js"),
-			"./pages/Admin/Users.tsx": () => import("./assets/Users-DPxUerMM.js"),
-			"./pages/Auth/Login.tsx": () => import("./assets/Login-BoTWgPME.js"),
-			"./pages/Auth/Register.tsx": () => import("./assets/Register-C0BHM9Uh.js"),
-			"./pages/Cabinet/BranchForm.tsx": () => import("./assets/BranchForm-YT4islSP.js"),
+			"./pages/Admin/Integrations.tsx": () => import("./assets/Integrations-vArgLjik.js"),
+			"./pages/Admin/Moderation.tsx": () => import("./assets/Moderation-C_HIDBNw.js"),
+			"./pages/Admin/Promotions.tsx": () => import("./assets/Promotions-h_nAEZ61.js"),
+			"./pages/Admin/Reviews.tsx": () => import("./assets/Reviews-BK6dnIhD.js"),
+			"./pages/Admin/Roles.tsx": () => import("./assets/Roles-BMMHms-y.js"),
+			"./pages/Admin/Users.tsx": () => import("./assets/Users-sUAPThbQ.js"),
+			"./pages/Auth/Login.tsx": () => import("./assets/Login-RMakiVfO.js"),
+			"./pages/Auth/Register.tsx": () => import("./assets/Register-CWDTWSPi.js"),
+			"./pages/Cabinet/BranchForm.tsx": () => import("./assets/BranchForm-RH8V8IDe.js"),
 			"./pages/Cabinet/Branches.tsx": () => import("./assets/Branches-Bbm-Ncso.js"),
 			"./pages/Cabinet/Dashboard.tsx": () => import("./assets/Dashboard-CEaneuX6.js"),
-			"./pages/Cabinet/DoctorForm.tsx": () => import("./assets/DoctorForm-DI-fKADG.js"),
+			"./pages/Cabinet/DoctorForm.tsx": () => import("./assets/DoctorForm-CwUq5BH8.js"),
 			"./pages/Cabinet/Doctors.tsx": () => import("./assets/Doctors-RDfGh8EB.js"),
-			"./pages/Cabinet/Documents.tsx": () => import("./assets/Documents-DCwUUdVQ.js"),
-			"./pages/Cabinet/Leads.tsx": () => import("./assets/Leads-CVHF5uOk.js"),
-			"./pages/Cabinet/Photos.tsx": () => import("./assets/Photos-C-gDl9yE.js"),
-			"./pages/Cabinet/Posts.tsx": () => import("./assets/Posts-DLOw5J9E.js"),
-			"./pages/Cabinet/Prices.tsx": () => import("./assets/Prices-C_Yo0Z_2.js"),
-			"./pages/Cabinet/Reviews.tsx": () => import("./assets/Reviews-B6v4Szuc.js"),
-			"./pages/Cabinet/Schedule.tsx": () => import("./assets/Schedule-NiRpVU_D.js"),
+			"./pages/Cabinet/Documents.tsx": () => import("./assets/Documents-_acBd7dY.js"),
+			"./pages/Cabinet/Leads.tsx": () => import("./assets/Leads-Bdnt4ZUp.js"),
+			"./pages/Cabinet/Photos.tsx": () => import("./assets/Photos-DQedY7ab.js"),
+			"./pages/Cabinet/Posts.tsx": () => import("./assets/Posts-NSzdtHQI.js"),
+			"./pages/Cabinet/Prices.tsx": () => import("./assets/Prices-BMwLlTcw.js"),
+			"./pages/Cabinet/Promotions.tsx": () => import("./assets/Promotions-B6rxH8cI.js"),
+			"./pages/Cabinet/Reviews.tsx": () => import("./assets/Reviews-Fw0nGJE_.js"),
+			"./pages/Cabinet/Schedule.tsx": () => import("./assets/Schedule-CQ5ZcIXI.js"),
 			"./pages/Cabinet/Stats.tsx": () => import("./assets/Stats-CyS-c2DK.js"),
-			"./pages/Clinics/Index.tsx": () => import("./assets/Index-BQU9Q59H.js"),
-			"./pages/Clinics/Show.tsx": () => import("./assets/Show-BTzmSm5i.js"),
-			"./pages/Collections/Compare.tsx": () => import("./assets/Compare-CIyyrIhk.js"),
-			"./pages/Collections/Favorites.tsx": () => import("./assets/Favorites-rNH1ymXz.js"),
-			"./pages/Concerns/Show.tsx": () => import("./assets/Show-7IzpseOZ.js"),
+			"./pages/Clinics/Index.tsx": () => import("./assets/Index-Hp4rkRCg.js"),
+			"./pages/Clinics/Show.tsx": () => import("./assets/Show-CMkNUwuq.js"),
+			"./pages/Collections/Compare.tsx": () => import("./assets/Compare-bB3_dfM2.js"),
+			"./pages/Collections/Favorites.tsx": () => import("./assets/Favorites-D-7ZcA9B.js"),
+			"./pages/Concerns/Show.tsx": () => import("./assets/Show-Cz7ISUnL.js"),
 			"./pages/Directions/Index.tsx": () => import("./assets/Index-DayQOtsm.js"),
-			"./pages/Directions/Show.tsx": () => import("./assets/Show-BU4cov4l.js"),
-			"./pages/Doctors/Index.tsx": () => import("./assets/Index-eBDakCBL.js"),
-			"./pages/Doctors/Show.tsx": () => import("./assets/Show-BAIrb2Tv.js"),
+			"./pages/Directions/Show.tsx": () => import("./assets/Show-CG2TSMvF.js"),
+			"./pages/Doctors/Index.tsx": () => import("./assets/Index-DQHJCprN.js"),
+			"./pages/Doctors/Show.tsx": () => import("./assets/Show-DYaGDkJW.js"),
 			"./pages/Error.tsx": () => import("./assets/Error-BJpSNI3r.js"),
-			"./pages/Home.tsx": () => import("./assets/Home-C6cPq7Yr.js"),
+			"./pages/Home.tsx": () => import("./assets/Home-ldtwrnNa.js"),
 			"./pages/Page.tsx": () => import("./assets/Page-hGncEqSS.js"),
-			"./pages/Prices/Index.tsx": () => import("./assets/Index-AFJsbZBK.js"),
-			"./pages/Reviews/Index.tsx": () => import("./assets/Index-Dvcl0vaz.js"),
-			"./pages/Search/Index.tsx": () => import("./assets/Index-BEfSSxCl.js")
+			"./pages/Prices/Index.tsx": () => import("./assets/Index-DPGL8JUB.js"),
+			"./pages/Reviews/Index.tsx": () => import("./assets/Index-DS3b4BFF.js"),
+			"./pages/Search/Index.tsx": () => import("./assets/Index-4syr01Hu.js")
 		});
 		const module = await (pages[`./pages/${name}.tsx`] || pages[`./pages/${name}.jsx`] || pages[`./Pages/${name}.tsx`] || pages[`./Pages/${name}.jsx`])?.();
 		if (!module) throw new Error(`Page not found: ${name}`);
@@ -2463,6 +2529,6 @@ var renderPage = async (page) => {
 };
 createServer(renderPage);
 //#endregion
-export { TextField as S, Modal as _, Alert as a, SelectField as b, Breadcrumbs as c, Pagination as d, renderPage as default, SectionHead as f, Drawer as g, Tabs as h, useLead as i, EmptyState as l, Stars as m, useCity as n, Avatar as o, Skeleton as p, SearchBox as r, Badge$1 as s, useCollections as t, ErrorState as u, Check as v, TextArea as x, SearchInput as y };
+export { TextField as C, TextArea as S, Lightbox as _, Alert as a, SearchInput as b, Breadcrumbs as c, Pagination as d, renderPage as default, SectionHead as f, Drawer as g, Tabs as h, useLead as i, EmptyState as l, Stars as m, useCity as n, Avatar as o, Skeleton as p, SearchBox as r, Badge$1 as s, useCollections as t, ErrorState as u, Modal as v, SelectField as x, Check as y };
 
 //# sourceMappingURL=app.js.map

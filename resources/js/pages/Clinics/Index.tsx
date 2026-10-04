@@ -1,5 +1,6 @@
 import { usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import AdSlot, { type AdBanner } from '@/components/AdSlot';
 import ClinicCard, { ClinicCardSkeleton } from '@/components/ClinicCard';
 import { CatalogLayout, useCatalog } from '@/components/Catalog';
 import { EmptyState, Breadcrumbs, Pagination } from '@/components/ui/Misc';
@@ -11,6 +12,8 @@ import type { ClinicCardData, Crumb, Flat, FilterOptions, MapClinicPoint, Pagina
 
 interface Props {
     clinics: Paginated<ClinicCardData>;
+    recommended_clinics: ClinicCardData[];
+    banner_catalog: AdBanner[];
     map_clinics: MapClinicPoint[];
     filters: Flat;
     options: FilterOptions;
@@ -18,7 +21,7 @@ interface Props {
     breadcrumbs: Crumb[];
 }
 
-export default function ClinicsIndex({ clinics, map_clinics, filters, options, service_name, breadcrumbs }: Props) {
+export default function ClinicsIndex({ clinics, recommended_clinics, banner_catalog, map_clinics, filters, options, service_name, breadcrumbs }: Props) {
     const city = useCity();
     const { seo } = usePage<SharedProps>().props;
     const cat = useCatalog(filters);
@@ -41,6 +44,22 @@ export default function ClinicsIndex({ clinics, map_clinics, filters, options, s
                 mode="clinics"
                 total={<b>{clinics.total > 0 ? `Найдено: ${clinicsWord(clinics.total)}` : 'Ничего не найдено'}</b>}
             >
+                {recommended_clinics.length > 0 && !cat.loading ? (
+                    <section className="recommended-block stack" aria-labelledby="recommended-h">
+                        <div className="recommended-block__head">
+                            <h2 id="recommended-h">Рекомендуем</h2>
+                            <span className="text-xs text-muted">Продвижение</span>
+                        </div>
+                        <div className="stack-lg">
+                            {recommended_clinics.map((c, i) => (
+                                <ClinicCard key={c.id} clinic={c} priority={i < 2} />
+                            ))}
+                        </div>
+                    </section>
+                ) : null}
+
+                <AdSlot banners={banner_catalog} />
+
                 {map_clinics.length > 0 ? (
                     <section className={cx('catalog__map card', mapOpen && 'catalog__map--open')} aria-labelledby="catalog-map-h">
                         <div className="catalog__map-head">

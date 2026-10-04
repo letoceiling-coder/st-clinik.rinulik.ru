@@ -12,11 +12,13 @@ use App\Repositories\Eloquent\EloquentCatalogRepository;
 use App\Repositories\Eloquent\EloquentClinicRepository;
 use App\Repositories\Eloquent\EloquentDoctorRepository;
 use App\Repositories\Eloquent\EloquentReviewRepository;
+use App\Services\IntegrationSettings;
 use App\Services\Seo;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
@@ -34,6 +36,10 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        if (Schema::hasTable('integration_settings')) {
+            app(IntegrationSettings::class)->applyToConfig();
+        }
+
         $appUrl = (string) config('app.url');
         if ($appUrl !== '') {
             URL::forceRootUrl($appUrl);

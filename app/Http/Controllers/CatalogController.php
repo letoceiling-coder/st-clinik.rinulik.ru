@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\ClinicResource;
 use App\Http\Resources\DoctorResource;
+use App\Http\Resources\PromotionBannerResource;
 use App\Http\Resources\ReviewResource;
 use App\Models\City;
 use App\Repositories\Contracts\CatalogRepository;
@@ -12,6 +13,7 @@ use App\Repositories\Contracts\DoctorRepository;
 use App\Repositories\Contracts\ReviewRepository;
 use App\Repositories\Filters\ClinicFilters;
 use App\Repositories\Filters\DoctorFilters;
+use App\Services\PromotionService;
 use App\Services\SchemaOrg;
 use App\Services\Seo;
 use App\Support\Text;
@@ -28,6 +30,7 @@ class CatalogController extends Controller
         private readonly ReviewRepository $reviews,
         private readonly Seo $seo,
         private readonly SchemaOrg $schema,
+        private readonly PromotionService $promotions,
     ) {}
 
     /** @return list<array{0:string,1:string}> */
@@ -54,6 +57,11 @@ class CatalogController extends Controller
     {
         $filters = ClinicFilters::fromArray($request->query(), $city->id);
         $page = $this->clinics->paginate($filters, 12);
+        $boosted = collect($this->promotions->boostedClinicIds($city->id))->flip();
+        $page->getCollection()->each(fn ($c) => $c->setAttribute('is_promoted', $boosted->has($c->id)));
+
+        $recommended = $this->clinics->byIds($this->promotions->boostedClinicIds($city->id));
+        $recommended->each(fn ($c) => $c->setAttribute('is_promoted', true));
 
         $serviceName = $filters->service ? $this->catalog->services()->firstWhere('slug', $filters->service)?->name : null;
         $seoData = $this->seo->build('city_clinics', ['city' => $city->name, 'city_in' => $city->name_in, 'count' => $page->total()], [
@@ -63,6 +71,8 @@ class CatalogController extends Controller
 
         return $this->page('Clinics/Index', [
             'clinics' => $this->paged($page, ClinicResource::class),
+            'recommended_clinics' => ClinicResource::collection($recommended)->resolve(),
+            'banner_catalog' => PromotionBannerResource::collection($this->promotions->activeBanners($city->id, 'banner_catalog'))->resolve(),
             'map_clinics' => $this->clinics->mapPoints($filters)->map(fn ($c) => [
                 'slug' => $c->slug,
                 'name' => $c->name,

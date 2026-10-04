@@ -37,6 +37,7 @@ const ITEMS: NavItem[] = [
     { href: '/clinic-cabinet/schedule', label: 'График работы', icon: 'clock', group: 'Профиль' },
     { href: '/clinic-cabinet/photos', label: 'Фото', icon: 'image', group: 'Профиль' },
     { href: '/clinic-cabinet/posts', label: 'Новости и акции', icon: 'flash', group: 'Профиль' },
+    { href: '/clinic-cabinet/promotions', label: 'Продвижение', icon: 'sparkle', group: 'Работа' },
     { href: '/clinic-cabinet/documents', label: 'Документы', icon: 'file', group: 'Профиль' },
 ];
 

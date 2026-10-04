@@ -99,6 +99,7 @@ export interface ClinicCardData {
     doctors_count: number;
     min_price: number | null;
     is_verified: boolean;
+    is_promoted?: boolean;
     is_24_7: boolean;
     accepts_children: boolean;
     children_age_from: number | null;

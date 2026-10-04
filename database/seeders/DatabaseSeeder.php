@@ -9,6 +9,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(FoundationSeeder::class);
+        $this->call(PromotionSeeder::class);
 
         if (config('app.seed_demo', true)) {
             $this->call(DemoSeeder::class);

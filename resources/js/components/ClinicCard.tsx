@@ -231,6 +231,11 @@ export default function ClinicCard({
                     </div>
 
                     <div className="clinic-card__flags">
+                        {clinic.is_promoted ? (
+                            <Badge tone="warning" icon="sparkle">
+                                Рекомендуем
+                            </Badge>
+                        ) : null}
                         {clinic.is_verified ? (
                             <Badge tone="success" icon="shield">
                                 Проверена

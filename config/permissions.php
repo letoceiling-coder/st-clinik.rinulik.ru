@@ -15,6 +15,8 @@ return [
         'admin.seo' => 'SEO-шаблоны',
         'admin.roles' => 'Роли и права',
         'admin.audit' => 'Журнал аудита',
+        'admin.promotions' => 'Продвижение и тарифы',
+        'admin.integrations' => 'Интеграции',
     ],
 
     'defaults' => [
@@ -39,7 +41,7 @@ return [
         'content_manager' => [
             'name' => 'Контент-менеджер',
             'description' => 'Справочники, CMS и SEO.',
-            'permissions' => ['admin.dashboard', 'admin.dictionaries', 'admin.cms', 'admin.seo'],
+            'permissions' => ['admin.dashboard', 'admin.dictionaries', 'admin.cms', 'admin.seo', 'admin.promotions'],
         ],
         'superadmin' => [
             'name' => 'Суперадмин',

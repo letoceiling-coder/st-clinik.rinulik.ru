@@ -69,6 +69,10 @@ docker cp "${APP_DIR}/bootstrap/app.php" "${CONTAINER}:/var/www/html/bootstrap/a
 docker cp "${APP_DIR}/resources/js/." "${CONTAINER}:/var/www/html/resources/js/" 2>/dev/null || true
 docker cp "${APP_DIR}/resources/css/." "${CONTAINER}:/var/www/html/resources/css/" 2>/dev/null || true
 docker cp "${APP_DIR}/routes/." "${CONTAINER}:/var/www/html/routes/"
+docker cp "${APP_DIR}/config/integrations.php" "${CONTAINER}:/var/www/html/config/integrations.php" 2>/dev/null || true
+docker cp "${APP_DIR}/config/yookassa.php" "${CONTAINER}:/var/www/html/config/yookassa.php" 2>/dev/null || true
+docker cp "${APP_DIR}/config/permissions.php" "${CONTAINER}:/var/www/html/config/permissions.php" 2>/dev/null || true
+docker cp "${APP_DIR}/config/services.php" "${CONTAINER}:/var/www/html/config/services.php" 2>/dev/null || true
 docker cp "${APP_DIR}/resources/views/." "${CONTAINER}:/var/www/html/resources/views/" 2>/dev/null || true
 docker cp "${APP_DIR}/database/migrations/." "${CONTAINER}:/var/www/html/database/migrations/" 2>/dev/null || true
 docker cp "${APP_DIR}/database/seeders/." "${CONTAINER}:/var/www/html/database/seeders/" 2>/dev/null || true

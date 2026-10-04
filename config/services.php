@@ -39,4 +39,25 @@ return [
         'maps_api_key' => env('YANDEX_MAPS_API_KEY'),
     ],
 
+    'yandex_oauth' => [
+        'client_id' => env('YANDEX_OAUTH_CLIENT_ID'),
+        'client_secret' => env('YANDEX_OAUTH_CLIENT_SECRET'),
+        'redirect_uri' => env('YANDEX_OAUTH_REDIRECT_URI'),
+        'enabled' => (bool) env('YANDEX_OAUTH_ENABLED', false),
+    ],
+
+    'vk_oauth' => [
+        'client_id' => env('VK_OAUTH_CLIENT_ID'),
+        'client_secret' => env('VK_OAUTH_CLIENT_SECRET'),
+        'redirect_uri' => env('VK_OAUTH_REDIRECT_URI'),
+        'enabled' => (bool) env('VK_OAUTH_ENABLED', false),
+    ],
+
+    'max_oauth' => [
+        'client_id' => env('MAX_OAUTH_CLIENT_ID'),
+        'client_secret' => env('MAX_OAUTH_CLIENT_SECRET'),
+        'redirect_uri' => env('MAX_OAUTH_REDIRECT_URI'),
+        'enabled' => (bool) env('MAX_OAUTH_ENABLED', false),
+    ],
+
 ];

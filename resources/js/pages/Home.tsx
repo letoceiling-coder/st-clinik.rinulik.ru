@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import AdSlot, { type AdBanner } from '@/components/AdSlot';
 import ClinicCard from '@/components/ClinicCard';
 import DoctorCard from '@/components/DoctorCard';
 import Icon from '@/components/Icon';
@@ -20,6 +21,7 @@ interface Props {
     top_clinics: ClinicCardData[];
     top_doctors: DoctorData[];
     latest_reviews: ReviewData[];
+    banner_home: AdBanner[];
 }
 
 const TRUST = [
@@ -28,7 +30,7 @@ const TRUST = [
     { icon: 'ruble', title: 'Честные цены «от»', text: 'Показываем минимальные цены клиник. Итоговую стоимость называет врач после осмотра.' },
 ] as const;
 
-export default function Home({ stats, concerns, popular_services, specialties, top_clinics, top_doctors, latest_reviews }: Props) {
+export default function Home({ stats, concerns, popular_services, specialties, top_clinics, top_doctors, latest_reviews, banner_home }: Props) {
     const city = useCity();
 
     return (
@@ -87,6 +89,14 @@ export default function Home({ stats, concerns, popular_services, specialties, t
                     </div>
                 </div>
             </section>
+
+            {banner_home.length > 0 ? (
+                <section className="section section--tight">
+                    <div className="container">
+                        <AdSlot banners={banner_home} />
+                    </div>
+                </section>
+            ) : null}
 
             <section className="section section--tight" aria-labelledby="concerns-h">
                 <div className="container">

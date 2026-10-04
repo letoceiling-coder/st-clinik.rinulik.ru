@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\ClinicResource;
 use App\Http\Resources\DoctorResource;
+use App\Http\Resources\PromotionBannerResource;
 use App\Http\Resources\ReviewResource;
 use App\Models\Doctor;
 use App\Models\Lead;
@@ -12,6 +13,7 @@ use App\Repositories\Contracts\CatalogRepository;
 use App\Repositories\Contracts\ClinicRepository;
 use App\Repositories\Contracts\DoctorRepository;
 use App\Repositories\Contracts\ReviewRepository;
+use App\Services\PromotionService;
 use App\Services\SchemaOrg;
 use App\Services\Seo;
 use Illuminate\Support\Facades\Cache;
@@ -26,6 +28,7 @@ class HomeController extends Controller
         ReviewRepository $reviews,
         Seo $seo,
         SchemaOrg $schema,
+        PromotionService $promotions,
     ): Response {
         $city = $this->city();
 
@@ -63,6 +66,7 @@ class HomeController extends Controller
             'top_clinics' => ClinicResource::collection($clinics->top($city->id, 6))->resolve(),
             'top_doctors' => DoctorResource::collection($doctors->top($city->id, 6))->resolve(),
             'latest_reviews' => ReviewResource::collection($reviews->latest($city->id, 6))->resolve(),
+            'banner_home' => PromotionBannerResource::collection($promotions->activeBanners($city->id, 'banner_home'))->resolve(),
         ], $seoData);
     }
 }

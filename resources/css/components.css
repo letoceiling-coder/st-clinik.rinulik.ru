@@ -1461,3 +1461,112 @@ a.page-btn:hover {
 .demo-photo--loading .demo-photo__img {
     opacity: 0;
 }
+
+/* ---------- Продвижение / реклама ---------- */
+.ad-slot__label,
+.recommended-block__head span {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.ad-slot {
+    margin-bottom: var(--space-lg);
+}
+.ad-slot__grid {
+    display: grid;
+    gap: var(--space-md);
+}
+.ad-slot__banner {
+    display: grid;
+    gap: var(--space-sm);
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    color: inherit;
+    text-decoration: none;
+}
+.ad-slot__banner img {
+    width: 100%;
+    max-height: 220px;
+    object-fit: cover;
+}
+.ad-slot__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    padding: 0 var(--space-md) var(--space-md);
+    font-size: var(--text-sm);
+}
+.ad-slot__mark {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+}
+.recommended-block {
+    margin-bottom: var(--space-xl);
+    padding: var(--space-lg);
+    border: 1px solid color-mix(in srgb, var(--color-warning) 35%, var(--color-border));
+    border-radius: var(--radius-lg);
+    background: color-mix(in srgb, var(--color-warning) 6%, var(--color-surface));
+}
+.recommended-block__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+}
+.promo-grid {
+    display: grid;
+    gap: var(--space-lg);
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+.promo-offer__title {
+    margin: 0;
+    font-size: var(--text-lg);
+}
+.promo-offer__price {
+    font-size: var(--text-lg);
+}
+.promo-moderation__img {
+    max-width: 100%;
+    max-height: 240px;
+    border-radius: var(--radius-md);
+}
+
+/* ---------- Интеграции (админка) ---------- */
+.integration-card__title {
+    margin: 0;
+    font-size: var(--text-lg);
+}
+.integration-card__head {
+    gap: var(--space-md);
+}
+.integration-instructions {
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-muted);
+}
+.integration-instructions code {
+    font-size: 0.9em;
+    word-break: break-all;
+}
+.integration-hints {
+    display: grid;
+    gap: var(--space-sm);
+    margin: 0;
+}
+.integration-hints dt {
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.integration-hints dd {
+    margin: 0;
+}
+.integration-form {
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--color-border);
+}

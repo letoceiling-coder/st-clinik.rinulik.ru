@@ -24,6 +24,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
         $middleware->encryptCookies(except: ['city']);
 
+        $middleware->validateCsrfTokens(except: [
+            'payments/yookassa/webhook',
+        ]);
+
         $middleware->web(append: [
             SetCurrentCity::class,
             HandleInertiaRequests::class,

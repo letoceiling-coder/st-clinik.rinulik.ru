@@ -36,6 +36,7 @@ class ClinicResource extends JsonResource
             'doctors_count' => (int) $c->doctors_count,
             'min_price' => $c->min_price,
             'is_verified' => (bool) $c->is_verified,
+            'is_promoted' => (bool) ($c->is_promoted ?? false),
             'is_24_7' => (bool) $c->is_24_7,
             'accepts_children' => (bool) $c->accepts_children,
             'children_age_from' => $c->children_age_from,

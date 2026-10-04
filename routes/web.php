@@ -14,6 +14,8 @@ use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PaymentWebhookController;
+use App\Http\Controllers\PromotionTrackingController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SeoController;
@@ -36,6 +38,9 @@ foreach (['privacy', 'consent', 'review-rules', 'terms', 'about', 'for-clinics']
 Route::get('/favorites', [CollectionPagesController::class, 'favorites'])->name('favorites');
 Route::get('/compare', [CollectionPagesController::class, 'compare'])->name('compare');
 Route::post('/city/{city}', [CityController::class, 'switch'])->name('city.switch');
+Route::post('/payments/yookassa/webhook', [PaymentWebhookController::class, 'yookassa'])->name('payments.yookassa.webhook');
+Route::get('/promotions/{promotion}/click', [PromotionTrackingController::class, 'click'])->name('promotions.click')->whereNumber('promotion');
+Route::get('/promotions/{promotion}/impression', [PromotionTrackingController::class, 'impression'])->name('promotions.impression')->whereNumber('promotion');
 
 // --- Временные демо-входы для согласования с заказчиком -----------------
 if (config('demo.enabled')) {
@@ -136,6 +141,10 @@ Route::middleware(['auth', 'clinic.owner'])->prefix('clinic-cabinet')->name('cab
 
     Route::get('/leads', [Cabinet\LeadController::class, 'index'])->name('leads');
     Route::put('/leads/{lead}', [Cabinet\LeadController::class, 'update'])->name('leads.update')->whereNumber('lead');
+
+    Route::get('/promotions', [Cabinet\PromotionController::class, 'index'])->name('promotions');
+    Route::post('/promotions/checkout', [Cabinet\PromotionController::class, 'checkout'])->name('promotions.checkout');
+    Route::get('/promotions/return/{order}', [Cabinet\PromotionController::class, 'return'])->name('promotions.return')->whereNumber('order');
 });
 
 // --- Админ-панель --------------------------------------------------------
@@ -194,6 +203,24 @@ Route::middleware(['auth', 'perm:admin.dashboard'])->prefix('admin')->name('admi
     });
 
     Route::get('/audit', [Admin\AuditController::class, 'index'])->middleware('perm:admin.audit')->name('audit');
+
+    Route::middleware('perm:admin.integrations')->prefix('integrations')->name('integrations.')->group(function () {
+        Route::get('/', [Admin\IntegrationController::class, 'index'])->name('index');
+        Route::put('/{group}', [Admin\IntegrationController::class, 'update'])->name('update');
+    });
+
+    Route::middleware('perm:admin.promotions')->prefix('promotions')->name('promotions.')->group(function () {
+        Route::get('/', [Admin\PromotionController::class, 'index'])->name('index');
+        Route::post('/products', [Admin\PromotionController::class, 'storeProduct'])->name('products.store');
+        Route::put('/products/{product}', [Admin\PromotionController::class, 'updateProduct'])->name('products.update');
+        Route::post('/packages', [Admin\PromotionController::class, 'storePackage'])->name('packages.store');
+        Route::put('/packages/{package}', [Admin\PromotionController::class, 'updatePackage'])->name('packages.update');
+        Route::post('/prices', [Admin\PromotionController::class, 'storePrice'])->name('prices.store');
+        Route::delete('/prices/{price}', [Admin\PromotionController::class, 'destroyPrice'])->name('prices.destroy');
+        Route::post('/settings', [Admin\PromotionController::class, 'storeSetting'])->name('settings.store');
+        Route::post('/orders/{order}/approve', [Admin\PromotionController::class, 'approveOrder'])->name('orders.approve');
+        Route::post('/orders/{order}/reject', [Admin\PromotionController::class, 'rejectOrder'])->name('orders.reject');
+    });
 });
 
 // --- Городские страницы (последними, чтобы не перехватывать служебные URL) ---

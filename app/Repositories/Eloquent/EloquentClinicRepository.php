@@ -3,6 +3,7 @@
 namespace App\Repositories\Eloquent;
 
 use App\Models\Clinic;
+use App\Models\ClinicPromotion;
 use App\Models\ClinicService;
 use App\Repositories\Contracts\ClinicRepository;
 use App\Repositories\Filters\ClinicFilters;
@@ -23,7 +24,7 @@ class EloquentClinicRepository implements ClinicRepository
         $query = $this->filteredQuery($f);
         $this->withCardRelations($query);
 
-        return $query;
+        return $this->sort($query, $f->sort, $f->cityId);
     }
 
     public function mapPoints(ClinicFilters $f, int $limit = 50): Collection
@@ -33,6 +34,7 @@ class EloquentClinicRepository implements ClinicRepository
                 ->whereNotNull('clinics.lat')
                 ->whereNotNull('clinics.lng'),
             $f->sort,
+            $f->cityId,
         )
             ->limit($limit)
             ->get(['clinics.id', 'clinics.slug', 'clinics.name', 'clinics.lat', 'clinics.lng', 'clinics.address']);
@@ -87,8 +89,21 @@ class EloquentClinicRepository implements ClinicRepository
         return $query;
     }
 
-    private function sort(Builder $query, string $sort): Builder
+    private function sort(Builder $query, string $sort, ?int $cityId = null): Builder
     {
+        if ($cityId && $sort === 'relevance') {
+            $boosted = ClinicPromotion::query()
+                ->active()
+                ->where('city_id', $cityId)
+                ->where('product_code', 'boost')
+                ->pluck('clinic_id');
+
+            if ($boosted->isNotEmpty()) {
+                $ids = $boosted->implode(',');
+                $query->orderByRaw("case when clinics.id in ({$ids}) then 0 else 1 end");
+            }
+        }
+
         return (match ($sort) {
             'rating' => $query->orderByDesc('clinics.rating')->orderByDesc('clinics.reviews_count'),
             'reviews' => $query->orderByDesc('clinics.reviews_count')->orderByDesc('clinics.rating'),
