@@ -2,7 +2,7 @@ import { useForm, usePage } from '@inertiajs/react';
 import { useEffect, useState, type FormEvent } from 'react';
 import BannerCropper from '@/components/BannerCropper';
 import BannerPreview from '@/components/BannerPreview';
-import { PageHead } from '@/components/Dash';
+import { PageHead, Table } from '@/components/Dash';
 import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/Fields';
 import { Badge, EmptyState } from '@/components/ui/Misc';
@@ -258,37 +258,25 @@ export default function CabinetPromotions({ products, packages, active, orders, 
             {orders.length > 0 ? (
                 <section className="stack">
                     <h2>Последние заказы</h2>
-                    <div className="table-wrap">
-                        <table className="table">
-                            <thead>
-                                <tr>
-                                    <th>Дата</th>
-                                    <th>Сумма</th>
-                                    <th>Статус</th>
-                                    <th />
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {orders.map((o) => (
-                                    <tr key={o.id}>
-                                        <td>{o.created_at}</td>
-                                        <td>{formatPrice(o.amount)}</td>
-                                        <td>
-                                            {o.status}
-                                            {o.moderation_status ? ` / ${o.moderation_status}` : ''}
-                                        </td>
-                                        <td>
-                                            {o.status === 'pending_payment' && o.payment_url ? (
-                                                <a href={o.payment_url} className="link">
-                                                    Оплатить
-                                                </a>
-                                            ) : null}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                    <Table headers={['Дата', 'Сумма', 'Статус', '']}>
+                        {orders.map((o) => (
+                            <tr key={o.id}>
+                                <td>{o.created_at}</td>
+                                <td>{formatPrice(o.amount)}</td>
+                                <td>
+                                    {o.status}
+                                    {o.moderation_status ? ` / ${o.moderation_status}` : ''}
+                                </td>
+                                <td>
+                                    {o.status === 'pending_payment' && o.payment_url ? (
+                                        <a href={o.payment_url} className="link">
+                                            Оплатить
+                                        </a>
+                                    ) : null}
+                                </td>
+                            </tr>
+                        ))}
+                    </Table>
                 </section>
             ) : null}
         </>

@@ -1,5 +1,5 @@
 import { Link, router } from '@inertiajs/react';
-import type { FormEvent, ReactNode } from 'react';
+import { Children, cloneElement, isValidElement, type FormEvent, type ReactElement, type ReactNode } from 'react';
 import { cx } from '@/lib/format';
 import type { Paginated } from '@/lib/types';
 import { Button } from './ui/Button';
@@ -83,20 +83,47 @@ export function FilterBar({ action = '', children }: { action?: string; children
     );
 }
 
+function labelRows(headers: string[], children: ReactNode): ReactNode {
+    return Children.map(children, (row) => {
+        if (!isValidElement(row)) {
+            return row;
+        }
+
+        const cells = Children.toArray(row.props.children);
+        return cloneElement(
+            row as ReactElement<{ children?: ReactNode }>,
+            {},
+            cells.map((cell, index) => {
+                if (!isValidElement(cell)) {
+                    return cell;
+                }
+
+                if (cell.props['data-label'] !== undefined) {
+                    return cell;
+                }
+
+                return cloneElement(cell as ReactElement<{ 'data-label'?: string }>, {
+                    'data-label': headers[index] ?? '',
+                });
+            }),
+        );
+    });
+}
+
 export function Table({ headers, children }: { headers: string[]; children: ReactNode }) {
     return (
         <div className="table-wrap">
-            <table className="table">
+            <table className="table table--responsive">
                 <thead>
                     <tr>
-                        {headers.map((h) => (
-                            <th key={h} scope="col">
+                        {headers.map((h, index) => (
+                            <th key={`${h}-${index}`} scope="col">
                                 {h}
                             </th>
                         ))}
                     </tr>
                 </thead>
-                <tbody>{children}</tbody>
+                <tbody>{labelRows(headers, children)}</tbody>
             </table>
         </div>
     );
