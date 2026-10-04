@@ -158,6 +158,7 @@ Route::middleware(['auth', 'perm:admin.dashboard'])->prefix('admin')->name('admi
 
     Route::middleware('perm:admin.clinics')->group(function () {
         Route::get('/clinics', [Admin\ClinicController::class, 'index'])->name('clinics');
+        Route::get('/clinics/{clinic}', [Admin\ClinicController::class, 'show'])->name('clinics.show');
         Route::put('/clinics/{clinic}', [Admin\ClinicController::class, 'update'])->name('clinics.update');
         Route::delete('/clinics/{clinic}', [Admin\ClinicController::class, 'destroy'])->name('clinics.destroy');
     });

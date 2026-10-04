@@ -29,14 +29,46 @@ class ClinicController extends AdminController
 
         return $this->render('Admin/Clinics', 'Клиники', [
             'clinics' => $page->through(fn (Clinic $c) => [
-                'id' => $c->id, 'name' => $c->name, 'slug' => $c->slug, 'city' => $c->city?->name, 'organization' => $c->organization?->name,
-                'address' => $c->address, 'status' => $c->status, 'is_verified' => $c->is_verified, 'rating' => $c->rating,
-                'reviews_count' => $c->reviews_count, 'completeness' => $c->completeness, 'moderation_note' => $c->moderation_note,
-                'seo_title' => $c->seo_title, 'seo_description' => $c->seo_description,
+                'id' => $c->id,
+                'name' => $c->name,
+                'slug' => $c->slug,
+                'city' => $c->city?->name,
+                'organization' => $c->organization?->name,
+                'address' => $c->address,
+                'status' => $c->status,
+                'is_verified' => $c->is_verified,
+                'rating' => $c->rating,
+                'reviews_count' => $c->reviews_count,
+                'completeness' => $c->completeness,
             ])->toArray(),
             'cities' => City::orderBy('name')->get(['id', 'name']),
             'statuses' => Clinic::STATUSES,
             'filters' => array_filter(['q' => $q, 'status' => $status, 'city' => $city]),
+        ]);
+    }
+
+    public function show(Clinic $clinic): Response
+    {
+        $clinic->load(['city:id,name', 'organization:id,name']);
+
+        return $this->render('Admin/ClinicShow', $clinic->name, [
+            'clinic' => [
+                'id' => $clinic->id,
+                'name' => $clinic->name,
+                'slug' => $clinic->slug,
+                'city' => $clinic->city?->name,
+                'organization' => $clinic->organization?->name,
+                'address' => $clinic->address,
+                'status' => $clinic->status,
+                'is_verified' => $clinic->is_verified,
+                'rating' => $clinic->rating,
+                'reviews_count' => $clinic->reviews_count,
+                'completeness' => $clinic->completeness,
+                'moderation_note' => $clinic->moderation_note,
+                'seo_title' => $clinic->seo_title,
+                'seo_description' => $clinic->seo_description,
+            ],
+            'statuses' => Clinic::STATUSES,
         ]);
     }
 
@@ -69,7 +101,7 @@ class ClinicController extends AdminController
         Audit::log('clinic.deleted', $clinic, ['name' => $clinic->name]);
         $clinic->delete();
 
-        return back()->with('success', 'Клиника удалена.');
+        return redirect()->route('admin.clinics')->with('success', 'Клиника удалена.');
     }
 
     public function doctors(Request $request): Response

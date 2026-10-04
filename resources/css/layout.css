@@ -2194,6 +2194,48 @@
 .kpi dd { font-size: var(--fs-2xl); font-weight: 800; }
 .filter-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
 .filter-bar .field { min-width: 180px; }
+.city-search {
+    position: relative;
+    min-width: 220px;
+}
+.city-search__list {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    max-height: 280px;
+    margin: 0;
+    padding: 6px;
+    overflow-y: auto;
+    list-style: none;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-16);
+    background: #fff;
+    box-shadow: var(--shadow-pop);
+}
+.city-search__option {
+    display: block;
+    width: 100%;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: var(--radius-12);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+}
+.city-search__option:hover,
+.city-search__option.is-active {
+    background: var(--color-surface-muted);
+}
+.city-search__empty {
+    padding: 10px 12px;
+    color: var(--color-muted);
+    font-size: var(--fs-sm);
+}
 
 .hit-list { display: grid; gap: 10px; }
 .hit { display: grid; gap: 4px; }
