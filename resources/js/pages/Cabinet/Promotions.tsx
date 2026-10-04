@@ -120,26 +120,21 @@ function CheckoutForm({
         });
     };
 
-    const formBlock = (
-        <div className="stack">
-            <div className="row row--wrap row--between">
-                <div className="stack" style={{ gap: 4 }}>
-                    <h3 className="promo-offer__title">{name}</h3>
-                    {durationDays ? <p className="text-sm text-muted">Срок: {formatDuration(durationDays)}</p> : null}
-                    {description ? <p className="text-sm text-muted">{description}</p> : null}
-                </div>
-                <strong className="promo-offer__price">{formatPrice(price)}</strong>
+    const header = (
+        <div className="promo-offer__head row row--wrap row--between">
+            <div className="promo-offer__intro">
+                <h3 className="promo-offer__title">{name}</h3>
+                {durationDays ? <p className="text-sm text-muted">Срок: {formatDuration(durationDays)}</p> : null}
+                {description ? <p className="text-sm text-muted">{description}</p> : null}
             </div>
-            {requiresBanner && bannerSpec ? (
-                <>
-                    <TextField label="Заголовок баннера" required value={form.data.banner_title} onChange={(e) => form.setData('banner_title', e.target.value)} error={form.errors.banner_title} />
-                    <TextField label="Ссылка при клике" required type="url" value={form.data.banner_url} onChange={(e) => form.setData('banner_url', e.target.value)} error={form.errors.banner_url} hint="Обычно страница клиники или акции" />
-                    <BannerCropper spec={bannerSpec} value={form.data.banner_image} onChange={(file) => form.setData('banner_image', file)} error={form.errors.banner_image} />
-                    <p className="text-xs text-muted">После оплаты баннер отправится на модерацию администратора.</p>
-                </>
-            ) : null}
+            <strong className="promo-offer__price">{formatPrice(price)}</strong>
+        </div>
+    );
+
+    const footer = (
+        <div className="promo-offer__footer">
             {disabledReason ? <p className="alert alert--warning">{disabledReason}</p> : null}
-            <Button type="submit" disabled={form.processing || !price || disabled}>
+            <Button type="submit" block disabled={form.processing || !price || disabled}>
                 Оплатить через ЮKassa
             </Button>
             {'payment' in form.errors && form.errors.payment ? <p className="field-error">{String(form.errors.payment)}</p> : null}
@@ -147,14 +142,30 @@ function CheckoutForm({
     );
 
     return (
-        <form className={bannerSpec ? 'card promo-banner-offer' : 'card stack promo-offer'} onSubmit={submit}>
+        <form className={bannerSpec ? 'card promo-offer promo-offer--banner' : 'card promo-offer'} onSubmit={submit}>
             {bannerSpec ? (
-                <div className="promo-banner-offer__grid">
-                    {formBlock}
-                    <BannerPreview slot={bannerSpec.slot} imageUrl={previewUrl} title={form.data.banner_title} placementLabel={bannerSpec.placementLabel} />
-                </div>
+                <>
+                    {header}
+                    <div className="promo-banner-offer__grid">
+                        <div className="promo-banner-offer__form stack">
+                            <TextField label="Заголовок баннера" required value={form.data.banner_title} onChange={(e) => form.setData('banner_title', e.target.value)} error={form.errors.banner_title} />
+                            <TextField label="Ссылка при клике" required type="url" value={form.data.banner_url} onChange={(e) => form.setData('banner_url', e.target.value)} error={form.errors.banner_url} hint="Обычно страница клиники или акции" />
+                            <BannerCropper spec={bannerSpec} value={form.data.banner_image} onChange={(file) => form.setData('banner_image', file)} error={form.errors.banner_image} />
+                            <p className="text-xs text-muted">После оплаты баннер отправится на модерацию администратора.</p>
+                        </div>
+                        <div className="promo-banner-offer__preview">
+                            <BannerPreview slot={bannerSpec.slot} imageUrl={previewUrl} title={form.data.banner_title} placementLabel={bannerSpec.placementLabel} />
+                        </div>
+                    </div>
+                    {footer}
+                </>
             ) : (
-                formBlock
+                <>
+                    <div className="promo-offer__body stack">
+                        {header}
+                    </div>
+                    {footer}
+                </>
             )}
         </form>
     );
@@ -212,13 +223,13 @@ export default function CabinetPromotions({ products, packages, active, orders, 
                 {products.length === 0 ? (
                     <EmptyState title="Доп. опции пока не настроены" />
                 ) : (
-                    <div className="promo-grid">
+                    <div className="promo-grid promo-grid--addons">
                         {products.map((p) => {
                             const isBanner = p.code === 'banner_home' || p.code === 'banner_catalog';
 
                             return (
-                                <div key={p.id} className={isBanner ? 'promo-banner-offer' : 'stack'}>
-                                    {p.available === 0 ? <p className="text-sm text-muted">Свободных мест: 0</p> : null}
+                                <div key={p.id} className={isBanner ? 'promo-grid__item promo-grid__item--wide' : 'promo-grid__item'}>
+                                    {p.available === 0 ? <p className="text-sm text-muted promo-grid__note">Свободных мест: 0</p> : null}
                                     <CheckoutForm
                                         type="product"
                                         id={p.id}
