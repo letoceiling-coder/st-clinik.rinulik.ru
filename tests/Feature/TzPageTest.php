@@ -20,12 +20,17 @@ class TzPageTest extends TestCase
 
     public function test_tz_page_renders_markdown_document(): void
     {
+        config(['demo.enabled' => true]);
+
         $this->get(route('tz'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Tz')
                 ->has('page.html')
                 ->where('page.html', fn (string $html) => str_contains($html, 'ТЕХНИЧЕСКОЕ ЗАДАНИЕ'))
+                ->has('demo_links', 2)
+                ->where('demo_links.0.href', route('demo.cabinet'))
+                ->where('demo_links.1.href', route('demo.admin'))
             );
     }
 }

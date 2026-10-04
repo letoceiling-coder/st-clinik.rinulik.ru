@@ -36,11 +36,19 @@ class PageController extends Controller
         $seoData = $seo->private('Техническое задание');
         $seoData['description'] = 'Техническое задание на разработку веб-платформы поиска стоматологических клиник, врачей и онлайн-записи.';
 
+        $demoLinks = config('demo.enabled')
+            ? [
+                ['href' => route('demo.cabinet'), 'label' => 'Демо: кабинет клиники'],
+                ['href' => route('demo.admin'), 'label' => 'Демо: админ-панель'],
+            ]
+            : [];
+
         return $this->page('Tz', [
             'page' => [
                 'html' => Str::markdown((string) file_get_contents($path), ['html_input' => 'strip', 'allow_unsafe_links' => false]),
                 'updated_at' => date('Y-m-d', (int) filemtime($path)),
             ],
+            'demo_links' => $demoLinks,
         ], $seoData);
     }
 }
