@@ -14,12 +14,14 @@ PUBLIC_VOLUME="${PUBLIC_VOLUME:-st-clinik-public}"
 
 cd "$APP_DIR"
 
-if [ -d .git ]; then
-    git fetch origin
-    git checkout "$BRANCH"
-    git pull --ff-only origin "$BRANCH"
+if [ -d .git ] && [ "${SKIP_GIT_PULL:-0}" != "1" ]; then
+    if git fetch origin && git checkout "$BRANCH" && git pull --ff-only origin "$BRANCH"; then
+        echo "Git pull OK."
+    else
+        echo "Warning: git pull failed — continuing with files already on disk." >&2
+    fi
 else
-    echo "Warning: ${APP_DIR} is not a git repo. Skipping git pull." >&2
+    echo "Skipping git pull (no repo or SKIP_GIT_PULL=1)." >&2
 fi
 
 echo "==> Building frontend assets"
