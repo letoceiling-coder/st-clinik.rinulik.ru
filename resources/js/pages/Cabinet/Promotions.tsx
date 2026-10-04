@@ -1,10 +1,12 @@
 import { useForm, usePage } from '@inertiajs/react';
-import { type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
+import BannerCropper from '@/components/BannerCropper';
+import BannerPreview from '@/components/BannerPreview';
 import { PageHead } from '@/components/Dash';
 import { Button } from '@/components/ui/Button';
-import FileDropzone from '@/components/ui/FileDropzone';
 import { TextField } from '@/components/ui/Fields';
 import { Badge, EmptyState } from '@/components/ui/Misc';
+import { BANNER_SPECS, type BannerProductCode } from '@/lib/banner-specs';
 import type { SharedProps } from '@/lib/types';
 
 interface Product {
@@ -70,6 +72,7 @@ function CheckoutForm({
     type,
     id,
     requiresBanner,
+    bannerCode,
     name,
     price,
     description,
@@ -80,6 +83,7 @@ function CheckoutForm({
     type: 'product' | 'package';
     id: number;
     requiresBanner: boolean;
+    bannerCode?: BannerProductCode;
     name: string;
     price: number | null | undefined;
     description?: string | null;
@@ -87,6 +91,7 @@ function CheckoutForm({
     disabled?: boolean;
     disabledReason?: string;
 }) {
+    const bannerSpec = bannerCode ? BANNER_SPECS[bannerCode] : null;
     const form = useForm({
         type,
         id,
@@ -94,6 +99,18 @@ function CheckoutForm({
         banner_url: '',
         banner_image: null as File | null,
     });
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!form.data.banner_image) {
+            setPreviewUrl(null);
+            return undefined;
+        }
+        const url = URL.createObjectURL(form.data.banner_image);
+        setPreviewUrl(url);
+
+        return () => URL.revokeObjectURL(url);
+    }, [form.data.banner_image]);
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
@@ -103,8 +120,8 @@ function CheckoutForm({
         });
     };
 
-    return (
-        <form className="card stack promo-offer" onSubmit={submit}>
+    const formBlock = (
+        <div className="stack">
             <div className="row row--wrap row--between">
                 <div className="stack" style={{ gap: 4 }}>
                     <h3 className="promo-offer__title">{name}</h3>
@@ -113,18 +130,32 @@ function CheckoutForm({
                 </div>
                 <strong className="promo-offer__price">{formatPrice(price)}</strong>
             </div>
-            {requiresBanner ? (
+            {requiresBanner && bannerSpec ? (
                 <>
                     <TextField label="Заголовок баннера" required value={form.data.banner_title} onChange={(e) => form.setData('banner_title', e.target.value)} error={form.errors.banner_title} />
                     <TextField label="Ссылка при клике" required type="url" value={form.data.banner_url} onChange={(e) => form.setData('banner_url', e.target.value)} error={form.errors.banner_url} hint="Обычно страница клиники или акции" />
-                    <FileDropzone label="Изображение баннера" accept="image/*" onChange={(file) => form.setData('banner_image', file)} error={form.errors.banner_image} hint="JPG или PNG, до 4 МБ. После оплаты — модерация администратора." />
+                    <BannerCropper spec={bannerSpec} value={form.data.banner_image} onChange={(file) => form.setData('banner_image', file)} error={form.errors.banner_image} />
+                    <p className="text-xs text-muted">После оплаты баннер отправится на модерацию администратора.</p>
                 </>
             ) : null}
             {disabledReason ? <p className="alert alert--warning">{disabledReason}</p> : null}
             <Button type="submit" disabled={form.processing || !price || disabled}>
                 Оплатить через ЮKassa
             </Button>
-            {form.errors.payment ? <p className="field-error">{form.errors.payment}</p> : null}
+            {'payment' in form.errors && form.errors.payment ? <p className="field-error">{String(form.errors.payment)}</p> : null}
+        </div>
+    );
+
+    return (
+        <form className={bannerSpec ? 'card promo-banner-offer' : 'card stack promo-offer'} onSubmit={submit}>
+            {bannerSpec ? (
+                <div className="promo-banner-offer__grid">
+                    {formBlock}
+                    <BannerPreview slot={bannerSpec.slot} imageUrl={previewUrl} title={form.data.banner_title} placementLabel={bannerSpec.placementLabel} />
+                </div>
+            ) : (
+                formBlock
+            )}
         </form>
     );
 }
@@ -182,28 +213,33 @@ export default function CabinetPromotions({ products, packages, active, orders, 
                     <EmptyState title="Доп. опции пока не настроены" />
                 ) : (
                     <div className="promo-grid">
-                        {products.map((p) => (
-                            <div key={p.id} className="stack">
-                                {p.available === 0 ? <p className="text-sm text-muted">Свободных мест: 0</p> : null}
-                                <CheckoutForm
-                                    type="product"
-                                    id={p.id}
-                                    name={p.name}
-                                    price={p.price}
-                                    description={p.description}
-                                    durationDays={p.duration_days}
-                                    requiresBanner={p.requires_moderation}
-                                    disabled={!has_publication || p.available === 0}
-                                    disabledReason={
-                                        !has_publication
-                                            ? 'Требуется активный пакет публикации.'
-                                            : p.available === 0
-                                              ? 'Достигнут лимит размещений в вашем городе.'
-                                              : undefined
-                                    }
-                                />
-                            </div>
-                        ))}
+                        {products.map((p) => {
+                            const isBanner = p.code === 'banner_home' || p.code === 'banner_catalog';
+
+                            return (
+                                <div key={p.id} className={isBanner ? 'promo-banner-offer' : 'stack'}>
+                                    {p.available === 0 ? <p className="text-sm text-muted">Свободных мест: 0</p> : null}
+                                    <CheckoutForm
+                                        type="product"
+                                        id={p.id}
+                                        name={p.name}
+                                        price={p.price}
+                                        description={p.description}
+                                        durationDays={p.duration_days}
+                                        requiresBanner={p.requires_moderation}
+                                        bannerCode={isBanner ? (p.code as BannerProductCode) : undefined}
+                                        disabled={!has_publication || p.available === 0}
+                                        disabledReason={
+                                            !has_publication
+                                                ? 'Требуется активный пакет публикации.'
+                                                : p.available === 0
+                                                  ? 'Достигнут лимит размещений в вашем городе.'
+                                                  : undefined
+                                        }
+                                    />
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
             </section>

@@ -93,7 +93,7 @@ export default function Home({ stats, concerns, popular_services, specialties, t
             {banner_home.length > 0 ? (
                 <section className="section section--tight">
                     <div className="container">
-                        <AdSlot banners={banner_home} />
+                        <AdSlot banners={banner_home} slot="home" />
                     </div>
                 </section>
             ) : null}

@@ -1,4 +1,6 @@
 import { useEffect, useRef } from 'react';
+import { cx } from '@/lib/format';
+import type { BannerSlot } from '@/lib/banner-specs';
 
 export interface AdBanner {
     id: number;
@@ -9,7 +11,7 @@ export interface AdBanner {
     impression_url: string;
 }
 
-export default function AdSlot({ banners, label = 'Реклама' }: { banners: AdBanner[]; label?: string }) {
+export default function AdSlot({ banners, label = 'Реклама', slot = 'home' }: { banners: AdBanner[]; label?: string; slot?: BannerSlot }) {
     const tracked = useRef<Set<number>>(new Set());
 
     useEffect(() => {
@@ -28,12 +30,14 @@ export default function AdSlot({ banners, label = 'Реклама' }: { banners:
     }
 
     return (
-        <section className="ad-slot" aria-label={label}>
+        <section className={cx('ad-slot', `ad-slot--${slot}`)} aria-label={label}>
             <p className="ad-slot__label">{label}</p>
             <div className="ad-slot__grid">
                 {banners.map((b) => (
                     <a key={b.id} href={b.click_url} className="ad-slot__banner" target="_blank" rel="noopener sponsored">
-                        {b.image_url ? <img src={b.image_url} alt={b.title ?? b.clinic_name ?? 'Рекламный баннер'} loading="lazy" /> : null}
+                        <div className="ad-slot__media">
+                            {b.image_url ? <img src={b.image_url} alt={b.title ?? b.clinic_name ?? 'Рекламный баннер'} loading="lazy" decoding="async" /> : null}
+                        </div>
                         <span className="ad-slot__meta">
                             {b.title ?? b.clinic_name}
                             <span className="ad-slot__mark">Реклама</span>

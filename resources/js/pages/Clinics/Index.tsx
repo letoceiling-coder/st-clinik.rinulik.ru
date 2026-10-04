@@ -58,7 +58,7 @@ export default function ClinicsIndex({ clinics, recommended_clinics, banner_cata
                     </section>
                 ) : null}
 
-                <AdSlot banners={banner_catalog} />
+                <AdSlot banners={banner_catalog} slot="catalog" />
 
                 {map_clinics.length > 0 ? (
                     <section className={cx('catalog__map card', mapOpen && 'catalog__map--open')} aria-labelledby="catalog-map-h">
