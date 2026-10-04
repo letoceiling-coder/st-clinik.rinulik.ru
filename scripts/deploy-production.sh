@@ -19,11 +19,12 @@ if [ -f .env ] && [ ! -f .env.production.backup ]; then
 fi
 
 if [ -d .git ] && [ "${SKIP_GIT_PULL:-0}" != "1" ]; then
-    if git fetch origin && git checkout "$BRANCH" && git pull --ff-only origin "$BRANCH"; then
-        echo "Git pull OK."
-    else
-        echo "Warning: git pull failed — continuing with files already on disk." >&2
-    fi
+    git fetch origin
+    git checkout "$BRANCH"
+    # Сбрасываем артефакты сборки на сервере, иначе pull может не пройти.
+    git reset --hard "origin/${BRANCH}"
+    git clean -fd -- bootstrap/ssr public/build 2>/dev/null || true
+    echo "Git sync OK (${BRANCH} @ $(git rev-parse --short HEAD))."
 else
     echo "Skipping git pull (no repo or SKIP_GIT_PULL=1)." >&2
 fi
