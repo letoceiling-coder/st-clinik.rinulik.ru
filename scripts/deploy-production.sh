@@ -57,7 +57,7 @@ if [ -d "${APP_DIR}/public/downloads" ]; then
 fi
 
 echo "==> Rebuilding and restarting app container"
-$COMPOSE build app
+$COMPOSE build --no-cache app
 $COMPOSE up -d app web
 
 echo "==> Syncing build manifest into running app container"
@@ -78,6 +78,7 @@ docker cp "${APP_DIR}/database/migrations/." "${CONTAINER}:/var/www/html/databas
 docker cp "${APP_DIR}/database/seeders/." "${CONTAINER}:/var/www/html/database/seeders/" 2>/dev/null || true
 docker cp "${APP_DIR}/lang/." "${CONTAINER}:/var/www/html/lang/" 2>/dev/null || true
 docker cp "${APP_DIR}/deploy/entrypoint.sh" "${CONTAINER}:/entrypoint.sh"
+docker exec "$CONTAINER" chmod +x /entrypoint.sh
 
 echo "==> Running migrations and clearing caches"
 docker exec "$CONTAINER" php artisan migrate --force --no-interaction

@@ -1240,13 +1240,13 @@ function useClientSeo() {
 		if (seo.title) document.title = seo.title;
 		upsert("meta[name=\"description\"]", () => Object.assign(document.createElement("meta"), { name: "description" }), "content", seo.description);
 		upsert("link[rel=\"canonical\"]", () => Object.assign(document.createElement("link"), { rel: "canonical" }), "href", seo.canonical);
-		upsert("meta[name=\"robots\"]", () => Object.assign(document.createElement("meta"), { name: "robots" }), "content", seo.robots ?? (app.noindex ? "noindex, nofollow" : "index, follow"));
+		upsert("meta[name=\"robots\"]", () => Object.assign(document.createElement("meta"), { name: "robots" }), "content", seo.robots ?? (app?.noindex ? "noindex, nofollow" : "index, follow"));
 	}, [
 		seo?.title,
 		seo?.description,
 		seo?.canonical,
 		seo?.robots,
-		app.noindex
+		app?.noindex
 	]);
 }
 //#endregion
