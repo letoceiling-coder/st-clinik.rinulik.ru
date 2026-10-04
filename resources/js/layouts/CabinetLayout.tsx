@@ -95,7 +95,7 @@ function BranchSwitcher() {
 
 export default function CabinetLayout({ children }: { children: ReactNode }) {
     return (
-        <DashboardShell items={ITEMS} brandSuffix="для клиник" mobileLabel="Кабинет клиники" aside={<BranchSwitcher />}>
+        <DashboardShell items={ITEMS} brandSuffix="для клиник" mobileBrandSuffix="Клиника" mobileLabel="Кабинет клиники" aside={<BranchSwitcher />}>
             {children}
         </DashboardShell>
     );

@@ -31,7 +31,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     const { auth } = usePage<SharedProps>().props;
     const items = useMemo(() => ALL.filter((i) => can(auth?.user, i.perm)), [auth?.user]);
     return (
-        <DashboardShell items={items} brandSuffix="админ-панель" mobileLabel="Админ-панель">
+        <DashboardShell items={items} brandSuffix="админ-панель" mobileBrandSuffix="Админ" mobileLabel="Админ-панель">
             {children}
         </DashboardShell>
     );

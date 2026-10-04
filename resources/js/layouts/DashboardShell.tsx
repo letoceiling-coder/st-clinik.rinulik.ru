@@ -59,12 +59,14 @@ export default function DashboardShell({
     children,
     items,
     brandSuffix,
+    mobileBrandSuffix,
     aside,
     mobileLabel,
 }: {
     children: ReactNode;
     items: NavItem[];
     brandSuffix: string;
+    mobileBrandSuffix?: string;
     aside?: ReactNode;
     mobileLabel: string;
 }) {
@@ -104,7 +106,7 @@ export default function DashboardShell({
                         <button type="button" className="icon-link show-tablet" onClick={() => setOpen(true)} aria-label={`Открыть меню: ${mobileLabel}`}>
                             <Icon name="menu" size={24} />
                         </button>
-                        <Logo suffix={brandSuffix} />
+                        <Logo suffix={brandSuffix} mobileSuffix={mobileBrandSuffix ?? brandSuffix} />
                         <span className="grow" />
                         <Link href="/" className="btn btn--outline btn--sm hide-mobile">
                             На сайт

@@ -57,8 +57,10 @@ export default function Clinics({
                             <td>{c.city ?? '—'}</td>
                             <td className="text-sm">{c.organization ?? '—'}</td>
                             <td>
-                                <StatusBadge status={c.status} />
-                                {c.is_verified ? <span className="text-xs text-muted"> · проверена</span> : null}
+                                <div className="table-cell-content">
+                                    <StatusBadge status={c.status} />
+                                    {c.is_verified ? <span className="text-xs text-muted">Проверена</span> : null}
+                                </div>
                             </td>
                             <td>
                                 {c.rating > 0 ? c.rating.toFixed(1) : '—'}

@@ -13,13 +13,16 @@ export function LogoMark({ size = 36 }: { size?: number }) {
     );
 }
 
-export default function Logo({ to = '/', suffix }: { to?: string; suffix?: string }) {
+export default function Logo({ to = '/', suffix, mobileSuffix }: { to?: string; suffix?: string; mobileSuffix?: string }) {
     const appName = usePage<SharedProps>().props.app?.name ?? 'СтомКлиник';
+    const shortSuffix = mobileSuffix ?? suffix;
+
     return (
         <Link href={to} className="logo" aria-label={`${appName} — на главную`}>
             <LogoMark />
             <span className="logo__text">{appName}</span>
-            {suffix ? <span className="logo__suffix">{suffix}</span> : null}
+            {suffix ? <span className="logo__suffix hide-mobile">{suffix}</span> : null}
+            {shortSuffix ? <span className="logo__suffix show-mobile">{shortSuffix}</span> : null}
         </Link>
     );
 }

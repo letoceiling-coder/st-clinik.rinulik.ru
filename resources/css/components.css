@@ -1390,35 +1390,52 @@ a.page-btn:hover {
         background: transparent;
     }
     .table.table--responsive td {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 12px;
+        display: block;
         padding: 10px 16px;
         border-top: none;
         border-bottom: 1px solid var(--color-border);
         text-align: left;
+        min-width: 0;
+        overflow-wrap: anywhere;
     }
     .table.table--responsive td:last-child {
         border-bottom: none;
     }
     .table.table--responsive td::before {
         content: attr(data-label);
-        flex: 0 0 38%;
-        max-width: 132px;
+        display: block;
+        margin-bottom: 6px;
         font-size: var(--fs-xs);
         font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 0.04em;
         color: var(--color-muted);
-        padding-top: 2px;
+    }
+    .table.table--responsive .table-cell-content {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px 10px;
+        min-width: 0;
+    }
+    .table.table--responsive td .row--wrap {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    .table.table--responsive td .select,
+    .table.table--responsive td .select--sm {
+        width: 100%;
+        max-width: 100%;
     }
     .table.table--responsive td[data-label='']::before {
         display: none;
     }
     .table.table--responsive td[data-label=''] {
-        display: block;
         padding-top: 12px;
+    }
+    .table.table--responsive td[data-label=''] .btn {
+        width: 100%;
     }
     .table.table--responsive td:first-child:not(.doctor-list__photo) {
         display: block;
@@ -1691,7 +1708,7 @@ a.page-btn:hover {
 .promo-grid {
     display: grid;
     gap: var(--space-6);
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
 }
 .promo-grid--addons {
     gap: var(--space-8);
