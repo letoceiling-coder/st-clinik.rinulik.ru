@@ -15,4 +15,5 @@ bootstrap/cache/*.php
 !.env.example
 deploy/*.tgz
 *.md
+!tz.md
 agent-transcripts

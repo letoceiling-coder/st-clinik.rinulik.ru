@@ -69,6 +69,7 @@ docker cp "${APP_DIR}/bootstrap/app.php" "${CONTAINER}:/var/www/html/bootstrap/a
 docker cp "${APP_DIR}/resources/js/." "${CONTAINER}:/var/www/html/resources/js/" 2>/dev/null || true
 docker cp "${APP_DIR}/resources/css/." "${CONTAINER}:/var/www/html/resources/css/" 2>/dev/null || true
 docker cp "${APP_DIR}/routes/." "${CONTAINER}:/var/www/html/routes/"
+docker cp "${APP_DIR}/tz.md" "${CONTAINER}:/var/www/html/tz.md" 2>/dev/null || true
 docker cp "${APP_DIR}/config/integrations.php" "${CONTAINER}:/var/www/html/config/integrations.php" 2>/dev/null || true
 docker cp "${APP_DIR}/config/yookassa.php" "${CONTAINER}:/var/www/html/config/yookassa.php" 2>/dev/null || true
 docker cp "${APP_DIR}/config/permissions.php" "${CONTAINER}:/var/www/html/config/permissions.php" 2>/dev/null || true
