@@ -17,6 +17,7 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -33,6 +34,14 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $appUrl = (string) config('app.url');
+        if ($appUrl !== '') {
+            URL::forceRootUrl($appUrl);
+            if (str_starts_with($appUrl, 'https://')) {
+                URL::forceScheme('https');
+            }
+        }
+
         Route::pattern('city', '(?!account|admin|clinic-cabinet|api|login|register|storage|build)[a-z0-9\-]+');
         Route::bind('city', function (string $slug) {
             return app(CatalogRepository::class)->city($slug) ?? abort(404);

@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use App\Models\ClinicPost;
 use App\Support\Schedule;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 /** Полная карточка клиники (страница клиники). */
 class ClinicDetailResource extends ClinicResource
@@ -51,7 +52,7 @@ class ClinicDetailResource extends ClinicResource
             ])->values(),
             'week' => Schedule::week($c->schedule),
             'photos' => $c->photos->map(fn ($p) => [
-                'kind' => $p->kind, 'caption' => $p->caption, 'art_seed' => $p->art_seed, 'url' => $p->path ? asset('storage/'.$p->path) : null,
+                'kind' => $p->kind, 'caption' => $p->caption, 'art_seed' => $p->art_seed, 'url' => $p->path ? Storage::disk('public')->url($p->path) : null,
             ])->values(),
             'doctors' => $c->doctors->map(fn ($d) => DoctorResource::make($d)->resolve($request))->values(),
             'prices' => $prices,
@@ -68,7 +69,7 @@ class ClinicDetailResource extends ClinicResource
                 'ends_at' => $post->ends_at?->toDateString(),
                 'is_pinned' => $post->is_pinned,
                 'published_at' => $post->created_at?->format('d.m.Y'),
-                'image_url' => $post->image_path ? asset('storage/'.$post->image_path) : null,
+                'image_url' => $post->image_path ? Storage::disk('public')->url($post->image_path) : null,
             ])->values(),
         ]);
     }
