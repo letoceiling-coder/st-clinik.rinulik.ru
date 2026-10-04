@@ -1932,21 +1932,51 @@ a.page-btn:hover {
 }
 
 /* ---------- Интеграции (админка) ---------- */
+.integration-card {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
 .integration-card__title {
     margin: 0;
     font-size: var(--text-lg);
 }
 .integration-card__head {
+    display: grid;
     gap: var(--space-md);
+}
+.integration-card__intro {
+    min-width: 0;
+}
+.integration-card__tools {
+    display: grid;
+    gap: 10px;
+    width: 100%;
+}
+.integration-card__tools .btn {
+    width: 100%;
+    white-space: normal;
+    min-width: 0;
+}
+.integration-card__tools .badge {
+    justify-self: start;
 }
 .integration-instructions {
     padding: var(--space-md);
     border-radius: var(--radius-md);
     background: var(--color-surface-muted);
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+.integration-instructions p,
+.integration-instructions code,
+.integration-instructions a {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    max-width: 100%;
 }
 .integration-instructions code {
     font-size: 0.9em;
-    word-break: break-all;
+    white-space: pre-wrap;
 }
 .integration-hints {
     display: grid;
@@ -1961,67 +1991,95 @@ a.page-btn:hover {
 .integration-hints dd {
     margin: 0;
 }
+.integration-hints code {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    white-space: pre-wrap;
+}
 .integration-form {
     padding-top: var(--space-md);
     border-top: 1px solid var(--color-border);
 }
-.integration-card {
-    min-width: 0;
+.integration-meta {
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 .integration-meta code {
     word-break: break-all;
 }
-.integration-card__tools {
-    gap: var(--space-sm);
-}
 .integration-form__actions {
     padding-top: var(--space-xs);
 }
+.integration-form__actions .btn {
+    width: 100%;
+    white-space: normal;
+}
+@media (min-width: 768px) {
+    .integration-card__head {
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: start;
+    }
+    .integration-card__tools {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        width: auto;
+        gap: 8px;
+    }
+    .integration-card__tools .btn {
+        width: auto;
+    }
+    .integration-form__actions .btn {
+        width: auto;
+    }
+}
 
 /* ---------- Жалобы (админка) ---------- */
+.complaint-card {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.complaint-card__head {
+    display: grid;
+    gap: 8px;
+}
 .complaint-card__reason {
-    flex: 1 1 auto;
     min-width: 0;
     word-break: break-word;
 }
 .complaint-card__comment,
 .complaint-card__review {
     word-break: break-word;
+    overflow-wrap: anywhere;
 }
 .complaint-card__head .badge {
-    flex: none;
+    justify-self: start;
+}
+@media (min-width: 640px) {
+    .complaint-card__head {
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: start;
+        gap: 12px;
+    }
+    .complaint-card__head .badge {
+        justify-self: end;
+    }
 }
 
 /* ---------- Кнопки в карточках (админка) ---------- */
 .card-actions {
-    flex-wrap: wrap;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 1fr;
 }
-.card-actions__btn {
-    flex: 1 1 160px;
+.card-actions .btn {
+    width: 100%;
+    white-space: normal;
+    min-width: 0;
 }
-@media (max-width: 767px) {
-    .integration-card__head {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    .integration-card__tools {
-        flex-direction: column;
-        align-items: stretch;
-        width: 100%;
-    }
-    .integration-card__tools .btn,
-    .integration-card__toggle {
-        width: 100%;
-    }
-    .integration-form__actions .btn {
-        width: 100%;
-    }
+@media (min-width: 640px) {
     .card-actions {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    .card-actions__btn {
-        flex: none;
-        width: 100%;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     }
 }

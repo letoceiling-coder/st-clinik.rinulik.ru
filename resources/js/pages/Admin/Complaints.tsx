@@ -28,7 +28,7 @@ export default function Complaints({ complaints, filters }: { complaints: Pagina
             </FilterBar>
             {complaints.data.map((c) => (
                 <article key={c.id} className="card stack complaint-card">
-                    <div className="row row--between row--wrap complaint-card__head">
+                    <div className="complaint-card__head">
                         <b className="complaint-card__reason">{c.reason}</b>
                         <StatusBadge status={c.status} />
                     </div>
@@ -42,11 +42,11 @@ export default function Complaints({ complaints, filters }: { complaints: Pagina
                         </blockquote>
                     ) : null}
                     {c.status === 'open' ? (
-                        <div className="row card-actions">
-                            <Button size="sm" block className="card-actions__btn" onClick={() => decide(c.id, 'uphold')}>
+                        <div className="card-actions">
+                            <Button size="sm" block onClick={() => decide(c.id, 'uphold')}>
                                 Скрыть отзыв
                             </Button>
-                            <Button size="sm" variant="secondary" block className="card-actions__btn" onClick={() => decide(c.id, 'reject')}>
+                            <Button size="sm" variant="secondary" block onClick={() => decide(c.id, 'reject')}>
                                 Оставить отзыв
                             </Button>
                         </div>

@@ -67,12 +67,12 @@ function GroupCard({ group }: { group: Group }) {
 
     return (
         <article className="card stack integration-card">
-            <div className="row row--wrap row--between integration-card__head">
-                <div>
+            <div className="integration-card__head">
+                <div className="integration-card__intro">
                     <h2 className="integration-card__title">{group.title}</h2>
                     <p className="text-sm text-muted">{group.description}</p>
                 </div>
-                <div className="row row--wrap integration-card__tools">
+                <div className="integration-card__tools">
                     <Badge tone={group.status.configured ? 'success' : 'warning'}>
                         {group.status.configured ? 'Настроено' : `Заполнено ${group.status.filled}/${group.status.total}`}
                     </Badge>

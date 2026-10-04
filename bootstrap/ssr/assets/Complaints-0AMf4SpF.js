@@ -43,7 +43,7 @@ function Complaints({ complaints, filters }) {
 				className: "card stack complaint-card",
 				children: [
 					/* @__PURE__ */ jsxs("div", {
-						className: "row row--between row--wrap complaint-card__head",
+						className: "complaint-card__head",
 						children: [/* @__PURE__ */ jsx("b", {
 							className: "complaint-card__reason",
 							children: c.reason
@@ -74,18 +74,16 @@ function Complaints({ complaints, filters }) {
 						]
 					}) : null,
 					c.status === "open" ? /* @__PURE__ */ jsxs("div", {
-						className: "row card-actions",
+						className: "card-actions",
 						children: [/* @__PURE__ */ jsx(Button, {
 							size: "sm",
 							block: true,
-							className: "card-actions__btn",
 							onClick: () => decide(c.id, "uphold"),
 							children: "Скрыть отзыв"
 						}), /* @__PURE__ */ jsx(Button, {
 							size: "sm",
 							variant: "secondary",
 							block: true,
-							className: "card-actions__btn",
 							onClick: () => decide(c.id, "reject"),
 							children: "Оставить отзыв"
 						})]
@@ -102,4 +100,4 @@ function Complaints({ complaints, filters }) {
 //#endregion
 export { Complaints as default };
 
-//# sourceMappingURL=Complaints-BEb31MfT.js.map
+//# sourceMappingURL=Complaints-0AMf4SpF.js.map

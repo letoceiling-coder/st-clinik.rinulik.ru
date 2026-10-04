@@ -35,15 +35,18 @@ function GroupCard({ group }) {
 	return /* @__PURE__ */ jsxs("article", {
 		className: "card stack integration-card",
 		children: [/* @__PURE__ */ jsxs("div", {
-			className: "row row--wrap row--between integration-card__head",
-			children: [/* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx("h2", {
-				className: "integration-card__title",
-				children: group.title
-			}), /* @__PURE__ */ jsx("p", {
-				className: "text-sm text-muted",
-				children: group.description
-			})] }), /* @__PURE__ */ jsxs("div", {
-				className: "row row--wrap integration-card__tools",
+			className: "integration-card__head",
+			children: [/* @__PURE__ */ jsxs("div", {
+				className: "integration-card__intro",
+				children: [/* @__PURE__ */ jsx("h2", {
+					className: "integration-card__title",
+					children: group.title
+				}), /* @__PURE__ */ jsx("p", {
+					className: "text-sm text-muted",
+					children: group.description
+				})]
+			}), /* @__PURE__ */ jsxs("div", {
+				className: "integration-card__tools",
 				children: [
 					/* @__PURE__ */ jsx(Badge, {
 						tone: group.status.configured ? "success" : "warning",
@@ -136,4 +139,4 @@ function AdminIntegrations({ groups, yookassa_ready, app_url }) {
 //#endregion
 export { AdminIntegrations as default };
 
-//# sourceMappingURL=Integrations-DAqbDXIc.js.map
+//# sourceMappingURL=Integrations-CTtdMh3E.js.map
