@@ -1,5 +1,8 @@
 import '../css/app.css';
 import { createInertiaApp } from '@inertiajs/react';
+import { registerServiceWorker } from '@/lib/pwa-install';
+
+registerServiceWorker();
 import AccountLayout from './layouts/AccountLayout';
 import AdminLayout from './layouts/AdminLayout';
 import AuthLayout from './layouts/AuthLayout';

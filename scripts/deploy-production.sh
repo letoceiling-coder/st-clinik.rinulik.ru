@@ -44,6 +44,22 @@ docker run --rm \
         find /vol/build -type f -exec chmod 644 {} +
     '
 
+echo "==> Syncing PWA and static public root files"
+docker run --rm \
+    -v "${APP_DIR}/public:/src:ro" \
+    -v "${PUBLIC_VOLUME}:/vol" \
+    alpine sh -c '
+        for f in favicon.svg manifest.webmanifest sw.js robots.txt; do
+            if [ -f "/src/${f}" ]; then
+                cp "/src/${f}" "/vol/${f}"
+            fi
+        done
+        if [ -d /src/icons ]; then
+            mkdir -p /vol/icons
+            cp -a /src/icons/. /vol/icons/
+        fi
+    '
+
 echo "==> Linking public/storage for nginx"
 docker run --rm \
     -v "${PUBLIC_VOLUME}:/vol" \

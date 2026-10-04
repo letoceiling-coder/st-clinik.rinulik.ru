@@ -1,0 +1,26 @@
+{
+    "name": "СтомКлиник",
+    "short_name": "СтомКлиник",
+    "description": "Поиск стоматологических клиник и врачей: цены, отзывы, запись",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "portrait-primary",
+    "background_color": "#ffffff",
+    "theme_color": "#FA4F04",
+    "lang": "ru",
+    "icons": [
+        {
+            "src": "/favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "/favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "maskable"
+        }
+    ]
+}

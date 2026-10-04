@@ -1,12 +1,73 @@
-import { t as Icon } from "./assets/Icon-DBH8JZC9.js";
+import { t as Icon } from "./assets/Icon-DQahs-u2.js";
 import { a as initials, n as cx } from "./assets/format-BPZIj7DQ.js";
-import { i as LinkButton, n as Button, r as IconButton } from "./assets/Button-DsM_qe4F.js";
+import { i as LinkButton, n as Button, r as IconButton } from "./assets/Button-D8Mzgn6o.js";
 import { Link, createInertiaApp, router, useForm, usePage } from "@inertiajs/react";
-import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 import { createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 import { createPortal } from "react-dom";
 import createServer from "@inertiajs/react/server";
 import { renderToString } from "react-dom/server";
+//#region resources/js/lib/pwa-install.ts
+function isStandaloneMode() {
+	if (typeof window === "undefined") return false;
+	return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+}
+function isIosDevice() {
+	if (typeof navigator === "undefined") return false;
+	return /iphone|ipad|ipod/i.test(navigator.userAgent);
+}
+function registerServiceWorker() {
+	if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
+	window.addEventListener("load", () => {
+		navigator.serviceWorker.register("/sw.js").catch(() => {});
+	});
+}
+function usePwaInstall() {
+	const [installed, setInstalled] = useState(isStandaloneMode);
+	const [ios, setIos] = useState(false);
+	const [promptEvent, setPromptEvent] = useState(null);
+	useEffect(() => {
+		setIos(isIosDevice());
+		setInstalled(isStandaloneMode());
+		const onBeforeInstallPrompt = (event) => {
+			event.preventDefault();
+			setPromptEvent(event);
+		};
+		const onInstalled = () => {
+			setInstalled(true);
+			setPromptEvent(null);
+		};
+		const onDisplayModeChange = () => setInstalled(isStandaloneMode());
+		window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt);
+		window.addEventListener("appinstalled", onInstalled);
+		window.matchMedia("(display-mode: standalone)").addEventListener("change", onDisplayModeChange);
+		return () => {
+			window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt);
+			window.removeEventListener("appinstalled", onInstalled);
+			window.matchMedia("(display-mode: standalone)").removeEventListener("change", onDisplayModeChange);
+		};
+	}, []);
+	const canShow = !installed;
+	const install = useCallback(async () => {
+		if (promptEvent) {
+			await promptEvent.prompt();
+			const choice = await promptEvent.userChoice;
+			if (choice.outcome === "accepted") {
+				setInstalled(true);
+				setPromptEvent(null);
+			}
+			return choice.outcome;
+		}
+		return "manual";
+	}, [promptEvent]);
+	return {
+		canShow,
+		ios,
+		hasNativePrompt: promptEvent !== null,
+		install
+	};
+}
+//#endregion
 //#region resources/js/components/ui/Overlay.tsx
 var FOCUSABLE = "a[href],button:not([disabled]),input:not([disabled]):not([type=\"hidden\"]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex=\"-1\"])";
 /** Фокус-ловушка, Esc, блокировка прокрутки и возврат фокуса. */
@@ -1332,6 +1393,66 @@ function useClientSeo() {
 	]);
 }
 //#endregion
+//#region resources/js/components/InstallAppButton.tsx
+function InstallAppButton({ className }) {
+	const { canShow, ios, hasNativePrompt, install } = usePwaInstall();
+	const [hintOpen, setHintOpen] = useState(false);
+	if (!canShow) return null;
+	const openHint = () => setHintOpen(true);
+	const onClick = async () => {
+		if (hasNativePrompt) {
+			if (await install() === "dismissed") openHint();
+			return;
+		}
+		openHint();
+	};
+	return /* @__PURE__ */ jsxs(Fragment, { children: [/* @__PURE__ */ jsx("button", {
+		type: "button",
+		className: className ?? "icon-link",
+		"aria-label": "Установить приложение на рабочий стол",
+		title: "Установить приложение",
+		onClick,
+		children: /* @__PURE__ */ jsx(Icon, {
+			name: "install",
+			size: 22
+		})
+	}), /* @__PURE__ */ jsx(Drawer, {
+		open: hintOpen,
+		onClose: () => setHintOpen(false),
+		title: "Установить СтомКлиник",
+		children: /* @__PURE__ */ jsxs("div", {
+			className: "stack install-hint",
+			children: [
+				/* @__PURE__ */ jsx("p", {
+					className: "text-sm text-muted",
+					children: "Добавьте сайт на рабочий стол или домашний экран — запуск в один тап, без адресной строки."
+				}),
+				ios ? /* @__PURE__ */ jsxs("ol", {
+					className: "install-hint__steps text-sm",
+					children: [
+						/* @__PURE__ */ jsx("li", { children: "Нажмите «Поделиться» в Safari." }),
+						/* @__PURE__ */ jsx("li", { children: "Выберите «На экран Домой»." }),
+						/* @__PURE__ */ jsx("li", { children: "Подтвердите установку." })
+					]
+				}) : /* @__PURE__ */ jsxs("ol", {
+					className: "install-hint__steps text-sm",
+					children: [
+						/* @__PURE__ */ jsx("li", { children: "Откройте меню браузера (⋮ или «…»)." }),
+						/* @__PURE__ */ jsx("li", { children: "Выберите «Установить приложение» или «Добавить на главный экран»." }),
+						/* @__PURE__ */ jsx("li", { children: "Подтвердите установку." })
+					]
+				}),
+				/* @__PURE__ */ jsx(Button, {
+					type: "button",
+					block: true,
+					onClick: () => setHintOpen(false),
+					children: "Понятно"
+				})
+			]
+		})
+	})] });
+}
+//#endregion
 //#region resources/js/layouts/CityPicker.tsx
 function CityPicker() {
 	const { name, slug } = useCity();
@@ -1814,6 +1935,7 @@ function PublicLayout({ children, bare }) {
 									size: 22
 								}), /* @__PURE__ */ jsx(Badge, { n: cmpCount })]
 							}),
+							/* @__PURE__ */ jsx(InstallAppButton, {}),
 							/* @__PURE__ */ jsx(UserMenu, {}),
 							/* @__PURE__ */ jsx("button", {
 								type: "button",
@@ -2554,63 +2676,64 @@ function CabinetLayout({ children }) {
 }
 //#endregion
 //#region resources/js/app.tsx
+registerServiceWorker();
 var renderPromise = createInertiaApp({
 	resolve: async (name, page) => {
 		const pages = /* #__PURE__ */ Object.assign({
-			"./pages/Account/Compare.tsx": () => import("./assets/Compare-ChFCiiix.js"),
-			"./pages/Account/Favorites.tsx": () => import("./assets/Favorites-DXgX54Ho.js"),
-			"./pages/Account/History.tsx": () => import("./assets/History-0u6CBVBM.js"),
-			"./pages/Account/Leads.tsx": () => import("./assets/Leads-BpuDUQSj.js"),
-			"./pages/Account/Notifications.tsx": () => import("./assets/Notifications-BC2eVFfk.js"),
-			"./pages/Account/Overview.tsx": () => import("./assets/Overview-C7Bo90ld.js"),
-			"./pages/Account/Profile.tsx": () => import("./assets/Profile-D8JC6oe8.js"),
-			"./pages/Account/Reviews.tsx": () => import("./assets/Reviews-mdvlNk2P.js"),
-			"./pages/Admin/Audit.tsx": () => import("./assets/Audit-DfE7AY1Y.js"),
-			"./pages/Admin/ClinicShow.tsx": () => import("./assets/ClinicShow-DQ6InygK.js"),
-			"./pages/Admin/Clinics.tsx": () => import("./assets/Clinics-CzPfYQnr.js"),
-			"./pages/Admin/Complaints.tsx": () => import("./assets/Complaints-0AMf4SpF.js"),
-			"./pages/Admin/Dashboard.tsx": () => import("./assets/Dashboard-BTrwpw3e.js"),
-			"./pages/Admin/Dictionary.tsx": () => import("./assets/Dictionary-CSiNKAND.js"),
-			"./pages/Admin/Doctors.tsx": () => import("./assets/Doctors-DNRB87Gt.js"),
-			"./pages/Admin/Duplicates.tsx": () => import("./assets/Duplicates-Co1pqSSk.js"),
-			"./pages/Admin/Integrations.tsx": () => import("./assets/Integrations-CTtdMh3E.js"),
-			"./pages/Admin/Moderation.tsx": () => import("./assets/Moderation-DChNz76p.js"),
-			"./pages/Admin/Promotions.tsx": () => import("./assets/Promotions-De324LYy.js"),
-			"./pages/Admin/Reviews.tsx": () => import("./assets/Reviews-aoEDZ-Jf.js"),
-			"./pages/Admin/Roles.tsx": () => import("./assets/Roles-Bq-MMeve.js"),
-			"./pages/Admin/Users.tsx": () => import("./assets/Users-B6EUj0S2.js"),
-			"./pages/Auth/Login.tsx": () => import("./assets/Login-Bkuzsa6g.js"),
-			"./pages/Auth/Register.tsx": () => import("./assets/Register-C7tJKAxA.js"),
-			"./pages/Cabinet/BranchForm.tsx": () => import("./assets/BranchForm-BwM4w7kg.js"),
-			"./pages/Cabinet/Branches.tsx": () => import("./assets/Branches-C6InPoE7.js"),
-			"./pages/Cabinet/Dashboard.tsx": () => import("./assets/Dashboard-3q5qRaC8.js"),
-			"./pages/Cabinet/DoctorForm.tsx": () => import("./assets/DoctorForm-y2xX5PdK.js"),
-			"./pages/Cabinet/Doctors.tsx": () => import("./assets/Doctors-D2p1N_H3.js"),
-			"./pages/Cabinet/Documents.tsx": () => import("./assets/Documents-Crwypk8D.js"),
-			"./pages/Cabinet/Leads.tsx": () => import("./assets/Leads-BOqZQmgl.js"),
-			"./pages/Cabinet/Photos.tsx": () => import("./assets/Photos-7XaE2Tr-.js"),
-			"./pages/Cabinet/Posts.tsx": () => import("./assets/Posts-CCzqppgI.js"),
-			"./pages/Cabinet/Prices.tsx": () => import("./assets/Prices-DR9OmDA4.js"),
-			"./pages/Cabinet/Promotions.tsx": () => import("./assets/Promotions-BegDYwxO.js"),
-			"./pages/Cabinet/Reviews.tsx": () => import("./assets/Reviews-CjddC543.js"),
-			"./pages/Cabinet/Schedule.tsx": () => import("./assets/Schedule-XOGz5qYe.js"),
-			"./pages/Cabinet/Stats.tsx": () => import("./assets/Stats-C3Unu1fK.js"),
-			"./pages/Clinics/Index.tsx": () => import("./assets/Index-dgbW_smi.js"),
-			"./pages/Clinics/Show.tsx": () => import("./assets/Show-CHIZAFyy.js"),
-			"./pages/Collections/Compare.tsx": () => import("./assets/Compare-bB3_dfM2.js"),
-			"./pages/Collections/Favorites.tsx": () => import("./assets/Favorites-D-7ZcA9B.js"),
-			"./pages/Concerns/Show.tsx": () => import("./assets/Show-Cz7ISUnL.js"),
-			"./pages/Directions/Index.tsx": () => import("./assets/Index-DayQOtsm.js"),
-			"./pages/Directions/Show.tsx": () => import("./assets/Show-CG2TSMvF.js"),
-			"./pages/Doctors/Index.tsx": () => import("./assets/Index-DWYTI5ok.js"),
-			"./pages/Doctors/Show.tsx": () => import("./assets/Show-UUUENsXI.js"),
-			"./pages/Error.tsx": () => import("./assets/Error-BJpSNI3r.js"),
-			"./pages/Home.tsx": () => import("./assets/Home-BuNj2YDn.js"),
+			"./pages/Account/Compare.tsx": () => import("./assets/Compare-BLUoLxTL.js"),
+			"./pages/Account/Favorites.tsx": () => import("./assets/Favorites-BqKbBkZU.js"),
+			"./pages/Account/History.tsx": () => import("./assets/History-DpVlEqZE.js"),
+			"./pages/Account/Leads.tsx": () => import("./assets/Leads-Be4dlrBi.js"),
+			"./pages/Account/Notifications.tsx": () => import("./assets/Notifications-CVG2pexl.js"),
+			"./pages/Account/Overview.tsx": () => import("./assets/Overview-DowIgnDC.js"),
+			"./pages/Account/Profile.tsx": () => import("./assets/Profile-BCbVvzqY.js"),
+			"./pages/Account/Reviews.tsx": () => import("./assets/Reviews-DnKFx-VT.js"),
+			"./pages/Admin/Audit.tsx": () => import("./assets/Audit-H7npJ3Kr.js"),
+			"./pages/Admin/ClinicShow.tsx": () => import("./assets/ClinicShow-bMTbryBp.js"),
+			"./pages/Admin/Clinics.tsx": () => import("./assets/Clinics-BP7fnbqh.js"),
+			"./pages/Admin/Complaints.tsx": () => import("./assets/Complaints-BAORXL5j.js"),
+			"./pages/Admin/Dashboard.tsx": () => import("./assets/Dashboard-PMjEAbyr.js"),
+			"./pages/Admin/Dictionary.tsx": () => import("./assets/Dictionary-CC5H_xKb.js"),
+			"./pages/Admin/Doctors.tsx": () => import("./assets/Doctors-eLQRf6S4.js"),
+			"./pages/Admin/Duplicates.tsx": () => import("./assets/Duplicates-Dl-ztmiU.js"),
+			"./pages/Admin/Integrations.tsx": () => import("./assets/Integrations-mkEZlQdw.js"),
+			"./pages/Admin/Moderation.tsx": () => import("./assets/Moderation-D4U3vKnB.js"),
+			"./pages/Admin/Promotions.tsx": () => import("./assets/Promotions-BywWa2kv.js"),
+			"./pages/Admin/Reviews.tsx": () => import("./assets/Reviews-Ch5FJquE.js"),
+			"./pages/Admin/Roles.tsx": () => import("./assets/Roles-Dkhr_6-6.js"),
+			"./pages/Admin/Users.tsx": () => import("./assets/Users-DYlsMrCl.js"),
+			"./pages/Auth/Login.tsx": () => import("./assets/Login-B8MouHkG.js"),
+			"./pages/Auth/Register.tsx": () => import("./assets/Register-mfVYBLzt.js"),
+			"./pages/Cabinet/BranchForm.tsx": () => import("./assets/BranchForm-DizerrCB.js"),
+			"./pages/Cabinet/Branches.tsx": () => import("./assets/Branches-CPBOwnGQ.js"),
+			"./pages/Cabinet/Dashboard.tsx": () => import("./assets/Dashboard-CJIbPkuQ.js"),
+			"./pages/Cabinet/DoctorForm.tsx": () => import("./assets/DoctorForm-D0-pALKI.js"),
+			"./pages/Cabinet/Doctors.tsx": () => import("./assets/Doctors-DHbna--_.js"),
+			"./pages/Cabinet/Documents.tsx": () => import("./assets/Documents-fd4-ss5m.js"),
+			"./pages/Cabinet/Leads.tsx": () => import("./assets/Leads-JuXVYVdy.js"),
+			"./pages/Cabinet/Photos.tsx": () => import("./assets/Photos-DEIS70mi.js"),
+			"./pages/Cabinet/Posts.tsx": () => import("./assets/Posts-CTVSdaPS.js"),
+			"./pages/Cabinet/Prices.tsx": () => import("./assets/Prices-CbH_R-XH.js"),
+			"./pages/Cabinet/Promotions.tsx": () => import("./assets/Promotions-g5jTtOEy.js"),
+			"./pages/Cabinet/Reviews.tsx": () => import("./assets/Reviews-su3tXOZ1.js"),
+			"./pages/Cabinet/Schedule.tsx": () => import("./assets/Schedule-BEp8X5uy.js"),
+			"./pages/Cabinet/Stats.tsx": () => import("./assets/Stats-BdfiTKRb.js"),
+			"./pages/Clinics/Index.tsx": () => import("./assets/Index-BoBNFUp5.js"),
+			"./pages/Clinics/Show.tsx": () => import("./assets/Show-DORRQABI.js"),
+			"./pages/Collections/Compare.tsx": () => import("./assets/Compare-Drhh8Sl1.js"),
+			"./pages/Collections/Favorites.tsx": () => import("./assets/Favorites-C_rHlZ9p.js"),
+			"./pages/Concerns/Show.tsx": () => import("./assets/Show-BjGGrdnF.js"),
+			"./pages/Directions/Index.tsx": () => import("./assets/Index-DJjM7N3E.js"),
+			"./pages/Directions/Show.tsx": () => import("./assets/Show-CN440mKe.js"),
+			"./pages/Doctors/Index.tsx": () => import("./assets/Index-bKb1YH0c.js"),
+			"./pages/Doctors/Show.tsx": () => import("./assets/Show-DArJsbRf.js"),
+			"./pages/Error.tsx": () => import("./assets/Error-CLbF-qRl.js"),
+			"./pages/Home.tsx": () => import("./assets/Home-BHFuI3x5.js"),
 			"./pages/Page.tsx": () => import("./assets/Page-hGncEqSS.js"),
-			"./pages/Prices/Index.tsx": () => import("./assets/Index-C5r6gS_g.js"),
-			"./pages/Reviews/Index.tsx": () => import("./assets/Index-D5xlsgn-.js"),
-			"./pages/Search/Index.tsx": () => import("./assets/Index-4syr01Hu.js"),
-			"./pages/Tz.tsx": () => import("./assets/Tz-C1kYchYV.js")
+			"./pages/Prices/Index.tsx": () => import("./assets/Index-D1Dzdplm.js"),
+			"./pages/Reviews/Index.tsx": () => import("./assets/Index-BM0zN3Pq.js"),
+			"./pages/Search/Index.tsx": () => import("./assets/Index-DJE1k3eI.js"),
+			"./pages/Tz.tsx": () => import("./assets/Tz-Rs0ffHIw.js")
 		});
 		const module = await (pages[`./pages/${name}.tsx`] || pages[`./pages/${name}.jsx`] || pages[`./Pages/${name}.tsx`] || pages[`./Pages/${name}.jsx`])?.();
 		if (!module) throw new Error(`Page not found: ${name}`);

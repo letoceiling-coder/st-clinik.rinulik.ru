@@ -13,6 +13,7 @@ import { useCollections, useGuestSync } from '@/lib/collections';
 import { cx } from '@/lib/format';
 import { useClientSeo } from '@/lib/seo';
 import type { SharedProps } from '@/lib/types';
+import InstallAppButton from '@/components/InstallAppButton';
 import CityPicker from './CityPicker';
 import Logo from './Logo';
 
@@ -224,6 +225,7 @@ export default function PublicLayout({ children, bare }: { children: ReactNode; 
                             <Icon name="scale" size={22} />
                             <Badge n={cmpCount} />
                         </Link>
+                        <InstallAppButton />
                         <UserMenu />
                         <button type="button" className="icon-link show-mobile" onClick={() => setMenu(true)} aria-label="Открыть меню">
                             <Icon name="menu" size={24} />
