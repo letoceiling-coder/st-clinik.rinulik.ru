@@ -12,6 +12,7 @@ createInertiaApp({
         if (name.startsWith('Account/')) return AccountLayout;
         if (name.startsWith('Cabinet/')) return CabinetLayout;
         if (name.startsWith('Admin/')) return AdminLayout;
+        if (name === 'Error') return AuthLayout;
         return PublicLayout;
     },
     progress: { color: '#FA4F04', delay: 150 },

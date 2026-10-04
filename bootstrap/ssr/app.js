@@ -1,6 +1,6 @@
 import { t as Icon } from "./assets/Icon-DBH8JZC9.js";
-import { a as initials, n as cx } from "./assets/format-Cjg0FGVI.js";
-import { i as LinkButton, n as Button, r as IconButton } from "./assets/Button-D4s3iLUi.js";
+import { a as initials, n as cx } from "./assets/format-BPZIj7DQ.js";
+import { i as LinkButton, n as Button, r as IconButton } from "./assets/Button-DsM_qe4F.js";
 import { Link, createInertiaApp, router, useForm, usePage } from "@inertiajs/react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 import { createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
@@ -389,16 +389,33 @@ function Breadcrumbs({ items }) {
 		})
 	});
 }
-function Pagination({ page, only, keepScroll, param = "page" }) {
+function scrollToBlock(target) {
+	const el = typeof target === "string" ? document.querySelector(target) : target();
+	if (!el) return;
+	const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+	el.scrollIntoView({
+		behavior,
+		block: "start"
+	});
+}
+function Pagination({ page, only, keepScroll, param = "page", scrollTo }) {
 	const { current_page: current, last_page: last } = page;
 	if (last <= 1) return null;
 	const go = (n) => {
+		if (n === current) return;
 		const url = new URL(window.location.href);
-		url.searchParams.set(param, String(n));
+		if (param !== "page") url.searchParams.delete("page");
+		else url.searchParams.delete("reviews_page");
+		if (n <= 1) url.searchParams.delete(param);
+		else url.searchParams.set(param, String(n));
 		router.get(url.pathname + url.search, {}, {
-			preserveScroll: keepScroll ?? false,
+			preserveScroll: scrollTo ? false : keepScroll ?? false,
 			only,
-			preserveState: true
+			preserveState: true,
+			replace: true,
+			onSuccess: () => {
+				if (scrollTo) scrollToBlock(scrollTo);
+			}
 		});
 	};
 	const nums = [];
@@ -469,7 +486,10 @@ function Tabs({ value, items, onChange, label }) {
 function SectionHead({ title, text, action }) {
 	return /* @__PURE__ */ jsxs("div", {
 		className: "section-head",
-		children: [/* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx("h2", { children: title }), text ? /* @__PURE__ */ jsx("p", { children: text }) : null] }), action]
+		children: [/* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx("h2", { children: title }), text ? /* @__PURE__ */ jsx("p", { children: text }) : null] }), action ? /* @__PURE__ */ jsx("div", {
+			className: "section-head__action",
+			children: action
+		}) : null]
 	});
 }
 //#endregion
@@ -1031,7 +1051,8 @@ function useCity() {
 		city,
 		slug,
 		name: city?.name ?? "Москва",
-		nameIn: city?.name_in ?? city?.name ?? "Москве",
+		/** Уже с предлогом: «в Москве», «в Санкт-Петербурге» */
+		nameIn: city?.name_in ?? (city?.name ? `в ${city.name}` : "в Москве"),
 		path: (section, query) => {
 			const qs = query ? "?" + new URLSearchParams(Object.entries(query).map(([k, v]) => [k, String(v)])).toString() : "";
 			return `/${slug}/${section}${qs}`;
@@ -1327,7 +1348,7 @@ function Badge({ n }) {
 }
 function UserMenu() {
 	const { auth } = usePage().props;
-	const user = auth.user;
+	const user = auth?.user;
 	const [open, setOpen] = useState(false);
 	const ref = useRef(null);
 	useDismiss(open, () => setOpen(false), ref);
@@ -1768,7 +1789,7 @@ function PublicLayout({ children, bare }) {
 						href: "/about",
 						children: "О сервисе"
 					}) }),
-					/* @__PURE__ */ jsx("li", { children: auth.user ? /* @__PURE__ */ jsx(Link, {
+					/* @__PURE__ */ jsx("li", { children: auth?.user ? /* @__PURE__ */ jsx(Link, {
 						href: accountHome(auth.user),
 						children: accountLabel(auth.user)
 					}) : /* @__PURE__ */ jsx(Link, {
@@ -1929,6 +1950,7 @@ function SideNav({ items, onNavigate }) {
 }
 function DashboardShell({ children, items, brandSuffix, aside, mobileLabel }) {
 	const { auth } = usePage().props;
+	const user = auth?.user;
 	const { url } = usePage();
 	const [open, setOpen] = useState(false);
 	useClientSeo();
@@ -1964,16 +1986,16 @@ function DashboardShell({ children, items, brandSuffix, aside, mobileLabel }) {
 							className: "btn btn--outline btn--sm hide-mobile",
 							children: "На сайт"
 						}),
-						auth.user ? /* @__PURE__ */ jsx("div", {
+						user ? /* @__PURE__ */ jsx("div", {
 							className: "shell__user hide-mobile",
 							children: /* @__PURE__ */ jsxs("span", {
 								className: "text-sm",
 								children: [
-									/* @__PURE__ */ jsx("b", { children: auth.user.name }),
+									/* @__PURE__ */ jsx("b", { children: user.name }),
 									/* @__PURE__ */ jsx("br", {}),
 									/* @__PURE__ */ jsx("span", {
 										className: "text-muted text-xs",
-										children: accountLabel(auth.user)
+										children: accountLabel(user)
 									})
 								]
 							})
@@ -2165,7 +2187,7 @@ var ALL = [
 ];
 function AdminLayout({ children }) {
 	const { auth } = usePage().props;
-	const items = useMemo(() => ALL.filter((i) => can(auth.user, i.perm)), [auth.user]);
+	const items = useMemo(() => ALL.filter((i) => can(auth?.user, i.perm)), [auth?.user]);
 	return /* @__PURE__ */ jsx(DashboardShell, {
 		items,
 		brandSuffix: "админ-панель",
@@ -2280,6 +2302,12 @@ var ITEMS = [
 		group: "Профиль"
 	},
 	{
+		href: "/clinic-cabinet/posts",
+		label: "Новости и акции",
+		icon: "flash",
+		group: "Профиль"
+	},
+	{
 		href: "/clinic-cabinet/documents",
 		label: "Документы",
 		icon: "file",
@@ -2362,54 +2390,55 @@ function CabinetLayout({ children }) {
 var renderPromise = createInertiaApp({
 	resolve: async (name, page) => {
 		const pages = /* #__PURE__ */ Object.assign({
-			"./pages/Account/Compare.tsx": () => import("./assets/Compare-D2WDZmjP.js"),
-			"./pages/Account/Favorites.tsx": () => import("./assets/Favorites-DlTNlf9G.js"),
-			"./pages/Account/History.tsx": () => import("./assets/History-bqdY8oFW.js"),
-			"./pages/Account/Leads.tsx": () => import("./assets/Leads-CB9yAHAJ.js"),
-			"./pages/Account/Notifications.tsx": () => import("./assets/Notifications-Bu5tFctj.js"),
-			"./pages/Account/Overview.tsx": () => import("./assets/Overview-CzndFLY2.js"),
-			"./pages/Account/Profile.tsx": () => import("./assets/Profile-CV2-QBVU.js"),
-			"./pages/Account/Reviews.tsx": () => import("./assets/Reviews-BwXWzyV2.js"),
-			"./pages/Admin/Audit.tsx": () => import("./assets/Audit-CxMSv0L8.js"),
-			"./pages/Admin/Clinics.tsx": () => import("./assets/Clinics-Bd2Kwn9v.js"),
-			"./pages/Admin/Complaints.tsx": () => import("./assets/Complaints-qQ5yqYE0.js"),
-			"./pages/Admin/Dashboard.tsx": () => import("./assets/Dashboard-CHwN65UD.js"),
-			"./pages/Admin/Dictionary.tsx": () => import("./assets/Dictionary-Ey_zSLk7.js"),
-			"./pages/Admin/Doctors.tsx": () => import("./assets/Doctors-IHxSm2Hz.js"),
-			"./pages/Admin/Duplicates.tsx": () => import("./assets/Duplicates-CNjf5HXo.js"),
-			"./pages/Admin/Moderation.tsx": () => import("./assets/Moderation-DoCqAO1q.js"),
-			"./pages/Admin/Reviews.tsx": () => import("./assets/Reviews-CMtogLP5.js"),
-			"./pages/Admin/Roles.tsx": () => import("./assets/Roles-DJetN2kN.js"),
-			"./pages/Admin/Users.tsx": () => import("./assets/Users-BPqpWRWr.js"),
-			"./pages/Auth/Login.tsx": () => import("./assets/Login-CJWe91WT.js"),
-			"./pages/Auth/Register.tsx": () => import("./assets/Register-D0ZTvM4B.js"),
-			"./pages/Cabinet/BranchForm.tsx": () => import("./assets/BranchForm-BAamllBv.js"),
-			"./pages/Cabinet/Branches.tsx": () => import("./assets/Branches-BF8QYS_Z.js"),
-			"./pages/Cabinet/Dashboard.tsx": () => import("./assets/Dashboard-DhTnl5R4.js"),
-			"./pages/Cabinet/DoctorForm.tsx": () => import("./assets/DoctorForm-CSXwheMX.js"),
-			"./pages/Cabinet/Doctors.tsx": () => import("./assets/Doctors-B-wcWlG3.js"),
-			"./pages/Cabinet/Documents.tsx": () => import("./assets/Documents-DdwRA-nr.js"),
-			"./pages/Cabinet/Leads.tsx": () => import("./assets/Leads-Bgyh_u87.js"),
-			"./pages/Cabinet/Photos.tsx": () => import("./assets/Photos-DFn_VNNR.js"),
-			"./pages/Cabinet/Prices.tsx": () => import("./assets/Prices-CufGopAr.js"),
-			"./pages/Cabinet/Reviews.tsx": () => import("./assets/Reviews--UHfVCwv.js"),
-			"./pages/Cabinet/Schedule.tsx": () => import("./assets/Schedule-oxMoJuwJ.js"),
-			"./pages/Cabinet/Stats.tsx": () => import("./assets/Stats-ynDeoiC2.js"),
-			"./pages/Clinics/Index.tsx": () => import("./assets/Index-BaIZEcru.js"),
-			"./pages/Clinics/Show.tsx": () => import("./assets/Show-BENObCfl.js"),
-			"./pages/Collections/Compare.tsx": () => import("./assets/Compare-CycihU2b.js"),
-			"./pages/Collections/Favorites.tsx": () => import("./assets/Favorites-C-32pX82.js"),
-			"./pages/Concerns/Show.tsx": () => import("./assets/Show-BT7TfBNQ.js"),
-			"./pages/Directions/Index.tsx": () => import("./assets/Index-DYnFX1GU.js"),
-			"./pages/Directions/Show.tsx": () => import("./assets/Show-BIjqfkR2.js"),
-			"./pages/Doctors/Index.tsx": () => import("./assets/Index-DNvWMadu.js"),
-			"./pages/Doctors/Show.tsx": () => import("./assets/Show-2UHLC4BN.js"),
-			"./pages/Error.tsx": () => import("./assets/Error-BXaUTvGo.js"),
-			"./pages/Home.tsx": () => import("./assets/Home-BPN1XpEe.js"),
-			"./pages/Page.tsx": () => import("./assets/Page-CuJmJuyn.js"),
-			"./pages/Prices/Index.tsx": () => import("./assets/Index-Bw_XKiCb.js"),
-			"./pages/Reviews/Index.tsx": () => import("./assets/Index-Bm9RzJWG.js"),
-			"./pages/Search/Index.tsx": () => import("./assets/Index-C3v3Y73P.js")
+			"./pages/Account/Compare.tsx": () => import("./assets/Compare-Cf01xRC1.js"),
+			"./pages/Account/Favorites.tsx": () => import("./assets/Favorites-CEnC-3JZ.js"),
+			"./pages/Account/History.tsx": () => import("./assets/History-CXJxxHVi.js"),
+			"./pages/Account/Leads.tsx": () => import("./assets/Leads-Rq1BYeAj.js"),
+			"./pages/Account/Notifications.tsx": () => import("./assets/Notifications-D6vGEftR.js"),
+			"./pages/Account/Overview.tsx": () => import("./assets/Overview-J843BDtf.js"),
+			"./pages/Account/Profile.tsx": () => import("./assets/Profile-DcuGAPyQ.js"),
+			"./pages/Account/Reviews.tsx": () => import("./assets/Reviews-CbBl4fV-.js"),
+			"./pages/Admin/Audit.tsx": () => import("./assets/Audit-DAIDFdgN.js"),
+			"./pages/Admin/Clinics.tsx": () => import("./assets/Clinics-BcYqCKN3.js"),
+			"./pages/Admin/Complaints.tsx": () => import("./assets/Complaints-DUBcEKI2.js"),
+			"./pages/Admin/Dashboard.tsx": () => import("./assets/Dashboard-CCv_fAZc.js"),
+			"./pages/Admin/Dictionary.tsx": () => import("./assets/Dictionary-KCX_-YJT.js"),
+			"./pages/Admin/Doctors.tsx": () => import("./assets/Doctors-Bqu0mljn.js"),
+			"./pages/Admin/Duplicates.tsx": () => import("./assets/Duplicates-5S5A6Drs.js"),
+			"./pages/Admin/Moderation.tsx": () => import("./assets/Moderation-Cxlu9OGL.js"),
+			"./pages/Admin/Reviews.tsx": () => import("./assets/Reviews-BBsucXfk.js"),
+			"./pages/Admin/Roles.tsx": () => import("./assets/Roles-ynd5uf8q.js"),
+			"./pages/Admin/Users.tsx": () => import("./assets/Users-DPxUerMM.js"),
+			"./pages/Auth/Login.tsx": () => import("./assets/Login-BoTWgPME.js"),
+			"./pages/Auth/Register.tsx": () => import("./assets/Register-C0BHM9Uh.js"),
+			"./pages/Cabinet/BranchForm.tsx": () => import("./assets/BranchForm-YT4islSP.js"),
+			"./pages/Cabinet/Branches.tsx": () => import("./assets/Branches-Bbm-Ncso.js"),
+			"./pages/Cabinet/Dashboard.tsx": () => import("./assets/Dashboard-CEaneuX6.js"),
+			"./pages/Cabinet/DoctorForm.tsx": () => import("./assets/DoctorForm-UxVYsCGZ.js"),
+			"./pages/Cabinet/Doctors.tsx": () => import("./assets/Doctors-Dfs-6T3t.js"),
+			"./pages/Cabinet/Documents.tsx": () => import("./assets/Documents-DCwUUdVQ.js"),
+			"./pages/Cabinet/Leads.tsx": () => import("./assets/Leads-CVHF5uOk.js"),
+			"./pages/Cabinet/Photos.tsx": () => import("./assets/Photos-5eCkNNP7.js"),
+			"./pages/Cabinet/Posts.tsx": () => import("./assets/Posts-DLOw5J9E.js"),
+			"./pages/Cabinet/Prices.tsx": () => import("./assets/Prices-BvprQEnR.js"),
+			"./pages/Cabinet/Reviews.tsx": () => import("./assets/Reviews-B6v4Szuc.js"),
+			"./pages/Cabinet/Schedule.tsx": () => import("./assets/Schedule-NiRpVU_D.js"),
+			"./pages/Cabinet/Stats.tsx": () => import("./assets/Stats-CyS-c2DK.js"),
+			"./pages/Clinics/Index.tsx": () => import("./assets/Index-BrrnbY8o.js"),
+			"./pages/Clinics/Show.tsx": () => import("./assets/Show-E8bVstzQ.js"),
+			"./pages/Collections/Compare.tsx": () => import("./assets/Compare-DbXPq2OA.js"),
+			"./pages/Collections/Favorites.tsx": () => import("./assets/Favorites-2z2xQOJI.js"),
+			"./pages/Concerns/Show.tsx": () => import("./assets/Show-Ci68ses5.js"),
+			"./pages/Directions/Index.tsx": () => import("./assets/Index-DayQOtsm.js"),
+			"./pages/Directions/Show.tsx": () => import("./assets/Show-DKmqsKLY.js"),
+			"./pages/Doctors/Index.tsx": () => import("./assets/Index-uYvc62wR.js"),
+			"./pages/Doctors/Show.tsx": () => import("./assets/Show-DXzAlJgt.js"),
+			"./pages/Error.tsx": () => import("./assets/Error-BJpSNI3r.js"),
+			"./pages/Home.tsx": () => import("./assets/Home-2mU18AVz.js"),
+			"./pages/Page.tsx": () => import("./assets/Page-hGncEqSS.js"),
+			"./pages/Prices/Index.tsx": () => import("./assets/Index-AFJsbZBK.js"),
+			"./pages/Reviews/Index.tsx": () => import("./assets/Index-Dvcl0vaz.js"),
+			"./pages/Search/Index.tsx": () => import("./assets/Index-lf21OEHG.js")
 		});
 		const module = await (pages[`./pages/${name}.tsx`] || pages[`./pages/${name}.jsx`] || pages[`./Pages/${name}.tsx`] || pages[`./Pages/${name}.jsx`])?.();
 		if (!module) throw new Error(`Page not found: ${name}`);
@@ -2420,6 +2449,7 @@ var renderPromise = createInertiaApp({
 		if (name.startsWith("Account/")) return AccountLayout;
 		if (name.startsWith("Cabinet/")) return CabinetLayout;
 		if (name.startsWith("Admin/")) return AdminLayout;
+		if (name === "Error") return AuthLayout;
 		return PublicLayout;
 	},
 	progress: {

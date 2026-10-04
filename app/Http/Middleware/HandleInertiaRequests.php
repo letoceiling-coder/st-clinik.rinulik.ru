@@ -29,6 +29,7 @@ class HandleInertiaRequests extends Middleware
                 'name' => config('app.name'),
                 'noindex' => (bool) config('app.noindex'),
                 'consent_version' => '2026-10',
+                'yandex_maps_key' => config('services.yandex.maps_api_key'),
             ],
             'auth' => [
                 'user' => $user ? [

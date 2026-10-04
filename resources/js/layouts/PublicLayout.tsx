@@ -30,7 +30,7 @@ function Badge({ n }: { n: number }) {
 
 function UserMenu() {
     const { auth } = usePage<SharedProps>().props;
-    const user = auth.user;
+    const user = auth?.user;
     const [open, setOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
     useDismiss(open, () => setOpen(false), ref);
@@ -295,7 +295,7 @@ export default function PublicLayout({ children, bare }: { children: ReactNode; 
                     <li>
                         <Link href="/about">О сервисе</Link>
                     </li>
-                    <li>{auth.user ? <Link href={accountHome(auth.user)}>{accountLabel(auth.user)}</Link> : <Link href="/login">Войти</Link>}</li>
+                    <li>{auth?.user ? <Link href={accountHome(auth.user)}>{accountLabel(auth.user)}</Link> : <Link href="/login">Войти</Link>}</li>
                 </ul>
             </Drawer>
 

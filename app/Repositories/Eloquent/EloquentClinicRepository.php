@@ -20,8 +20,27 @@ class EloquentClinicRepository implements ClinicRepository
 
     public function query(ClinicFilters $f): Builder
     {
-        $query = Clinic::query()->published();
+        $query = $this->filteredQuery($f);
         $this->withCardRelations($query);
+
+        return $query;
+    }
+
+    public function mapPoints(ClinicFilters $f, int $limit = 50): Collection
+    {
+        return $this->sort(
+            $this->filteredQuery($f)
+                ->whereNotNull('clinics.lat')
+                ->whereNotNull('clinics.lng'),
+            $f->sort,
+        )
+            ->limit($limit)
+            ->get(['clinics.id', 'clinics.slug', 'clinics.name', 'clinics.lat', 'clinics.lng', 'clinics.address']);
+    }
+
+    private function filteredQuery(ClinicFilters $f): Builder
+    {
+        $query = Clinic::query()->published();
 
         if ($f->ids) {
             return $query->whereIn('clinics.id', $f->ids);
@@ -65,7 +84,7 @@ class EloquentClinicRepository implements ClinicRepository
                 ->orWhereHas('doctors', fn ($d) => $d->where('search_text', 'like', $like)));
         }
 
-        return $this->sort($query, $f->sort);
+        return $query;
     }
 
     private function sort(Builder $query, string $sort): Builder
@@ -115,6 +134,7 @@ class EloquentClinicRepository implements ClinicRepository
             'photos' => fn ($q) => $q->where('status', 'approved'),
             'documents' => fn ($q) => $q->where('status', 'approved'),
             'clinicServices' => fn ($q) => $q->with('service.specialty:id,name,slug')->orderBy('price_from'),
+            'posts' => fn ($q) => $q->published()->active()->orderByDesc('is_pinned')->orderBy('sort')->orderByDesc('id'),
         ])->first();
     }
 

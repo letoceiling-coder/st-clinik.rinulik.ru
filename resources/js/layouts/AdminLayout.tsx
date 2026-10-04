@@ -27,7 +27,7 @@ const ALL: (NavItem & { perm: string })[] = [
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
     const { auth } = usePage<SharedProps>().props;
-    const items = useMemo(() => ALL.filter((i) => can(auth.user, i.perm)), [auth.user]);
+    const items = useMemo(() => ALL.filter((i) => can(auth?.user, i.perm)), [auth?.user]);
     return (
         <DashboardShell items={items} brandSuffix="админ-панель" mobileLabel="Админ-панель">
             {children}

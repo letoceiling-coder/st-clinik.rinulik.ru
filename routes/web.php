@@ -87,18 +87,18 @@ Route::middleware(['auth', 'clinic.owner'])->prefix('clinic-cabinet')->name('cab
     Route::get('/branches', [Cabinet\BranchController::class, 'index'])->name('branches');
     Route::get('/branches/create', [Cabinet\BranchController::class, 'create'])->name('branches.create');
     Route::post('/branches', [Cabinet\BranchController::class, 'store'])->name('branches.store');
-    Route::get('/branches/{clinic}/edit', [Cabinet\BranchController::class, 'edit'])->name('branches.edit')->whereNumber('clinic');
-    Route::put('/branches/{clinic}', [Cabinet\BranchController::class, 'update'])->name('branches.update')->whereNumber('clinic');
-    Route::post('/branches/{clinic}/submit', [Cabinet\BranchController::class, 'submit'])->name('branches.submit')->whereNumber('clinic');
+    Route::get('/branches/{clinic:id}/edit', [Cabinet\BranchController::class, 'edit'])->name('branches.edit');
+    Route::put('/branches/{clinic:id}', [Cabinet\BranchController::class, 'update'])->name('branches.update');
+    Route::post('/branches/{clinic:id}/submit', [Cabinet\BranchController::class, 'submit'])->name('branches.submit');
     Route::get('/schedule', [Cabinet\BranchController::class, 'schedule'])->name('schedule');
     Route::put('/schedule', [Cabinet\BranchController::class, 'updateSchedule'])->name('schedule.update');
 
     Route::get('/doctors', [Cabinet\DoctorController::class, 'index'])->name('doctors');
     Route::get('/doctors/create', [Cabinet\DoctorController::class, 'create'])->name('doctors.create');
     Route::post('/doctors', [Cabinet\DoctorController::class, 'store'])->name('doctors.store');
-    Route::get('/doctors/{doctor}/edit', [Cabinet\DoctorController::class, 'edit'])->name('doctors.edit')->whereNumber('doctor');
-    Route::put('/doctors/{doctor}', [Cabinet\DoctorController::class, 'update'])->name('doctors.update')->whereNumber('doctor');
-    Route::delete('/doctors/{doctor}', [Cabinet\DoctorController::class, 'destroy'])->name('doctors.destroy')->whereNumber('doctor');
+    Route::get('/doctors/{doctor:id}/edit', [Cabinet\DoctorController::class, 'edit'])->name('doctors.edit');
+    Route::put('/doctors/{doctor:id}', [Cabinet\DoctorController::class, 'update'])->name('doctors.update');
+    Route::delete('/doctors/{doctor:id}', [Cabinet\DoctorController::class, 'destroy'])->name('doctors.destroy');
 
     Route::get('/prices', [Cabinet\PriceController::class, 'index'])->name('prices');
     Route::post('/prices', [Cabinet\PriceController::class, 'store'])->name('prices.store');
@@ -109,6 +109,11 @@ Route::middleware(['auth', 'clinic.owner'])->prefix('clinic-cabinet')->name('cab
     Route::post('/photos', [Cabinet\MediaController::class, 'storePhoto'])->name('photos.store');
     Route::put('/photos/{photo}', [Cabinet\MediaController::class, 'updatePhoto'])->name('photos.update')->whereNumber('photo');
     Route::delete('/photos/{photo}', [Cabinet\MediaController::class, 'destroyPhoto'])->name('photos.destroy')->whereNumber('photo');
+
+    Route::get('/posts', [Cabinet\PostController::class, 'index'])->name('posts');
+    Route::post('/posts', [Cabinet\PostController::class, 'store'])->name('posts.store');
+    Route::put('/posts/{post}', [Cabinet\PostController::class, 'update'])->name('posts.update')->whereNumber('post');
+    Route::delete('/posts/{post}', [Cabinet\PostController::class, 'destroy'])->name('posts.destroy')->whereNumber('post');
 
     Route::get('/documents', [Cabinet\MediaController::class, 'documents'])->name('documents');
     Route::post('/documents', [Cabinet\MediaController::class, 'storeDocument'])->name('documents.store');

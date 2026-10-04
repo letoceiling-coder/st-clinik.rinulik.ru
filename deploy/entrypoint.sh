@@ -18,8 +18,14 @@ if [ ! -f database/database.sqlite ]; then
 fi
 chown -R www-data:www-data storage bootstrap/cache database
 
+# Volume st-clinik-public is the source of truth for Vite assets after first deploy.
+# On first boot copy baked-in build into the volume; afterwards keep container in sync with the volume.
 if [ -d /var/www/html/public-export ]; then
-    cp -a /var/www/html/public/. /var/www/html/public-export/
+    if [ -f /var/www/html/public-export/build/manifest.json ]; then
+        cp -a /var/www/html/public-export/. /var/www/html/public/
+    else
+        cp -a /var/www/html/public/. /var/www/html/public-export/
+    fi
 fi
 
 php artisan package:discover --ansi >/dev/null 2>&1 || true

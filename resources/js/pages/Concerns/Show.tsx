@@ -30,7 +30,7 @@ export default function ConcernShow({ concern, specialty, services, clinics, cli
                     <Icon name={concern.icon ?? 'tooth'} size={36} />
                 </span>
                 <div>
-                    <h1>{seo?.h1 ?? `${concern.name}: куда обратиться в ${city.nameIn}`}</h1>
+                    <h1>{seo?.h1 ?? `${concern.name}: куда обратиться ${city.nameIn}`}</h1>
                     {concern.hint ? <p className="text-muted page-head__lead">{concern.hint}</p> : null}
                 </div>
             </header>

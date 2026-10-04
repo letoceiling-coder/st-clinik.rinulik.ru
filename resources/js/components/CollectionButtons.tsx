@@ -29,7 +29,7 @@ export function CompareButton({ type, id, name, compact }: { type: EntityType; i
     return (
         <button
             type="button"
-            className={cx('compare-btn', active && 'is-active')}
+            className={cx('btn btn--outline btn--sm compare-btn', compact && 'btn--icon btn--round', active && 'is-active')}
             aria-pressed={active}
             aria-label={active ? `Убрать «${name}» из сравнения` : `Добавить «${name}» к сравнению`}
             onClick={() => toggle('compare', type, id)}

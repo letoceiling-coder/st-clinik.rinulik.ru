@@ -31,7 +31,7 @@ export default function DirectionShow({ specialty, services, clinics, clinics_to
                     <Icon name={specialty.icon ?? 'tooth'} size={36} />
                 </span>
                 <div>
-                    <h1>{seo?.h1 ?? `${specialty.name} в ${city.nameIn}`}</h1>
+                    <h1>{seo?.h1 ?? `${specialty.name} ${city.nameIn}`}</h1>
                     {specialty.description ? <p className="text-muted page-head__lead">{specialty.description}</p> : null}
                 </div>
             </header>

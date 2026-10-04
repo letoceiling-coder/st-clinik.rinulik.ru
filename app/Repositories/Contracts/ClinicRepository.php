@@ -12,6 +12,9 @@ interface ClinicRepository
     public function paginate(ClinicFilters $filters, int $perPage = 12): LengthAwarePaginator;
 
     /** @return Collection<int,Clinic> */
+    public function mapPoints(ClinicFilters $filters, int $limit = 50): Collection;
+
+    /** @return Collection<int,Clinic> */
     public function byIds(array $ids): Collection;
 
     public function findPublishedBySlug(string $slug): ?Clinic;

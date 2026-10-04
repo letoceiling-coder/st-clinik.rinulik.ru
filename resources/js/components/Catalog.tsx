@@ -113,7 +113,7 @@ export function CatalogLayout({
 
     return (
         <div className="container catalog">
-            <aside className="catalog__filters hide-tablet" aria-label="Фильтры">
+            <aside className="catalog__filters catalog__filters--sidebar" aria-label="Фильтры">
                 <div className="card">
                     <h2 className="card-title">Фильтры</h2>
                     <FilterPanel values={values} options={options} onApply={apply} mode={mode} auto idPrefix="d" />
@@ -125,8 +125,8 @@ export function CatalogLayout({
                     <div className="catalog__total" aria-live="polite">
                         {total}
                     </div>
-                    <div className="row" style={{ gap: 10 }}>
-                        <Button variant="outline" size="sm" icon="filter" onClick={() => setDrawer(true)} className="show-tablet">
+                    <div className="catalog__tools">
+                        <Button variant="outline" size="sm" icon="filter" onClick={() => setDrawer(true)} className="catalog__filters-open">
                             Фильтры{count ? ` · ${count}` : ''}
                         </Button>
                         <label className="sort">
@@ -156,7 +156,7 @@ export function CatalogLayout({
                         <li>
                             <button
                                 type="button"
-                                className="link text-sm"
+                                className="btn btn--ghost btn--sm chip-reset"
                                 onClick={() => apply(Object.fromEntries(Object.entries(values).filter(([k]) => !FILTER_KEYS.includes(k))))}
                             >
                                 Сбросить все

@@ -13,8 +13,10 @@ class ClinicResource extends JsonResource
     {
         $c = $this->resource;
         $services = $c->relationLoaded('clinicServices') ? $c->clinicServices : collect();
-        $popular = $services->filter(fn ($s) => $s->relationLoaded('service') && $s->service?->is_popular && $s->price_from > 0)->take(3);
-        $top = $popular->count() >= 3 ? $popular : $services->where('price_from', '>', 0)->take(3);
+        $priced = $services->filter(fn ($s) => $s->relationLoaded('service') && $s->service && $s->price_from > 0);
+        $popular = $priced->filter(fn ($s) => $s->service->is_popular);
+        $popularIds = $popular->pluck('service_id');
+        $top = $popular->concat($priced->reject(fn ($s) => $popularIds->contains($s->service_id)))->unique('service_id')->take(8);
 
         return [
             'id' => $c->id,
@@ -24,6 +26,8 @@ class ClinicResource extends JsonResource
             'address' => $c->address,
             'district' => $c->district?->name,
             'metro' => $c->metro,
+            'lat' => $c->lat,
+            'lng' => $c->lng,
             'city' => $c->relationLoaded('city') && $c->city ? ['slug' => $c->city->slug, 'name' => $c->city->name, 'name_in' => $c->city->name_in] : null,
             'phone' => $c->phone,
             'rating' => (float) $c->rating,
@@ -53,7 +57,8 @@ class ClinicResource extends JsonResource
             'payment_methods' => $c->payment_methods ?? [],
             'today' => Schedule::today($c->schedule, (bool) $c->is_24_7),
             'specialties' => $c->relationLoaded('specialties') ? $c->specialties->take(4)->map(fn ($s) => ['name' => $s->name, 'slug' => $s->slug])->values() : [],
-            'top_services' => $top->map(fn ($s) => ['name' => $s->service?->name, 'slug' => $s->service?->slug, 'price_from' => $s->price_from])->values(),
+            'top_services' => $top->map(fn ($s) => ['name' => $s->service->name, 'slug' => $s->service->slug, 'price_from' => $s->price_from])->values(),
+            'services_count' => $priced->count(),
             'doctors_preview' => $c->relationLoaded('doctors') ? $c->doctors->take(3)->map(fn ($d) => [
                 'slug' => $d->slug, 'name' => $d->name, 'position' => $d->position, 'art_seed' => $d->art_seed, 'rating' => (float) $d->rating,
             ])->values() : [],

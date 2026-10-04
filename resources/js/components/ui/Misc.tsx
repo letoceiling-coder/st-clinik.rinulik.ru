@@ -105,24 +105,60 @@ export function Breadcrumbs({ items }: { items: Crumb[] }) {
     );
 }
 
+function scrollToBlock(target: string | (() => HTMLElement | null)): void {
+    const el = typeof target === 'string' ? document.querySelector<HTMLElement>(target) : target();
+    if (!el) {
+        return;
+    }
+
+    const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+    el.scrollIntoView({ behavior, block: 'start' });
+}
+
 export function Pagination({
     page,
     only,
     keepScroll,
     param = 'page',
+    scrollTo,
 }: {
     page: Pick<Paginated<unknown>, 'current_page' | 'last_page' | 'path'>;
     only?: string[];
     keepScroll?: boolean;
     param?: string;
+    scrollTo?: string | (() => HTMLElement | null);
 }) {
     const { current_page: current, last_page: last } = page;
     if (last <= 1) return null;
 
     const go = (n: number) => {
+        if (n === current) {
+            return;
+        }
+
         const url = new URL(window.location.href);
-        url.searchParams.set(param, String(n));
-        router.get(url.pathname + url.search, {}, { preserveScroll: keepScroll ?? false, only, preserveState: true });
+        if (param !== 'page') {
+            url.searchParams.delete('page');
+        } else {
+            url.searchParams.delete('reviews_page');
+        }
+        if (n <= 1) {
+            url.searchParams.delete(param);
+        } else {
+            url.searchParams.set(param, String(n));
+        }
+
+        router.get(url.pathname + url.search, {}, {
+            preserveScroll: scrollTo ? false : (keepScroll ?? false),
+            only,
+            preserveState: true,
+            replace: true,
+            onSuccess: () => {
+                if (scrollTo) {
+                    scrollToBlock(scrollTo);
+                }
+            },
+        });
     };
 
     const nums: (number | '…')[] = [];
@@ -182,7 +218,7 @@ export function SectionHead({ title, text, action }: { title: ReactNode; text?: 
                 <h2>{title}</h2>
                 {text ? <p>{text}</p> : null}
             </div>
-            {action}
+            {action ? <div className="section-head__action">{action}</div> : null}
         </div>
     );
 }

@@ -3,6 +3,7 @@ import { useCity } from '@/lib/city';
 import { clinicsWord, money } from '@/lib/format';
 import type { ConcernData, SpecialtyData } from '@/lib/types';
 import { clinicPhoto } from '@/lib/demo-images';
+import Carousel from './Carousel';
 import Icon from './Icon';
 
 function specialtySeed(slug: string, index: number): number {
@@ -25,29 +26,29 @@ export function ConcernChips({ concerns, scroll = true }: { concerns: ConcernDat
     }
 
     return (
-        <div className="scroll-wrap">
-            <div className="chip-scroll">{chips}</div>
-        </div>
+        <Carousel ariaLabel="С чем чаще обращаются" staticClassName="chip-scroll" slideClassName="carousel__slide--chip" gap={10}>
+            {chips}
+        </Carousel>
     );
 }
 
 export function SpecialtyCircles({ specialties }: { specialties: SpecialtyData[] }) {
     const city = useCity();
+    const items = specialties.map((s, index) => (
+        <Link key={s.slug} href={city.direction(s.slug)} className="cat" role="listitem">
+            <span className="cat__circle cat__circle--photo" aria-hidden="true">
+                <img src={clinicPhoto(specialtySeed(s.slug, index), 'interior')} alt="" loading="lazy" width={112} height={112} />
+                <span className="cat__shade" />
+                <Icon name={s.icon ?? 'tooth'} size={32} />
+            </span>
+            <span className="cat__name">{s.name}</span>
+        </Link>
+    ));
+
     return (
-        <div className="scroll-wrap">
-        <div className="cat-scroll" role="list" aria-label="Направления">
-            {specialties.map((s, index) => (
-                <Link key={s.slug} href={city.direction(s.slug)} className="cat" role="listitem">
-                    <span className="cat__circle cat__circle--photo" aria-hidden="true">
-                        <img src={clinicPhoto(specialtySeed(s.slug, index), 'interior')} alt="" loading="lazy" width={100} height={100} />
-                        <span className="cat__shade" />
-                        <Icon name={s.icon ?? 'tooth'} size={32} />
-                    </span>
-                    <span className="cat__name">{s.name}</span>
-                </Link>
-            ))}
-        </div>
-        </div>
+        <Carousel ariaLabel="Направления стоматологии" staticClassName="cat-scroll" slideClassName="carousel__slide--cat" gap={20}>
+            {items}
+        </Carousel>
     );
 }
 

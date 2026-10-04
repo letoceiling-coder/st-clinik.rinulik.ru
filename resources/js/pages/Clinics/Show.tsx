@@ -9,10 +9,11 @@ import { useLead } from '@/components/LeadContext';
 import ReviewCard from '@/components/ReviewCard';
 import ReviewForm from '@/components/ReviewForm';
 import { ConcernChips } from '@/components/Tiles';
+import YandexMap from '@/components/YandexMap';
 import { AnchorButton, Button } from '@/components/ui/Button';
 import { Alert, Badge, Breadcrumbs, EmptyState, Pagination } from '@/components/ui/Misc';
-import { cx, doctorsWord, phoneHref, priceFrom, reviewsWord } from '@/lib/format';
-import type { ClinicCardData, ClinicDetailData, ConcernData, Crumb, Paginated, ReviewData } from '@/lib/types';
+import { cx, doctorsWord, phoneHref, plural, priceFrom, reviewsWord } from '@/lib/format';
+import type { ClinicCardData, ClinicDetailData, ClinicPostData, ConcernData, Crumb, Paginated, ReviewData } from '@/lib/types';
 
 interface Props {
     clinic: ClinicDetailData;
@@ -25,13 +26,51 @@ interface Props {
     breadcrumbs: Crumb[];
 }
 
-const SECTIONS = [
+const BASE_SECTIONS = [
     ['about', 'О клинике'],
     ['doctors', 'Врачи'],
     ['prices', 'Цены'],
+    ['news', 'Новости и акции'],
     ['reviews', 'Отзывы'],
     ['contacts', 'Контакты'],
 ] as const;
+
+function formatPostPeriod(post: ClinicPostData): string | null {
+    if (post.starts_at && post.ends_at) {
+        const from = new Date(post.starts_at).toLocaleDateString('ru-RU');
+        const to = new Date(post.ends_at).toLocaleDateString('ru-RU');
+        return `Действует с ${from} по ${to}`;
+    }
+    if (post.ends_at) {
+        return `До ${new Date(post.ends_at).toLocaleDateString('ru-RU')}`;
+    }
+    return null;
+}
+
+function PostCard({ post }: { post: ClinicPostData }) {
+    const period = formatPostPeriod(post);
+
+    return (
+        <article className={cx('post-card', post.type === 'promo' && 'post-card--promo', post.is_pinned && 'post-card--pinned')}>
+            {post.image_url ? (
+                <div className="post-card__media">
+                    <img src={post.image_url} alt="" loading="lazy" />
+                </div>
+            ) : null}
+            <div className="post-card__body">
+                <div className="post-card__meta">
+                    <Badge tone={post.type === 'promo' ? 'warning' : 'primary'}>{post.type_label}</Badge>
+                    {post.is_pinned ? <Badge tone="success">Важное</Badge> : null}
+                    {post.published_at ? <time dateTime={post.published_at}>{post.published_at}</time> : null}
+                </div>
+                <h3>{post.title}</h3>
+                {post.excerpt ? <p className="post-card__excerpt">{post.excerpt}</p> : null}
+                <div className="post-card__text">{post.body}</div>
+                {period ? <p className="post-card__period">{period}</p> : null}
+            </div>
+        </article>
+    );
+}
 
 export default function ClinicShow({ clinic, reviews, review_filters, distribution, similar, concerns, review_options, breadcrumbs }: Props) {
     const lead = useLead();
@@ -51,7 +90,7 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
         });
 
     useEffect(() => {
-        const ids = SECTIONS.map(([id]) => id);
+        const ids = sections.map(([id]) => id);
         const io = new IntersectionObserver(
             (entries) => {
                 const visible = entries.filter((e) => e.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
@@ -64,23 +103,26 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
             if (el) io.observe(el);
         });
         return () => io.disconnect();
-    }, [url]);
+    }, [url, sections]);
 
     const filterReviews = (rating: number) =>
         router.get(`/clinics/${clinic.slug}`, rating ? { rating } : {}, {
-            preserveScroll: true,
+            preserveScroll: false,
             preserveState: true,
             replace: true,
             only: ['reviews', 'review_filters'],
+            onSuccess: () => document.getElementById('reviews')?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
         });
 
     const activeRating = review_filters.rating ?? 0;
     const ratingCount = Object.values(distribution).reduce((a, b) => a + b, 0);
     const hasPrices = clinic.prices.length > 0;
+    const hasPosts = clinic.posts.length > 0;
+    const sections = hasPosts ? BASE_SECTIONS : BASE_SECTIONS.filter(([id]) => id !== 'news');
     const currentGroup = clinic.prices[group] ?? clinic.prices[0];
 
     return (
-        <>
+        <div className="clinic-page">
             <Breadcrumbs items={breadcrumbs} />
 
             <div className="container clinic-top">
@@ -126,9 +168,9 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
 
                 <aside className="booking card card--shadow" aria-label="Запись в клинику">
                     <div className="booking__price">
-                        <span className="text-sm text-muted">Приём и диагностика</span>
-                        <b>{priceFrom(clinic.min_price)}</b>
-                        <span className="text-xs text-muted">Окончательную стоимость называет врач после осмотра.</span>
+                        <span className="booking__price-label">Приём и диагностика</span>
+                        <strong className="booking__price-value">{priceFrom(clinic.min_price)}</strong>
+                        <span className="booking__price-note">Окончательную стоимость называет врач после осмотра.</span>
                     </div>
                     <Button size="lg" block onClick={() => open()}>
                         Записаться онлайн
@@ -150,15 +192,19 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
             <nav className="subnav" aria-label="Разделы страницы">
                 <div className="container">
                     <ul>
-                        {SECTIONS.map(([id, label]) => (
-                            <li key={id}>
-                                <a href={`#${id}`} className={cx(section === id && 'is-active')} aria-current={section === id ? 'true' : undefined}>
-                                    {label}
-                                    {id === 'doctors' ? <span className="text-muted"> {clinic.doctors.length}</span> : null}
-                                    {id === 'reviews' ? <span className="text-muted"> {clinic.reviews_count}</span> : null}
-                                </a>
-                            </li>
-                        ))}
+                        {sections.map(([id, label]) => {
+                            const count =
+                                id === 'doctors' ? clinic.doctors.length : id === 'reviews' ? clinic.reviews_count : id === 'news' ? clinic.posts.length : 0;
+
+                            return (
+                                <li key={id}>
+                                    <a href={`#${id}`} className={cx(section === id && 'is-active')} aria-current={section === id ? 'true' : undefined}>
+                                        {label}
+                                        {count > 0 ? <span className="subnav__count">{count}</span> : null}
+                                    </a>
+                                </li>
+                            );
+                        })}
                     </ul>
                 </div>
             </nav>
@@ -169,18 +215,18 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
                     {clinic.description ? <p className="lead-text">{clinic.description}</p> : null}
                     <div className="facts">
                         {clinic.founded_year ? (
-                            <div>
+                            <div className="fact-card">
                                 <b>{clinic.founded_year}</b>
                                 <span>год основания</span>
                             </div>
                         ) : null}
-                        <div>
-                            <b>{doctorsWord(clinic.doctors_count)}</b>
-                            <span>в клинике</span>
+                        <div className="fact-card">
+                            <b>{clinic.doctors_count}</b>
+                            <span>{plural(clinic.doctors_count, ['врач', 'врача', 'врачей'])} в клинике</span>
                         </div>
-                        <div>
+                        <div className="fact-card">
                             <b>{clinic.specialties.length}</b>
-                            <span>направлений</span>
+                            <span>{plural(clinic.specialties.length, ['направление', 'направления', 'направлений'])}</span>
                         </div>
                     </div>
                     {clinic.specialties.length > 0 ? (
@@ -237,7 +283,7 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
                         <EmptyState icon="ruble" title="Прайс пока не опубликован" text="Уточните стоимость по телефону или в заявке." />
                     ) : (
                         <>
-                            <div className="chip-scroll" role="tablist" aria-label="Группы услуг">
+                            <div className="chip-row" role="tablist" aria-label="Группы услуг">
                                 {clinic.prices.map((g, i) => (
                                     <button key={g.group} role="tab" aria-selected={group === i} type="button" className={cx('chip', group === i && 'is-active')} onClick={() => setGroup(i)}>
                                         {g.group}
@@ -249,6 +295,18 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
                         </>
                     )}
                 </section>
+
+                {hasPosts ? (
+                    <section id="news" className="block" aria-labelledby="news-h">
+                        <h2 id="news-h">Новости и акции</h2>
+                        <p className="text-muted">Актуальные предложения и новости клиники от администрации.</p>
+                        <div className="post-grid">
+                            {clinic.posts.map((post) => (
+                                <PostCard key={post.id} post={post} />
+                            ))}
+                        </div>
+                    </section>
+                ) : null}
 
                 <section id="reviews" className="block" aria-labelledby="reviews-h">
                     <h2 id="reviews-h">Отзывы пациентов</h2>
@@ -262,7 +320,7 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
                                     <ReviewCard key={r.id} review={r} />
                                 ))}
                             </div>
-                            <Pagination page={reviews} only={['reviews', 'review_filters']} keepScroll />
+                            <Pagination page={reviews} only={['reviews', 'review_filters']} param="reviews_page" scrollTo="#reviews" />
                         </>
                     )}
                     <ReviewForm clinicSlug={clinic.slug} doctors={review_options.doctors} services={review_options.services} />
@@ -306,14 +364,22 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
                                 ) : null}
                             </ul>
                             {clinic.lat && clinic.lng ? (
-                                <a
-                                    className="map-link"
-                                    href={`https://yandex.ru/maps/?pt=${clinic.lng},${clinic.lat}&z=16&l=map`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    <Icon name="pin" size={18} /> Показать на карте
-                                </a>
+                                <div className="clinic-map">
+                                    <YandexMap
+                                        points={[{ slug: clinic.slug, name: clinic.name, address: clinic.address, lat: clinic.lat, lng: clinic.lng }]}
+                                        height={280}
+                                        zoom={15}
+                                        activeSlug={clinic.slug}
+                                    />
+                                    <a
+                                        className="map-link"
+                                        href={`https://yandex.ru/maps/?pt=${clinic.lng},${clinic.lat}&z=16&l=map`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        <Icon name="pin" size={18} /> Открыть в Яндекс Картах
+                                    </a>
+                                </div>
                             ) : null}
                         </div>
                         <div className="card">
@@ -360,17 +426,21 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
             </div>
 
             <div className="sticky-cta" role="region" aria-label="Быстрая запись">
-                <div>
+                <div className="sticky-cta__info">
                     <b>{priceFrom(clinic.min_price)}</b>
-                    <span className="text-xs text-muted">приём и диагностика</span>
+                    <span className="sticky-cta__note">приём и диагностика</span>
                 </div>
-                {clinic.phone ? (
-                    <a className="btn btn--outline btn--icon btn--round" href={phoneHref(clinic.phone)} aria-label="Позвонить">
-                        <Icon name="phone" size={20} />
-                    </a>
-                ) : null}
-                <Button onClick={() => open()}>Записаться</Button>
+                <div className="sticky-cta__actions">
+                    {clinic.phone ? (
+                        <a className="btn btn--outline btn--icon btn--round" href={phoneHref(clinic.phone)} aria-label="Позвонить">
+                            <Icon name="phone" size={20} />
+                        </a>
+                    ) : null}
+                    <Button size="sm" onClick={() => open()}>
+                        Записаться
+                    </Button>
+                </div>
             </div>
-        </>
+        </div>
     );
 }

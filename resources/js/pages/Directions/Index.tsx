@@ -12,7 +12,7 @@ export default function DirectionsIndex({ specialties, concerns, breadcrumbs }: 
         <>
             <Breadcrumbs items={breadcrumbs} />
             <header className="container page-head">
-                <h1>{seo?.h1 ?? `Направления стоматологии в ${city.nameIn}`}</h1>
+                <h1>{seo?.h1 ?? `Направления стоматологии ${city.nameIn}`}</h1>
                 <p className="text-muted">Выберите направление, чтобы увидеть услуги, цены и клиники, которые ими занимаются.</p>
             </header>
 

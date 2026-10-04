@@ -60,12 +60,34 @@ class MediaController extends CabinetController
     public function updatePhoto(Request $request, ClinicPhoto $photo): RedirectResponse
     {
         $this->ownedBy($request, $photo);
-        $photo->update($request->validate([
+        $data = $request->validate([
             'kind' => 'required|in:'.implode(',', array_keys(self::PHOTO_KINDS)),
             'caption' => 'nullable|string|max:120',
-        ]));
+            'photo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120|dimensions:min_width=600,min_height=400',
+        ], [
+            'photo.image' => 'Файл должен быть изображением.',
+            'photo.mimes' => 'Допустимые форматы: JPG, PNG, WebP.',
+            'photo.max' => 'Размер файла — не более 5 МБ.',
+            'photo.dimensions' => 'Минимальный размер изображения — 600×400 px.',
+        ]);
 
-        return back()->with('success', 'Подпись сохранена.');
+        $updates = [
+            'kind' => $data['kind'],
+            'caption' => $data['caption'] ?? null,
+        ];
+
+        if ($request->hasFile('photo')) {
+            if ($photo->path) {
+                Storage::disk('public')->delete($photo->path);
+            }
+            $updates['path'] = $request->file('photo')->store("clinic-photos/{$photo->clinic_id}", 'public');
+            $updates['status'] = 'pending';
+        }
+
+        $photo->update($updates);
+        Audit::log('photo.updated', $photo->clinic);
+
+        return back()->with('success', $request->hasFile('photo') ? 'Фото обновлено и отправлено на модерацию.' : 'Изменения сохранены.');
     }
 
     public function destroyPhoto(Request $request, ClinicPhoto $photo): RedirectResponse

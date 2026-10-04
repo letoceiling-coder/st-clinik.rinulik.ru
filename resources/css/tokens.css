@@ -42,7 +42,7 @@
 
     /* Сетка и отступы */
     --container: 1280px;
-    --gutter: clamp(16px, 3vw, 24px);
+    --gutter: clamp(12px, 4vw, 24px);
     --space-1: 4px;
     --space-2: 8px;
     --space-3: 12px;

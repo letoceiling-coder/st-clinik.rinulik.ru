@@ -17,7 +17,7 @@ export default function ReviewsIndex({ reviews, filters, breadcrumbs }: { review
         <>
             <Breadcrumbs items={breadcrumbs} />
             <header className="container page-head">
-                <h1>{seo?.h1 ?? `Отзывы о стоматологиях в ${city.nameIn}`}</h1>
+                <h1>{seo?.h1 ?? `Отзывы о стоматологиях ${city.nameIn}`}</h1>
                 <p className="text-muted">Мы публикуем отзывы только после проверки модератором.</p>
             </header>
 

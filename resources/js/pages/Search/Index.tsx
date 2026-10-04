@@ -46,7 +46,7 @@ export default function SearchIndex({ q, results, concerns }: { q: string; resul
                     title="Ничего не найдено"
                     text={
                         <>
-                            Проверьте написание или выберите готовый запрос. Мы ищем в {city.nameIn} по клиникам, врачам, услугам и симптомам.
+                            Проверьте написание или выберите готовый запрос. Мы ищем {city.nameIn} по клиникам, врачам, услугам и симптомам.
                         </>
                     }
                     action={<ConcernChips concerns={concerns} scroll={false} />}

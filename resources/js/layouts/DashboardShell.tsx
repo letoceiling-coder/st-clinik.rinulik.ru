@@ -69,6 +69,7 @@ export default function DashboardShell({
     mobileLabel: string;
 }) {
     const { auth } = usePage<SharedProps>().props;
+    const user = auth?.user;
     const { url } = usePage();
     const [open, setOpen] = useState(false);
     useClientSeo();
@@ -93,12 +94,12 @@ export default function DashboardShell({
                         <Link href="/" className="btn btn--outline btn--sm hide-mobile">
                             На сайт
                         </Link>
-                        {auth.user ? (
+                        {user ? (
                             <div className="shell__user hide-mobile">
                                 <span className="text-sm">
-                                    <b>{auth.user.name}</b>
+                                    <b>{user.name}</b>
                                     <br />
-                                    <span className="text-muted text-xs">{accountLabel(auth.user)}</span>
+                                    <span className="text-muted text-xs">{accountLabel(user)}</span>
                                 </span>
                             </div>
                         ) : null}

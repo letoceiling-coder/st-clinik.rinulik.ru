@@ -151,10 +151,16 @@ table {
 
 .section-head {
     display: flex;
-    align-items: flex-end;
+    align-items: flex-start;
     justify-content: space-between;
     gap: var(--space-4);
     margin-bottom: var(--space-6);
+}
+.section-head__action {
+    flex: none;
+    align-self: center;
+    display: flex;
+    align-items: center;
 }
 .section-head h2 {
     font-size: var(--fs-2xl);

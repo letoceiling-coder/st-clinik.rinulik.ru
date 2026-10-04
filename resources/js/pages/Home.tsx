@@ -39,7 +39,8 @@ export default function Home({ stats, concerns, popular_services, specialties, t
                         <p className="eyebrow">Стоматологии по всей России</p>
                         <h1>
                             Найдите стоматолога
-                            <br />в {city.nameIn}
+                            <br />
+                            {city.nameIn}
                         </h1>
                         <p className="hero__lead">Сравнивайте клиники и врачей по цене, рейтингу и отзывам. Записывайтесь онлайн или по телефону.</p>
                         <SearchBox variant="hero" />
@@ -120,9 +121,9 @@ export default function Home({ stats, concerns, popular_services, specialties, t
                 <div className="container">
                     <SectionHead
                         title={<span id="clinics-h">Клиники с высоким рейтингом</span>}
-                        text={`${clinicsWord(stats.clinics)} в ${city.nameIn}. Показываем лучшие по оценкам пациентов.`}
+                        text={`${clinicsWord(stats.clinics)} ${city.nameIn}. Показываем лучшие по оценкам пациентов.`}
                         action={
-                            <LinkButton href={city.path('clinics')} variant="dark" size="sm" className="hide-mobile">
+                            <LinkButton href={city.path('clinics')} variant="dark" size="sm" className="hide-mobile btn--compact">
                                 Все клиники
                             </LinkButton>
                         }
@@ -168,7 +169,7 @@ export default function Home({ stats, concerns, popular_services, specialties, t
                 <div className="container">
                     <SectionHead
                         title={<span id="docs-h">Врачи с лучшими отзывами</span>}
-                        text={`${doctorsWord(stats.doctors)} принимают в ${city.nameIn}.`}
+                        text={`${doctorsWord(stats.doctors)} принимают ${city.nameIn}.`}
                         action={
                             <Link href={city.path('doctors')} className="link-arrow hide-mobile">
                                 Все врачи <Icon name="arrow-right" size={18} />

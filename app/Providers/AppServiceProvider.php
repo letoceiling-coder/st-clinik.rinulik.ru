@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Clinic;
+use App\Models\Doctor;
 use App\Repositories\Contracts\CatalogRepository;
 use App\Repositories\Contracts\ClinicRepository;
 use App\Repositories\Contracts\DoctorRepository;
@@ -34,6 +36,22 @@ class AppServiceProvider extends ServiceProvider
         Route::pattern('city', '(?!account|admin|clinic-cabinet|api|login|register|storage|build)[a-z0-9\-]+');
         Route::bind('city', function (string $slug) {
             return app(CatalogRepository::class)->city($slug) ?? abort(404);
+        });
+
+        Route::bind('doctor', function (string $value) {
+            $query = Doctor::query();
+
+            return ctype_digit($value)
+                ? $query->where('id', $value)->firstOrFail()
+                : $query->where('slug', $value)->firstOrFail();
+        });
+
+        Route::bind('clinic', function (string $value) {
+            $query = Clinic::query();
+
+            return ctype_digit($value)
+                ? $query->where('id', $value)->firstOrFail()
+                : $query->where('slug', $value)->firstOrFail();
         });
 
         RateLimiter::for('leads', fn (Request $r) => [

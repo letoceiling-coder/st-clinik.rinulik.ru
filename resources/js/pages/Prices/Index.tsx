@@ -27,7 +27,7 @@ export default function PricesIndex({ groups, breadcrumbs }: { groups: Group[]; 
         <>
             <Breadcrumbs items={breadcrumbs} />
             <header className="container page-head">
-                <h1>{seo?.h1 ?? `Цены на стоматологические услуги в ${city.nameIn}`}</h1>
+                <h1>{seo?.h1 ?? `Цены на стоматологические услуги ${city.nameIn}`}</h1>
                 <p className="text-muted">Минимальные цены среди клиник города. Выберите услугу, чтобы сравнить предложения.</p>
             </header>
 

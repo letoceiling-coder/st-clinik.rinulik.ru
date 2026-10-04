@@ -23,7 +23,7 @@ export default function DoctorsIndex({ doctors, filters, options, breadcrumbs }:
         <>
             <Breadcrumbs items={breadcrumbs} />
             <header className="container page-head">
-                <h1>{seo?.h1 ?? `Стоматологи в ${city.nameIn}`}</h1>
+                <h1>{seo?.h1 ?? `Стоматологи ${city.nameIn}`}</h1>
                 <p className="text-muted">Стаж, рейтинг и отзывы пациентов. Стоимость приёма — «от», точную цену называет клиника.</p>
             </header>
 

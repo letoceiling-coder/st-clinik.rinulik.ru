@@ -185,7 +185,7 @@ export default function DoctorShow({ doctor, clinic, prices, reviews, distributi
                                     <ReviewCard key={r.id} review={r} showClinic />
                                 ))}
                             </div>
-                            <Pagination page={reviews} only={['reviews']} keepScroll />
+                            <Pagination page={reviews} only={['reviews']} param="reviews_page" scrollTo="#reviews" />
                         </>
                     )}
                 </section>

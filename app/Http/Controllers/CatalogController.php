@@ -6,7 +6,6 @@ use App\Http\Resources\ClinicResource;
 use App\Http\Resources\DoctorResource;
 use App\Http\Resources\ReviewResource;
 use App\Models\City;
-use App\Models\Doctor;
 use App\Repositories\Contracts\CatalogRepository;
 use App\Repositories\Contracts\ClinicRepository;
 use App\Repositories\Contracts\DoctorRepository;
@@ -64,6 +63,13 @@ class CatalogController extends Controller
 
         return $this->page('Clinics/Index', [
             'clinics' => $this->paged($page, ClinicResource::class),
+            'map_clinics' => $this->clinics->mapPoints($filters)->map(fn ($c) => [
+                'slug' => $c->slug,
+                'name' => $c->name,
+                'address' => $c->address,
+                'lat' => (float) $c->lat,
+                'lng' => (float) $c->lng,
+            ])->values(),
             'filters' => $filters->active(),
             'options' => $this->filterOptions($city),
             'service_name' => $serviceName,

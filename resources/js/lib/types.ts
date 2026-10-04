@@ -29,8 +29,16 @@ export interface SeoProps {
     robots?: string;
 }
 
+export interface MapClinicPoint {
+    slug: string;
+    name: string;
+    address: string;
+    lat: number;
+    lng: number;
+}
+
 export interface SharedProps {
-    app: { name: string; noindex: boolean; consent_version: string };
+    app: { name: string; noindex: boolean; consent_version: string; yandex_maps_key?: string | null };
     auth: { user: SharedUser | null };
     city: City | null;
     cities: { slug: string; name: string; region: string | null }[];
@@ -72,6 +80,8 @@ export interface ClinicCardData {
     address: string;
     district: string | null;
     metro: string | null;
+    lat: number | null;
+    lng: number | null;
     city: { slug: string; name: string; name_in: string | null } | null;
     phone: string | null;
     rating: number;
@@ -97,8 +107,24 @@ export interface ClinicCardData {
     today: string;
     specialties: { name: string; slug: string }[];
     top_services: { name: string; slug: string; price_from: number }[];
+    services_count?: number;
     doctors_preview: { slug: string; name: string; position: string; art_seed: number; rating: number }[];
     photos: PhotoRef[];
+}
+
+export interface ClinicPostData {
+    id: number;
+    type: string;
+    type_label: string;
+    title: string;
+    slug: string;
+    excerpt: string | null;
+    body: string;
+    starts_at: string | null;
+    ends_at: string | null;
+    is_pinned: boolean;
+    published_at: string | null;
+    image_url: string | null;
 }
 
 export interface PriceItem {
@@ -156,6 +182,7 @@ export interface ClinicDetailData extends ClinicCardData {
     week: { key: string; day: string; hours: string; today: boolean }[];
     doctors: DoctorData[];
     prices: { group: string; items: PriceItem[] }[];
+    posts: ClinicPostData[];
 }
 
 export interface ReviewData {

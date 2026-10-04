@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\ClinicPost;
 use App\Support\Schedule;
 use Illuminate\Http\Request;
 
@@ -55,6 +56,20 @@ class ClinicDetailResource extends ClinicResource
             'doctors' => $c->doctors->map(fn ($d) => DoctorResource::make($d)->resolve($request))->values(),
             'prices' => $prices,
             'payment_methods' => $c->payment_methods ?? [],
+            'posts' => $c->posts->map(fn ($post) => [
+                'id' => $post->id,
+                'type' => $post->type,
+                'type_label' => ClinicPost::TYPES[$post->type] ?? $post->type,
+                'title' => $post->title,
+                'slug' => $post->slug,
+                'excerpt' => $post->excerpt,
+                'body' => $post->body,
+                'starts_at' => $post->starts_at?->toDateString(),
+                'ends_at' => $post->ends_at?->toDateString(),
+                'is_pinned' => $post->is_pinned,
+                'published_at' => $post->created_at?->format('d.m.Y'),
+                'image_url' => $post->image_path ? asset('storage/'.$post->image_path) : null,
+            ])->values(),
         ]);
     }
 }

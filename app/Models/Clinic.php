@@ -98,6 +98,11 @@ class Clinic extends Model
         return $this->hasMany(ClinicDocument::class);
     }
 
+    public function posts(): HasMany
+    {
+        return $this->hasMany(ClinicPost::class)->orderByDesc('is_pinned')->orderBy('sort')->orderByDesc('id');
+    }
+
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);

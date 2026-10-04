@@ -10,7 +10,8 @@ export function useCity() {
         city,
         slug,
         name: city?.name ?? 'Москва',
-        nameIn: city?.name_in ?? city?.name ?? 'Москве',
+        /** Уже с предлогом: «в Москве», «в Санкт-Петербурге» */
+        nameIn: city?.name_in ?? (city?.name ? `в ${city.name}` : 'в Москве'),
         path: (section: CitySection, query?: Record<string, string | number>) => {
             const qs = query ? '?' + new URLSearchParams(Object.entries(query).map(([k, v]) => [k, String(v)])).toString() : '';
             return `/${slug}/${section}${qs}`;
