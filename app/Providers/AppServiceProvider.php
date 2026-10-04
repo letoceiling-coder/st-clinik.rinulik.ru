@@ -36,8 +36,12 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        if (Schema::hasTable('integration_settings')) {
-            app(IntegrationSettings::class)->applyToConfig();
+        try {
+            if (Schema::hasTable('integration_settings')) {
+                app(IntegrationSettings::class)->applyToConfig();
+            }
+        } catch (\Throwable) {
+            // БД может быть недоступна при сборке образа или до миграций.
         }
 
         $appUrl = (string) config('app.url');

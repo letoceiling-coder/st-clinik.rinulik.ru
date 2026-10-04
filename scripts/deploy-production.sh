@@ -57,7 +57,7 @@ if [ -d "${APP_DIR}/public/downloads" ]; then
 fi
 
 echo "==> Rebuilding and restarting app container"
-$COMPOSE build --no-cache app
+$COMPOSE build app
 $COMPOSE up -d app web
 
 echo "==> Syncing build manifest into running app container"
@@ -85,6 +85,7 @@ docker exec "$CONTAINER" php artisan migrate --force --no-interaction
 docker exec "$CONTAINER" php artisan config:cache
 docker exec "$CONTAINER" php artisan route:clear
 docker exec "$CONTAINER" php artisan view:clear
+docker exec "$CONTAINER" sh -c 'kill -USR2 1 2>/dev/null || true'
 
 echo "Deploy finished. Assets:"
 grep -E 'app-.*\.(css|js)' "${APP_DIR}/public/build/manifest.json" | head -2 || true
