@@ -253,12 +253,12 @@ TEXT,
         $clinic->photos()->delete();
 
         $photos = [
-            ['t1.jpg', 'exterior', 'Фасад клиники на Тверской', 10],
-            ['t2.jpg', 'reception', 'Зона ресепшн', 20],
-            ['t3.jpg', 'interior', 'Кабинет врача', 30],
-            ['t4.jpg', 'equipment', 'Цифровое КТ и диагностика', 40],
-            ['t5.jpg', 'team', 'Команда «Евродент»', 50],
-            ['t6.jpg', 'interior', 'Зона ожидания', 60],
+            ['clinic-exterior-01.jpg', 'exterior', 'Фасад клиники на Тверской', 10],
+            ['clinic-interior-01.jpg', 'reception', 'Зона ресепшн', 20],
+            ['clinic-interior-02.jpg', 'interior', 'Кабинет врача', 30],
+            ['clinic-equipment-01.jpg', 'equipment', 'Цифровое КТ и диагностика', 40],
+            ['clinic-team-01.jpg', 'team', 'Команда «Евродент»', 50],
+            ['clinic-interior-03.jpg', 'interior', 'Зона ожидания', 60],
         ];
 
         foreach ($photos as [$file, $kind, $caption, $sort]) {
@@ -312,7 +312,7 @@ TEXT,
                 'starts_at' => now()->startOfMonth(),
                 'ends_at' => now()->endOfMonth(),
                 'is_pinned' => true,
-                'image' => 't4.jpg',
+                'image' => 'clinic-equipment-01.jpg',
             ],
             [
                 'type' => 'news',
@@ -323,7 +323,7 @@ TEXT,
                 'starts_at' => null,
                 'ends_at' => null,
                 'is_pinned' => false,
-                'image' => 't3.jpg',
+                'image' => 'clinic-interior-02.jpg',
             ],
             [
                 'type' => 'promo',
@@ -334,7 +334,7 @@ TEXT,
                 'starts_at' => now(),
                 'ends_at' => now()->addMonths(3)->endOfMonth(),
                 'is_pinned' => false,
-                'image' => 't2.jpg',
+                'image' => 'clinic-interior-01.jpg',
             ],
             [
                 'type' => 'news',
@@ -430,7 +430,7 @@ TEXT,
     private function copyDoctorPhoto(int $doctorId, string $file): ?string
     {
         $source = public_path('images/demo/'.$file);
-        if (! is_file($source)) {
+        if (! is_file($source) || ! $this->isValidImageFile($source)) {
             return null;
         }
 
@@ -444,16 +444,21 @@ TEXT,
     private function copyDemoImage(int $clinicId, string $file, string $subdir = 'photos'): ?string
     {
         $source = public_path('images/demo/'.$file);
-        if (! is_file($source)) {
+        if (! is_file($source) || ! $this->isValidImageFile($source)) {
             return null;
         }
 
         $path = "clinic-{$subdir}/{$clinicId}/{$file}";
         Storage::disk('public')->makeDirectory("clinic-{$subdir}/{$clinicId}");
-        if (! Storage::disk('public')->exists($path)) {
-            Storage::disk('public')->put($path, (string) file_get_contents($source));
-        }
+        Storage::disk('public')->put($path, (string) file_get_contents($source));
 
         return $path;
+    }
+
+    private function isValidImageFile(string $path): bool
+    {
+        $mime = (new \finfo(FILEINFO_MIME_TYPE))->file($path);
+
+        return in_array($mime, ['image/jpeg', 'image/png', 'image/webp'], true);
     }
 }
