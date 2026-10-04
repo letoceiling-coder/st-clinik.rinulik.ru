@@ -83,11 +83,10 @@ class PriceListExcel
 
     public function exportResponse(Clinic $clinic): StreamedResponse
     {
+        $services = $this->catalogServices();
         $filename = 'price-list-'.$clinic->slug.'-'.now()->format('Y-m-d').'.xlsx';
 
-        return $this->stream($filename, function (Writer $writer) use ($clinic): void {
-            $services = $this->catalogServices();
-
+        return $this->streamWithValidations($filename, function (Writer $writer) use ($clinic, $services): void {
             $this->writeWorkbook($writer, function (Writer $priceWriter) use ($clinic): void {
                 $priceWriter->addRow(Row::fromValues(self::HEADERS));
 
@@ -101,8 +100,10 @@ class PriceListExcel
                 foreach ($prices as $price) {
                     $priceWriter->addRow(Row::fromValues($this->priceRowValues($price)));
                 }
+
+                $this->writeTemplateInputRows($priceWriter, 1 + $prices->count());
             }, $services);
-        });
+        }, $services->count());
     }
 
     /**

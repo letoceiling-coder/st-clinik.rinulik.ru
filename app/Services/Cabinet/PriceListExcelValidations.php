@@ -9,7 +9,9 @@ final class PriceListExcelValidations
 {
     public const TEMPLATE_MAX_ROW = 300;
 
-    public function apply(string $xlsxPath, int $catalogServiceCount): void
+    public const DEFINED_SERVICES = 'StClinikServices';
+
+    public function apply(string $xlsxPath, int $catalogServiceCount, int $maxRow = self::TEMPLATE_MAX_ROW): void
     {
         if ($catalogServiceCount < 1) {
             return;
@@ -20,28 +22,65 @@ final class PriceListExcelValidations
             throw new RuntimeException('Не удалось открыть Excel-файл для настройки выпадающих списков.');
         }
 
+        $catalogLastRow = $catalogServiceCount + 1;
+        $catalogSheet = PriceListExcel::SHEET_CATALOG;
+
+        $workbookXml = $zip->getFromName('xl/workbook.xml');
         $sheetXml = $zip->getFromName('xl/worksheets/sheet1.xml');
-        if (! is_string($sheetXml) || $sheetXml === '') {
+
+        if (! is_string($workbookXml) || $workbookXml === '' || ! is_string($sheetXml) || $sheetXml === '') {
             $zip->close();
 
-            throw new RuntimeException('Не найден лист «Прайс» в Excel-файле.');
+            throw new RuntimeException('Не удалось прочитать структуру Excel-файла.');
         }
 
-        $patched = $this->injectValidations($sheetXml, $catalogServiceCount);
-        $zip->addFromString('xl/worksheets/sheet1.xml', $patched);
+        $this->replaceZipEntry(
+            $zip,
+            'xl/workbook.xml',
+            $this->injectDefinedNames($workbookXml, $catalogSheet, $catalogLastRow),
+        );
+
+        $this->replaceZipEntry(
+            $zip,
+            'xl/worksheets/sheet1.xml',
+            $this->injectValidations($sheetXml, $maxRow),
+        );
+
         $zip->close();
     }
 
-    private function injectValidations(string $sheetXml, int $catalogServiceCount): string
+    private function replaceZipEntry(ZipArchive $zip, string $name, string $contents): void
+    {
+        if ($zip->locateName($name) !== false) {
+            $zip->deleteName($name);
+        }
+
+        $zip->addFromString($name, $contents);
+    }
+
+    private function injectDefinedNames(string $workbookXml, string $catalogSheet, int $catalogLastRow): string
+    {
+        if (str_contains($workbookXml, '<definedNames')) {
+            $workbookXml = (string) preg_replace('/<definedNames\b[^>]*>.*?<\/definedNames>/s', '', $workbookXml);
+        }
+
+        $sheetRef = "'{$catalogSheet}'";
+        $servicesRange = $sheetRef.'!$B$2:$B$'.$catalogLastRow;
+
+        $definedNamesXml = '<definedNames>'
+            .'<definedName name="'.self::DEFINED_SERVICES.'">'.$this->escapeXmlText($servicesRange).'</definedName>'
+            .'</definedNames>';
+
+        return str_replace('</workbook>', $definedNamesXml.'</workbook>', $workbookXml);
+    }
+
+    private function injectValidations(string $sheetXml, int $maxRow): string
     {
         if (str_contains($sheetXml, '<dataValidations')) {
             $sheetXml = (string) preg_replace('/<dataValidations\b[^>]*>.*?<\/dataValidations>/s', '', $sheetXml);
         }
 
-        $catalogLastRow = $catalogServiceCount + 1;
-        $maxRow = self::TEMPLATE_MAX_ROW;
-        $catalogSheet = PriceListExcel::SHEET_CATALOG;
-        $validationsXml = $this->buildValidationsXml($catalogSheet, $catalogLastRow, $maxRow);
+        $validationsXml = $this->buildValidationsXml($maxRow);
 
         if (str_contains($sheetXml, '<legacyDrawing')) {
             return str_replace('<legacyDrawing', $validationsXml.'<legacyDrawing', $sheetXml);
@@ -50,14 +89,14 @@ final class PriceListExcelValidations
         return str_replace('</worksheet>', $validationsXml.'</worksheet>', $sheetXml);
     }
 
-    private function buildValidationsXml(string $catalogSheet, int $catalogLastRow, int $maxRow): string
+    private function buildValidationsXml(int $maxRow): string
     {
         $rules = [
             [
                 'sqref' => "B2:B{$maxRow}",
-                'formula' => "'{$catalogSheet}'!\$B\$2:\$B\${$catalogLastRow}",
+                'formula' => self::DEFINED_SERVICES,
                 'title' => 'Услуга',
-                'prompt' => 'Выберите услугу из справочника. Специализация и код заполнятся автоматически.',
+                'prompt' => 'Выберите услугу из справочника. Специализация и код подставятся автоматически.',
             ],
             [
                 'sqref' => "F2:F{$maxRow}",
@@ -70,10 +109,10 @@ final class PriceListExcelValidations
         $xml = '<dataValidations count="'.count($rules).'">';
         foreach ($rules as $rule) {
             $xml .= '<dataValidation type="list" allowBlank="1" showInputMessage="1" showErrorMessage="1" sqref="'
-                .$this->escape($rule['sqref']).'">';
-            $xml .= '<formula1>'.$this->escape($rule['formula']).'</formula1>';
-            $xml .= '<promptTitle>'.$this->escape($rule['title']).'</promptTitle>';
-            $xml .= '<prompt>'.$this->escape($rule['prompt']).'</prompt>';
+                .$this->escapeXmlText($rule['sqref']).'">';
+            $xml .= '<formula1>'.$this->escapeXmlText($rule['formula']).'</formula1>';
+            $xml .= '<promptTitle>'.$this->escapeXmlText($rule['title']).'</promptTitle>';
+            $xml .= '<prompt>'.$this->escapeXmlText($rule['prompt']).'</prompt>';
             $xml .= '<errorTitle>Недопустимое значение</errorTitle>';
             $xml .= '<error>Выберите значение из списка справочника.</error>';
             $xml .= '</dataValidation>';
@@ -83,7 +122,7 @@ final class PriceListExcelValidations
         return $xml;
     }
 
-    private function escape(string $value): string
+    private function escapeXmlText(string $value): string
     {
         return htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8');
     }
