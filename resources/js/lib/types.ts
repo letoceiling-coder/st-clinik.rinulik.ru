@@ -39,6 +39,7 @@ export interface MapClinicPoint {
 
 export interface SharedProps {
     app: { name: string; noindex: boolean; consent_version: string; yandex_maps_key?: string | null };
+    demo?: { mode: string; label: string } | null;
     auth: { user: SharedUser | null };
     city: City | null;
     cities: { slug: string; name: string; region: string | null }[];

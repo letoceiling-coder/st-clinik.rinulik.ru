@@ -9,6 +9,7 @@ use App\Http\Controllers\CityController;
 use App\Http\Controllers\ClinicController;
 use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\CollectionPagesController;
+use App\Http\Controllers\DemoAccessController;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LeadController;
@@ -35,6 +36,12 @@ foreach (['privacy', 'consent', 'review-rules', 'terms', 'about', 'for-clinics']
 Route::get('/favorites', [CollectionPagesController::class, 'favorites'])->name('favorites');
 Route::get('/compare', [CollectionPagesController::class, 'compare'])->name('compare');
 Route::post('/city/{city}', [CityController::class, 'switch'])->name('city.switch');
+
+// --- Временные демо-входы для согласования с заказчиком -----------------
+if (config('demo.enabled')) {
+    Route::get('/clinic-cabinet-demo', [DemoAccessController::class, 'cabinet'])->name('demo.cabinet');
+    Route::get('/admin-demo', [DemoAccessController::class, 'admin'])->name('demo.admin');
+}
 
 // --- Действия посетителей ----------------------------------------------
 Route::post('/leads', [LeadController::class, 'store'])->middleware('throttle:leads')->name('leads.store');

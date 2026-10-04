@@ -23,6 +23,9 @@ class HandleInertiaRequests extends Middleware
         $city = app()->bound('currentCity') ? app('currentCity') : null;
         $catalog = app(CatalogRepository::class);
 
+        $demoMode = $request->session()->get('demo_mode');
+        $demoPersona = is_string($demoMode) ? config("demo.personas.{$demoMode}") : null;
+
         return [
             ...parent::share($request),
             'app' => [
@@ -31,6 +34,10 @@ class HandleInertiaRequests extends Middleware
                 'consent_version' => '2026-10',
                 'yandex_maps_key' => config('services.yandex.maps_api_key'),
             ],
+            'demo' => is_array($demoPersona) ? [
+                'mode' => $demoMode,
+                'label' => $demoPersona['label'] ?? 'Демо-режим',
+            ] : null,
             'auth' => [
                 'user' => $user ? [
                     'id' => $user->id,

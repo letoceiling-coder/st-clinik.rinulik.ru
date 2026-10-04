@@ -68,7 +68,7 @@ export default function DashboardShell({
     aside?: ReactNode;
     mobileLabel: string;
 }) {
-    const { auth } = usePage<SharedProps>().props;
+    const { auth, demo } = usePage<SharedProps>().props;
     const user = auth?.user;
     const { url } = usePage();
     const [open, setOpen] = useState(false);
@@ -108,6 +108,14 @@ export default function DashboardShell({
                         </Link>
                     </div>
                 </header>
+                {demo ? (
+                    <div className="demo-banner" role="status">
+                        <Icon name="info" size={18} />
+                        <span>
+                            <b>{demo.label}</b> — демонстрационный режим для согласования функционала и дизайна. Изменения могут сохраняться в системе.
+                        </span>
+                    </div>
+                ) : null}
                 <div className="shell__body container container--wide">
                     <aside className="shell__side hide-tablet">
                         {aside}

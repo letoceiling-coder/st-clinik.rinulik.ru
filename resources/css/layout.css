@@ -2116,6 +2116,20 @@
 }
 
 .shell { min-height: 100vh; background: var(--color-page); }
+.demo-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 10px var(--gutter);
+    background: var(--color-warning-soft);
+    color: #5e3d00;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-warning) 25%, transparent);
+    font-size: var(--fs-sm);
+    line-height: 1.45;
+}
+.demo-banner svg { flex: none; margin-top: 2px; }
 .shell__top { background: rgba(255, 255, 255, 0.95); border-bottom: 1px solid var(--color-border); box-shadow: var(--header-shadow); backdrop-filter: blur(10px); }
 .shell__top-row { display: flex; align-items: center; gap: 12px; min-height: 68px; max-width: 1440px; margin: 0 auto; padding: 0 var(--gutter); }
 .shell__body { display: grid; grid-template-columns: 280px 1fr; gap: var(--space-8); padding: var(--space-8) 0 var(--space-12); }

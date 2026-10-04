@@ -42,7 +42,7 @@ class AppServiceProvider extends ServiceProvider
             }
         }
 
-        Route::pattern('city', '(?!account|admin|clinic-cabinet|api|login|register|storage|build)[a-z0-9\-]+');
+        Route::pattern('city', '(?!account|admin|admin-demo|clinic-cabinet|clinic-cabinet-demo|api|login|register|storage|build)[a-z0-9\-]+');
         Route::bind('city', function (string $slug) {
             return app(CatalogRepository::class)->city($slug) ?? abort(404);
         });
