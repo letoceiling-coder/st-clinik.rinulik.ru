@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Cabinet;
 
 use App\Models\ClinicService;
 use App\Models\Service;
+use App\Services\Cabinet\PriceListExcel;
 use App\Services\ProfileMetrics;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PriceController extends CabinetController
 {
@@ -28,6 +30,42 @@ class PriceController extends CabinetController
                 'id' => $s->id, 'name' => $s->name, 'specialty' => $s->specialty?->name,
             ]),
         ]);
+    }
+
+    public function template(Request $request, PriceListExcel $excel): StreamedResponse
+    {
+        return $excel->templateResponse($this->branch($request));
+    }
+
+    public function export(Request $request, PriceListExcel $excel): StreamedResponse
+    {
+        return $excel->exportResponse($this->branch($request));
+    }
+
+    public function import(Request $request, PriceListExcel $excel): RedirectResponse
+    {
+        $branch = $this->branch($request);
+        $data = $request->validate([
+            'file' => 'required|file|mimes:xlsx|max:5120',
+        ], [
+            'file.required' => 'Выберите Excel-файл (.xlsx).',
+            'file.mimes' => 'Поддерживается только формат .xlsx.',
+            'file.max' => 'Размер файла — не более 5 МБ.',
+        ]);
+
+        $report = $excel->import($branch, $data['file']);
+        app(ProfileMetrics::class)->recalcClinic($branch);
+
+        $message = sprintf(
+            'Импорт завершён: добавлено %d, обновлено %d, пропущено %d.',
+            $report['created'],
+            $report['updated'],
+            $report['skipped'],
+        );
+
+        return back()
+            ->with($report['errors'] === [] ? 'success' : 'error', $message)
+            ->with('import_report', $report);
     }
 
     public function store(Request $request): RedirectResponse

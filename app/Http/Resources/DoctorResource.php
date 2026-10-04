@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class DoctorResource extends JsonResource
 {
@@ -24,6 +25,7 @@ class DoctorResource extends JsonResource
             'children_age_from' => $d->children_age_from,
             'consult_price' => $d->consult_price,
             'art_seed' => $d->art_seed,
+            'photo_url' => $d->photo_path ? Storage::disk('public')->url($d->photo_path) : null,
             'achievements' => array_slice($d->achievements ?? [], 0, 2),
             'specialties' => $d->relationLoaded('specialties') ? $d->specialties->map(fn ($s) => ['name' => $s->name, 'slug' => $s->slug])->values() : [],
             'clinic' => $d->relationLoaded('clinic') && $d->clinic ? [

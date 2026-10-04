@@ -59,7 +59,17 @@ export function PhotoArt({
     );
 }
 
-export function DoctorArt({ seed = 1, className, name }: { seed?: number; className?: string; name?: string }) {
-    const src = doctorPhoto(seed);
+export function DoctorArt({
+    seed = 1,
+    photoUrl,
+    className,
+    name,
+}: {
+    seed?: number;
+    photoUrl?: string | null;
+    className?: string;
+    name?: string;
+}) {
+    const src = photoUrl ?? doctorPhoto(seed);
     return <DemoImg src={src} alt={name ?? 'Фото врача'} className={className} aspect="1/1" />;
 }

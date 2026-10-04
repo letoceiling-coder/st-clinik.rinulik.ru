@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { PageHead } from '@/components/Dash';
 import { Button } from '@/components/ui/Button';
 import { Check, TextArea, TextField } from '@/components/ui/Fields';
+import FileDropzone from '@/components/ui/FileDropzone';
 
 export default function DoctorForm({
     doctorForm,
@@ -14,6 +15,7 @@ export default function DoctorForm({
     weekdays: Record<string, string>;
 }) {
     const d = doctorForm ?? {};
+    const photoUrl = (d.photo_url as string | null) ?? null;
     const form = useForm<Record<string, any>>({
         name: (d.name as string) ?? '',
         position: (d.position as string) ?? '',
@@ -26,6 +28,8 @@ export default function DoctorForm({
         children_age_from: (d.children_age_from as number) ?? '',
         consult_price: (d.consult_price as number) ?? '',
         specialty_ids: ((d.specialty_ids as number[]) ?? []).map(String),
+        photo: null as File | null,
+        remove_photo: false,
     });
 
     const submit = (e: FormEvent) => {
@@ -36,14 +40,36 @@ export default function DoctorForm({
             achievements: String(form.data.achievements).split('\n').map((s: string) => s.trim()).filter(Boolean),
             specialty_ids: form.data.specialty_ids.map(Number),
         };
-        form.transform(() => payload);
-        if (d.id) form.put(`/clinic-cabinet/doctors/${d.id}`);
-        else form.post('/clinic-cabinet/doctors');
+        const opts = { forceFormData: true as const };
+        if (d.id) {
+            form.transform(() => ({ ...payload, _method: 'put' }));
+            form.post(`/clinic-cabinet/doctors/${d.id}`, opts);
+        } else {
+            form.transform(() => payload);
+            form.post('/clinic-cabinet/doctors', opts);
+        }
     };
 
     return (
         <form className="card stack" onSubmit={submit}>
             <PageHead title={d.id ? 'Редактирование врача' : 'Новый врач'} />
+            <FileDropzone
+                label="Фото врача"
+                hint="JPG, PNG или WebP до 5 МБ. Квадратное фото смотрится лучше всего."
+                accept="image/*"
+                value={form.data.photo}
+                onChange={(file) => {
+                    form.setData('photo', file);
+                    if (file) {
+                        form.setData('remove_photo', false);
+                    }
+                }}
+                previewUrl={form.data.photo || form.data.remove_photo ? null : photoUrl}
+                error={form.errors.photo}
+            />
+            {photoUrl && !form.data.photo ? (
+                <Check label="Удалить текущее фото" checked={form.data.remove_photo} onChange={(e) => form.setData('remove_photo', e.target.checked)} />
+            ) : null}
             <TextField label="ФИО" required value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} error={form.errors.name} />
             <TextField label="Должность" required value={form.data.position} onChange={(e) => form.setData('position', e.target.value)} error={form.errors.position} />
             <TextField label="Стаж, лет" type="number" required value={form.data.experience_years} onChange={(e) => form.setData('experience_years', e.target.value)} error={form.errors.experience_years} />

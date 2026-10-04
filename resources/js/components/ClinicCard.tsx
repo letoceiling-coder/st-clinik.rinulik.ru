@@ -127,7 +127,7 @@ function DoctorAvatarStack({
         <div className="avatar-stack" aria-label={doctorsWord(total)}>
             {visible.map((doctor) => (
                 <span key={doctor.slug} className="avatar-stack__item">
-                    <DoctorArt seed={doctor.art_seed} name={doctor.name} />
+                    <DoctorArt seed={doctor.art_seed} photoUrl={doctor.photo_url} name={doctor.name} />
                 </span>
             ))}
             {extra > 0 ? (

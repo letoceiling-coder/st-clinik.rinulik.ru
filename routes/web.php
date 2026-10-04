@@ -101,6 +101,9 @@ Route::middleware(['auth', 'clinic.owner'])->prefix('clinic-cabinet')->name('cab
     Route::delete('/doctors/{doctor:id}', [Cabinet\DoctorController::class, 'destroy'])->name('doctors.destroy');
 
     Route::get('/prices', [Cabinet\PriceController::class, 'index'])->name('prices');
+    Route::get('/prices/template', [Cabinet\PriceController::class, 'template'])->name('prices.template');
+    Route::get('/prices/export', [Cabinet\PriceController::class, 'export'])->name('prices.export');
+    Route::post('/prices/import', [Cabinet\PriceController::class, 'import'])->name('prices.import');
     Route::post('/prices', [Cabinet\PriceController::class, 'store'])->name('prices.store');
     Route::put('/prices/{price}', [Cabinet\PriceController::class, 'update'])->name('prices.update')->whereNumber('price');
     Route::delete('/prices/{price}', [Cabinet\PriceController::class, 'destroy'])->name('prices.destroy')->whereNumber('price');

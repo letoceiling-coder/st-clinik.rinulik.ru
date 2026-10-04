@@ -43,7 +43,16 @@ export interface SharedProps {
     city: City | null;
     cities: { slug: string; name: string; region: string | null }[];
     collections: CollectionState | null;
-    flash: { success?: string | null; error?: string | null };
+    flash: {
+        success?: string | null;
+        error?: string | null;
+        import_report?: {
+            created: number;
+            updated: number;
+            skipped: number;
+            errors: { row: number; message: string }[];
+        } | null;
+    };
     seo?: SeoProps;
     errors: Record<string, string>;
     [key: string]: unknown;
@@ -108,7 +117,7 @@ export interface ClinicCardData {
     specialties: { name: string; slug: string }[];
     top_services: { name: string; slug: string; price_from: number }[];
     services_count?: number;
-    doctors_preview: { slug: string; name: string; position: string; art_seed: number; rating: number }[];
+    doctors_preview: { slug: string; name: string; position: string; art_seed: number; rating: number; photo_url?: string | null }[];
     photos: PhotoRef[];
 }
 
@@ -151,6 +160,7 @@ export interface DoctorData {
     children_age_from: number | null;
     consult_price: number | null;
     art_seed: number;
+    photo_url?: string | null;
     achievements: string[];
     specialties: { name: string; slug: string }[];
     clinic: {

@@ -42,7 +42,7 @@ export default function DoctorShow({ doctor, clinic, prices, reviews, distributi
 
             <div className="container doctor-top">
                 <div className="doctor-top__photo">
-                    <DoctorArt seed={doctor.art_seed} />
+                    <DoctorArt seed={doctor.art_seed} photoUrl={doctor.photo_url} name={doctor.name} />
                 </div>
                 <div className="doctor-top__info">
                     <div className="clinic-head__badges">

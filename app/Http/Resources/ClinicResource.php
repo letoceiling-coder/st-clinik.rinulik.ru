@@ -61,6 +61,7 @@ class ClinicResource extends JsonResource
             'services_count' => $priced->count(),
             'doctors_preview' => $c->relationLoaded('doctors') ? $c->doctors->take(3)->map(fn ($d) => [
                 'slug' => $d->slug, 'name' => $d->name, 'position' => $d->position, 'art_seed' => $d->art_seed, 'rating' => (float) $d->rating,
+                'photo_url' => $d->photo_path ? asset('storage/'.$d->photo_path) : null,
             ])->values() : [],
             'photos' => $c->relationLoaded('photos') ? $c->photos->take(3)->map(fn ($p) => [
                 'kind' => $p->kind, 'caption' => $p->caption, 'art_seed' => $p->art_seed, 'url' => $p->path ? asset('storage/'.$p->path) : null,

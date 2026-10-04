@@ -1,2 +1,5 @@
 Demo images sourced via Openverse API (CC0 / CC BY / CC BY-SA).
 Review licenses at https://openverse.org before production use.
+
+Doctor portraits (doctor-01..04.jpg): Unsplash License — unsplash.com/license
+Clinic photos (t1..t6.jpg): Openverse / project demo set.

@@ -1269,6 +1269,29 @@ a.page-btn:hover {
     white-space: nowrap;
 }
 
+.doctor-list__photo {
+    width: 52px;
+    padding-right: 0;
+}
+.doctor-list__photo .demo-photo {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    overflow: hidden;
+}
+.doctor-list__photo .demo-photo__img {
+    object-fit: cover;
+}
+
+.import-errors {
+    margin: 0;
+    padding-left: 1.1rem;
+    display: grid;
+    gap: 6px;
+    font-size: var(--fs-sm);
+    color: var(--color-text);
+}
+
 .progress {
     height: 10px;
     border-radius: var(--radius-pill);

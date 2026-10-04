@@ -15,7 +15,7 @@ export default function DoctorCard({ doctor, compact }: { doctor: DoctorData; co
     return (
         <article className={cx('doctor-card', compact && 'doctor-card--compact')} aria-labelledby={`doctor-${doctor.id}`}>
             <Link href={href} className="doctor-card__photo" tabIndex={-1} aria-hidden="true">
-                <DoctorArt seed={doctor.art_seed} name={doctor.name} />
+                <DoctorArt seed={doctor.art_seed} photoUrl={doctor.photo_url} name={doctor.name} />
             </Link>
             <FavoriteButton type="doctor" id={doctor.id} name={doctor.name} />
             <div className="doctor-card__body">

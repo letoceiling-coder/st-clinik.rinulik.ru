@@ -159,6 +159,7 @@ TEXT,
             ],
         ];
 
+        $doctorPhotos = ['doctor-01.jpg', 'doctor-02.jpg', 'doctor-03.jpg', 'doctor-04.jpg'];
         $clinicSpecIds = [];
         foreach ($defs as $i => $def) {
             $ids = array_values(array_filter(array_map(fn ($s) => $specs[$s] ?? null, $def['specs'])));
@@ -188,6 +189,11 @@ TEXT,
                 'reviews_count' => 0,
             ]);
             $doctor->specialties()->sync($ids);
+
+            $photoFile = $doctorPhotos[$i] ?? null;
+            if ($photoFile && ($photoPath = $this->copyDoctorPhoto($doctor->id, $photoFile))) {
+                $doctor->update(['photo_path' => $photoPath]);
+            }
         }
 
         $clinic->specialties()->sync(array_values(array_unique($clinicSpecIds)));
@@ -419,6 +425,20 @@ TEXT,
             'art_seed' => 11,
             'status' => 'published',
         ]);
+    }
+
+    private function copyDoctorPhoto(int $doctorId, string $file): ?string
+    {
+        $source = public_path('images/demo/'.$file);
+        if (! is_file($source)) {
+            return null;
+        }
+
+        $path = "doctor-photos/{$doctorId}/{$file}";
+        Storage::disk('public')->makeDirectory("doctor-photos/{$doctorId}");
+        Storage::disk('public')->put($path, (string) file_get_contents($source));
+
+        return $path;
     }
 
     private function copyDemoImage(int $clinicId, string $file, string $subdir = 'photos'): ?string

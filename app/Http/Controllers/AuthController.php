@@ -24,6 +24,7 @@ class AuthController extends Controller
             'email' => 'required|email',
             'password' => 'required|string',
         ], ['email.required' => 'Введите e-mail.', 'email.email' => 'Некорректный e-mail.', 'password.required' => 'Введите пароль.']);
+        $credentials['email'] = strtolower($credentials['email']);
 
         if (! Auth::attempt($credentials, $request->boolean('remember'))) {
             return back()->withErrors(['email' => 'Неверный e-mail или пароль.'])->onlyInput('email');

@@ -36,6 +36,7 @@ services:
     volumes:
       - ./nginx/app.conf:/etc/nginx/conf.d/default.conf:ro
       - st-clinik-public:/var/www/html/public:ro
+      - st-clinik-storage:/var/www/html/storage:ro
     networks:
       - st-clinik_net
 

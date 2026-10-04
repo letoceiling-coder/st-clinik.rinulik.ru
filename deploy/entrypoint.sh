@@ -38,8 +38,13 @@ if [ "${SEED_ON_BOOT:-false}" = "true" ]; then
 fi
 
 php artisan storage:link --force >/dev/null 2>&1 || true
+# nginx serves from the shared public volume; expose uploaded files via a relative symlink.
+if [ -d /var/www/html/public-export ]; then
+    rm -f /var/www/html/public-export/storage
+    ln -sfn ../storage/app/public /var/www/html/public-export/storage
+fi
 php artisan config:cache
-php artisan route:cache
+php artisan route:clear
 php artisan view:cache
 
 exec docker-php-entrypoint "$@"

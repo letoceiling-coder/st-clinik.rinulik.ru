@@ -14,6 +14,10 @@ PUBLIC_VOLUME="${PUBLIC_VOLUME:-st-clinik-public}"
 
 cd "$APP_DIR"
 
+if [ -f .env ] && [ ! -f .env.production.backup ]; then
+    cp .env .env.production.backup
+fi
+
 if [ -d .git ] && [ "${SKIP_GIT_PULL:-0}" != "1" ]; then
     if git fetch origin && git checkout "$BRANCH" && git pull --ff-only origin "$BRANCH"; then
         echo "Git pull OK."
@@ -38,6 +42,19 @@ docker run --rm \
         find /vol/build -type d -exec chmod 755 {} +
         find /vol/build -type f -exec chmod 644 {} +
     '
+
+echo "==> Linking public/storage for nginx"
+docker run --rm \
+    -v "${PUBLIC_VOLUME}:/vol" \
+    alpine sh -c 'rm -f /vol/storage && ln -sfn ../storage/app/public /vol/storage'
+
+if [ -d "${APP_DIR}/public/downloads" ]; then
+    echo "==> Syncing public downloads to nginx volume"
+    docker run --rm \
+        -v "${APP_DIR}/public/downloads:/src:ro" \
+        -v "${PUBLIC_VOLUME}:/vol" \
+        alpine sh -c 'mkdir -p /vol/downloads && cp -a /src/. /vol/downloads/'
+fi
 
 echo "==> Rebuilding and restarting app container"
 $COMPOSE build app
