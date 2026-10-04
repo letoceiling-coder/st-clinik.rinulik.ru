@@ -89,6 +89,9 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
             ...extra,
         });
 
+    const hasPosts = clinic.posts.length > 0;
+    const sections = hasPosts ? BASE_SECTIONS : BASE_SECTIONS.filter(([id]) => id !== 'news');
+
     useEffect(() => {
         const ids = sections.map(([id]) => id);
         const io = new IntersectionObserver(
@@ -117,8 +120,6 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
     const activeRating = review_filters.rating ?? 0;
     const ratingCount = Object.values(distribution).reduce((a, b) => a + b, 0);
     const hasPrices = clinic.prices.length > 0;
-    const hasPosts = clinic.posts.length > 0;
-    const sections = hasPosts ? BASE_SECTIONS : BASE_SECTIONS.filter(([id]) => id !== 'news');
     const currentGroup = clinic.prices[group] ?? clinic.prices[0];
 
     return (

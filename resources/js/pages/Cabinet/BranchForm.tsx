@@ -1,8 +1,9 @@
-import { useForm } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { PageHead } from '@/components/Dash';
 import { Button } from '@/components/ui/Button';
 import { Check, SelectField, TextArea, TextField } from '@/components/ui/Fields';
+import { Alert } from '@/components/ui/Misc';
 
 type Branch = Record<string, unknown> & {
     id?: number;
@@ -75,6 +76,15 @@ export default function BranchForm({
     return (
         <form className="stack-lg" onSubmit={submit}>
             <PageHead title={b.id ? 'Редактирование филиала' : 'Новый филиал'} text="Не публикуйте диагнозы и сканы паспортов пациентов. Лицензию загружайте в «Документы»." />
+            {b.id ? (
+                <Alert tone="info" icon="image">
+                    Фотографии филиала (фасад, интерьер, кабинеты) загружаются в разделе{' '}
+                    <Link href="/clinic-cabinet/photos" className="link">
+                        «Фото»
+                    </Link>{' '}
+                    в меню слева. После модерации они появятся на карточке клиники и на странице филиала.
+                </Alert>
+            ) : null}
             <section className="card form-grid">
                 <TextField className="span-2" label="Название" required value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} error={form.errors.name} />
                 <TextField className="span-2" label="Короткий слоган" value={form.data.tagline} onChange={(e) => form.setData('tagline', e.target.value)} />
