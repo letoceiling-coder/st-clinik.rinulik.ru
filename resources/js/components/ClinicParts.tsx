@@ -3,7 +3,7 @@ import { cx, dateRu, money, priceFrom } from '@/lib/format';
 import type { ClinicDetailData, PhotoRef, PriceItem } from '@/lib/types';
 import Icon from './Icon';
 import { PhotoArt } from './PhotoArt';
-import { Modal } from './ui/Overlay';
+import { Lightbox } from './ui/Overlay';
 
 export const PHOTO_KINDS: Record<string, string> = {
     exterior: 'Фасад',
@@ -37,9 +37,13 @@ export function Gallery({ photos, name }: { photos: PhotoRef[]; name: string }) 
                     </button>
                 ))}
             </div>
-            <Modal open={open !== null} onClose={() => setOpen(null)} title={open !== null ? (photos[open].caption ?? PHOTO_KINDS[photos[open].kind] ?? 'Фото') : ''} wide>
+            <Lightbox
+                open={open !== null}
+                onClose={() => setOpen(null)}
+                title={open !== null ? (photos[open].caption ?? PHOTO_KINDS[photos[open].kind] ?? 'Фото') : undefined}
+            >
                 {open !== null ? (
-                    <div className="lightbox">
+                    <>
                         <button type="button" className="lightbox__nav lightbox__nav--prev" onClick={() => setOpen((open - 1 + photos.length) % photos.length)} aria-label="Предыдущее фото">
                             <Icon name="chevron-left" size={24} />
                         </button>
@@ -52,9 +56,9 @@ export function Gallery({ photos, name }: { photos: PhotoRef[]; name: string }) 
                         <p className="lightbox__count text-sm text-muted">
                             {open + 1} / {photos.length}
                         </p>
-                    </div>
+                    </>
                 ) : null}
-            </Modal>
+            </Lightbox>
         </>
     );
 }

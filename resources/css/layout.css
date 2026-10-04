@@ -1982,12 +1982,60 @@
 }
 .bar > span { display: block; height: 100%; background: var(--color-star); border-radius: 99px; }
 
-.lightbox { position: fixed; inset: 0; z-index: 80; background: rgba(0,0,0,.88); display: grid; place-items: center; }
+.lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 210;
+    background: rgba(0, 0, 0, 0.88);
+    display: grid;
+    place-items: center;
+}
+.lightbox__close {
+    position: absolute;
+    top: max(16px, env(safe-area-inset-top));
+    right: max(16px, env(safe-area-inset-right));
+    z-index: 2;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+.lightbox__title {
+    position: absolute;
+    top: max(20px, env(safe-area-inset-top));
+    left: max(20px, env(safe-area-inset-left));
+    right: 72px;
+    margin: 0;
+    color: #fff;
+    font-size: var(--fs-lg);
+    font-weight: 700;
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.45);
+    pointer-events: none;
+}
 .lightbox__frame { max-width: min(920px, 92vw); }
-.lightbox__nav { position: absolute; top: 50%; color: #fff; }
-.lightbox__nav--prev { left: 16px; }
-.lightbox__nav--next { right: 16px; }
-.lightbox__count { position: absolute; bottom: 20px; color: #fff; }
+.lightbox__frame img { display: block; max-width: 100%; max-height: min(82vh, 920px); margin: 0 auto; border-radius: var(--radius-12); }
+.lightbox__nav {
+    position: absolute;
+    top: 50%;
+    translate: 0 -50%;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: var(--radius-pill);
+}
+.lightbox__nav:hover { background: rgba(255, 255, 255, 0.22); }
+.lightbox__nav--prev { left: max(16px, env(safe-area-inset-left)); }
+.lightbox__nav--next { right: max(16px, env(safe-area-inset-right)); }
+.lightbox__count {
+    position: absolute;
+    bottom: max(20px, env(safe-area-inset-bottom));
+    left: 50%;
+    translate: -50% 0;
+    margin: 0;
+    color: #fff;
+}
 
 .map-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; }
 .clinic-map { margin-top: var(--space-4); }

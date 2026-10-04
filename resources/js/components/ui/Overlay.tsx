@@ -122,6 +122,40 @@ export function Drawer({ open, onClose, title, children, side = 'right', footer 
     );
 }
 
+interface LightboxProps {
+    open: boolean;
+    onClose: () => void;
+    title?: string;
+    children: ReactNode;
+}
+
+/** Полноэкранный просмотр изображений с кнопкой закрытия, Esc и кликом по фону. */
+export function Lightbox({ open, onClose, title, children }: LightboxProps) {
+    const ref = useRef<HTMLDivElement>(null);
+    useOverlay(open, onClose, ref);
+    if (!open) return null;
+
+    return (
+        <Portal>
+            <div
+                ref={ref}
+                className="lightbox"
+                role="dialog"
+                aria-modal="true"
+                aria-label={title ?? 'Просмотр фото'}
+                tabIndex={-1}
+                onMouseDown={(e) => {
+                    if (e.target === e.currentTarget) onClose();
+                }}
+            >
+                <IconButton className="lightbox__close" icon="x" label="Закрыть" onClick={onClose} variant="secondary" round />
+                {title ? <p className="lightbox__title">{title}</p> : null}
+                {children}
+            </div>
+        </Portal>
+    );
+}
+
 /** Закрытие по клику вне элемента и Esc (для поповеров). */
 export function useDismiss(open: boolean, onClose: () => void, ref: React.RefObject<HTMLElement | null>) {
     useEffect(() => {
