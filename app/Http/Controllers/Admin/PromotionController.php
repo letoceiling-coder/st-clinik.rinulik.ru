@@ -106,17 +106,14 @@ class PromotionController extends AdminController
             'code' => 'required|string|max:32|regex:/^[a-z0-9_]+$/|unique:promotion_packages,code',
             'name' => 'required|string|max:120',
             'description' => 'nullable|string|max:2000',
-            'duration_days' => 'required|integer|min:1|max:365',
-            'product_ids' => 'required|array|min:1',
-            'product_ids.*' => 'integer|exists:promotion_products,id',
+            'duration_days' => 'required|integer|min:1|max:1095',
             'is_active' => 'boolean',
             'sort' => 'nullable|integer|min:0|max:9999',
         ]);
 
-        $package = PromotionPackage::create(collect($data)->except('product_ids')->all());
-        $package->products()->sync($data['product_ids']);
+        PromotionPackage::create($data);
 
-        return back()->with('success', 'Пакет добавлен.');
+        return back()->with('success', 'Пакет публикации добавлен.');
     }
 
     public function updatePackage(Request $request, PromotionPackage $package): RedirectResponse
@@ -124,17 +121,15 @@ class PromotionController extends AdminController
         $data = $request->validate([
             'name' => 'required|string|max:120',
             'description' => 'nullable|string|max:2000',
-            'duration_days' => 'required|integer|min:1|max:365',
-            'product_ids' => 'required|array|min:1',
-            'product_ids.*' => 'integer|exists:promotion_products,id',
+            'duration_days' => 'required|integer|min:1|max:1095',
             'is_active' => 'boolean',
             'sort' => 'nullable|integer|min:0|max:9999',
         ]);
 
-        $package->update(collect($data)->except('product_ids')->all());
-        $package->products()->sync($data['product_ids']);
+        $package->update($data);
+        $package->products()->detach();
 
-        return back()->with('success', 'Пакет обновлён.');
+        return back()->with('success', 'Пакет публикации обновлён.');
     }
 
     public function storePrice(Request $request): RedirectResponse

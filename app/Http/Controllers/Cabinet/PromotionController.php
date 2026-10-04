@@ -31,14 +31,12 @@ class PromotionController extends CabinetController
             'available' => $promotions->availableSlots($cityId, $p->code),
         ]);
 
-        $packages = PromotionPackage::query()->where('is_active', true)->with('products')->orderBy('sort')->get()->map(fn (PromotionPackage $p) => [
+        $packages = PromotionPackage::query()->where('is_active', true)->orderBy('sort')->get()->map(fn (PromotionPackage $p) => [
             'id' => $p->id,
             'code' => $p->code,
             'name' => $p->name,
             'description' => $p->description,
             'duration_days' => $p->duration_days,
-            'products' => $p->products->map(fn (PromotionProduct $pr) => $pr->name)->values(),
-            'requires_moderation' => $p->hasBanner(),
             'price' => $promotions->resolvePrice('package', $p->id, $cityId)?->price,
         ]);
 
@@ -75,9 +73,11 @@ class PromotionController extends CabinetController
             'packages' => $packages,
             'active' => $active,
             'orders' => $orders,
+            'has_publication' => $promotions->hasActivePublication($branch),
             'yookassa_configured' => app(YooKassaService::class)->configured(),
             'labels' => [
-                'boost' => 'Буст «Рекомендуем»',
+                'publication' => 'Публикация на сервисе',
+                'boost' => 'Подъём «Рекомендуем»',
                 'banner_home' => 'Баннер на главной',
                 'banner_catalog' => 'Баннер в каталоге',
             ],
@@ -143,6 +143,6 @@ class PromotionController extends CabinetController
             return (bool) PromotionProduct::query()->find($id)?->isBanner();
         }
 
-        return (bool) PromotionPackage::query()->with('products')->find($id)?->hasBanner();
+        return false;
     }
 }

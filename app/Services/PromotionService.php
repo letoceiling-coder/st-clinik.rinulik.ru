@@ -55,6 +55,15 @@ class PromotionService
             ->first();
     }
 
+    public function hasActivePublication(Clinic $clinic): bool
+    {
+        return ClinicPromotion::query()
+            ->active()
+            ->where('clinic_id', $clinic->id)
+            ->where('product_code', 'publication')
+            ->exists();
+    }
+
     /** @return array{ok: bool, message: string|null} */
     public function canPurchase(Clinic $clinic, string $type, int $id): array
     {
@@ -63,12 +72,20 @@ class PromotionService
             return ['ok' => false, 'message' => 'Тариф недоступен.'];
         }
 
+        if ($type === 'product' && ! $this->hasActivePublication($clinic)) {
+            return ['ok' => false, 'message' => 'Сначала оформите пакет публикации на сервисе.'];
+        }
+
         $price = $this->resolvePrice($type, $id, (int) $clinic->city_id);
         if (! $price) {
             return ['ok' => false, 'message' => 'Цена для вашего города не задана.'];
         }
 
         foreach ($this->productCodes($type, $id) as $code) {
+            if ($code === 'publication') {
+                continue;
+            }
+
             if ($this->availableSlots((int) $clinic->city_id, $code) <= 0) {
                 return ['ok' => false, 'message' => 'Достигнут лимит размещений для «'.$this->productLabel($code).'».'];
             }
@@ -292,9 +309,7 @@ class PromotionService
             return $product ? [$product->code] : [];
         }
 
-        $package = PromotionPackage::query()->with('products')->find($id);
-
-        return $package ? $package->products->pluck('code')->all() : [];
+        return PromotionPackage::query()->find($id) ? ['publication'] : [];
     }
 
     public function durationDays(string $type, int $id): int
@@ -312,7 +327,7 @@ class PromotionService
             return (bool) PromotionProduct::query()->find($id)?->requires_moderation;
         }
 
-        return PromotionPackage::query()->with('products')->find($id)?->products->contains(fn (PromotionProduct $p) => $p->requires_moderation) ?? false;
+        return false;
     }
 
     private function priceable(string $type, int $id): ?Model
@@ -325,6 +340,7 @@ class PromotionService
     private function productLabel(string $code): string
     {
         return match ($code) {
+            'publication' => 'Публикация на сервисе',
             'boost' => 'Буст',
             'banner_home' => 'Баннер на главной',
             'banner_catalog' => 'Баннер в каталоге',

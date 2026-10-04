@@ -24,7 +24,6 @@ interface PackageItem {
     duration_days: number;
     is_active: boolean;
     sort: number;
-    products: { id: number; name: string; code: string }[];
 }
 
 interface PriceRow {
@@ -69,6 +68,12 @@ function rub(kopecks: number): string {
     return `${Math.round(kopecks / 100).toLocaleString('ru-RU')} ₽`;
 }
 
+function formatDuration(days: number): string {
+    if (days >= 365) return `${Math.round(days / 365)} год (${days} дн.)`;
+    if (days >= 30) return `${Math.round(days / 30)} мес. (${days} дн.)`;
+    return `${days} дн.`;
+}
+
 export default function AdminPromotions({ products, packages, prices, settings, pending_orders, cities }: Props) {
     const [tab, setTab] = useState<'moderation' | 'products' | 'packages' | 'prices' | 'limits'>('moderation');
 
@@ -102,7 +107,6 @@ export default function AdminPromotions({ products, packages, prices, settings, 
         name: '',
         description: '',
         duration_days: 30,
-        product_ids: [] as number[],
         is_active: true,
         sort: 100,
     });
@@ -129,12 +133,20 @@ export default function AdminPromotions({ products, packages, prices, settings, 
 
     return (
         <>
-            <PageHead title="Продвижение и тарифы" text="Тарифы, пакеты, региональные цены, лимиты и модерация баннеров." />
+            <PageHead title="Продвижение и тарифы" text="Пакеты публикации, доп. опции, региональные цены, лимиты слотов и модерация баннеров." />
 
             <div className="row row--wrap" style={{ gap: 8, marginBottom: 24 }}>
                 {(['moderation', 'products', 'packages', 'prices', 'limits'] as const).map((key) => (
                     <Button key={key} type="button" variant={tab === key ? 'primary' : 'outline'} onClick={() => setTab(key)}>
-                        {key === 'moderation' ? `Модерация (${pending_orders.length})` : key === 'products' ? 'Тарифы' : key === 'packages' ? 'Пакеты' : key === 'prices' ? 'Цены' : 'Лимиты'}
+                        {key === 'moderation'
+                            ? `Модерация (${pending_orders.length})`
+                            : key === 'products'
+                              ? 'Доп. опции'
+                              : key === 'packages'
+                                ? 'Пакеты публикации'
+                                : key === 'prices'
+                                  ? 'Цены'
+                                  : 'Лимиты слотов'}
                     </Button>
                 ))}
             </div>
@@ -162,10 +174,7 @@ export default function AdminPromotions({ products, packages, prices, settings, 
                                 </a>
                             </p>
                             <div className="row row--wrap" style={{ gap: 8 }}>
-                                <Button
-                                    type="button"
-                                    onClick={() => router.post(`/admin/promotions/orders/${o.id}/approve`, {}, { preserveScroll: true })}
-                                >
+                                <Button type="button" onClick={() => router.post(`/admin/promotions/orders/${o.id}/approve`, {}, { preserveScroll: true })}>
                                     Опубликовать
                                 </Button>
                                 <Button
@@ -186,12 +195,13 @@ export default function AdminPromotions({ products, packages, prices, settings, 
 
             {tab === 'products' ? (
                 <div className="stack-lg">
+                    <p className="text-sm text-muted">Доп. опции покупаются отдельно при активном пакете публикации. Поле «Дней» — срок действия услуги после активации.</p>
                     <form className="card stack" onSubmit={saveProduct}>
-                        <h2>Новый тариф</h2>
+                        <h2>Новая доп. опция</h2>
                         <TextField label="Код" required value={productForm.data.code} onChange={(e) => productForm.setData('code', e.target.value)} hint="boost, banner_home, banner_catalog" />
                         <TextField label="Название" required value={productForm.data.name} onChange={(e) => productForm.setData('name', e.target.value)} />
                         <TextArea label="Описание" value={productForm.data.description} onChange={(e) => productForm.setData('description', e.target.value)} />
-                        <TextField label="Дней" type="number" value={String(productForm.data.duration_days)} onChange={(e) => productForm.setData('duration_days', Number(e.target.value))} />
+                        <TextField label="Срок действия, дней" type="number" value={String(productForm.data.duration_days)} onChange={(e) => productForm.setData('duration_days', Number(e.target.value))} hint="Например: 30 — один месяц" />
                         <Check label="Требует модерации (баннер)" checked={productForm.data.requires_moderation} onChange={(e) => productForm.setData('requires_moderation', e.target.checked)} />
                         <Button type="submit">Добавить</Button>
                     </form>
@@ -201,7 +211,7 @@ export default function AdminPromotions({ products, packages, prices, settings, 
                                 <tr>
                                     <th>Код</th>
                                     <th>Название</th>
-                                    <th>Дней</th>
+                                    <th>Срок</th>
                                     <th>Модерация</th>
                                     <th>Активен</th>
                                 </tr>
@@ -211,7 +221,7 @@ export default function AdminPromotions({ products, packages, prices, settings, 
                                     <tr key={p.id}>
                                         <td>{p.code}</td>
                                         <td>{p.name}</td>
-                                        <td>{p.duration_days}</td>
+                                        <td>{formatDuration(p.duration_days)}</td>
                                         <td>{p.requires_moderation ? 'Да' : '—'}</td>
                                         <td>{p.is_active ? 'Да' : 'Нет'}</td>
                                     </tr>
@@ -224,36 +234,36 @@ export default function AdminPromotions({ products, packages, prices, settings, 
 
             {tab === 'packages' ? (
                 <div className="stack-lg">
+                    <p className="text-sm text-muted">Пакет даёт право на публикацию клиники в каталоге. Буст и баннеры в пакет не входят.</p>
                     <form className="card stack" onSubmit={savePackage}>
-                        <h2>Новый пакет</h2>
-                        <TextField label="Код" required value={packageForm.data.code} onChange={(e) => packageForm.setData('code', e.target.value)} />
+                        <h2>Новый пакет публикации</h2>
+                        <TextField label="Код" required value={packageForm.data.code} onChange={(e) => packageForm.setData('code', e.target.value)} hint="publish_1m, publish_6m, publish_12m" />
                         <TextField label="Название" required value={packageForm.data.name} onChange={(e) => packageForm.setData('name', e.target.value)} />
                         <TextArea label="Описание" value={packageForm.data.description} onChange={(e) => packageForm.setData('description', e.target.value)} />
-                        <fieldset className="stack">
-                            <legend className="text-sm">Включённые услуги</legend>
-                            {products.map((p) => (
-                                <Check
-                                    key={p.id}
-                                    label={p.name}
-                                    checked={packageForm.data.product_ids.includes(p.id)}
-                                    onChange={(e) => {
-                                        const ids = new Set(packageForm.data.product_ids);
-                                        if (e.target.checked) ids.add(p.id);
-                                        else ids.delete(p.id);
-                                        packageForm.setData('product_ids', [...ids]);
-                                    }}
-                                />
-                            ))}
-                        </fieldset>
+                        <TextField label="Срок публикации, дней" type="number" required value={String(packageForm.data.duration_days)} onChange={(e) => packageForm.setData('duration_days', Number(e.target.value))} hint="30 = 1 мес., 180 = 6 мес., 365 = 12 мес." />
                         <Button type="submit">Добавить пакет</Button>
                     </form>
-                    <div className="stack">
-                        {packages.map((p) => (
-                            <article key={p.id} className="card">
-                                <strong>{p.name}</strong> ({p.code})
-                                <p className="text-sm text-muted">{p.products.map((x) => x.name).join(' · ')}</p>
-                            </article>
-                        ))}
+                    <div className="table-wrap">
+                        <table className="table">
+                            <thead>
+                                <tr>
+                                    <th>Код</th>
+                                    <th>Название</th>
+                                    <th>Срок</th>
+                                    <th>Активен</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {packages.map((p) => (
+                                    <tr key={p.id}>
+                                        <td>{p.code}</td>
+                                        <td>{p.name}</td>
+                                        <td>{formatDuration(p.duration_days)}</td>
+                                        <td>{p.is_active ? 'Да' : 'Нет'}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             ) : null}
@@ -263,11 +273,11 @@ export default function AdminPromotions({ products, packages, prices, settings, 
                     <form className="card stack" onSubmit={savePrice}>
                         <h2>Цена по региону</h2>
                         <SelectField label="Тип" value={priceForm.data.priceable_type} onChange={(e) => priceForm.setData('priceable_type', e.target.value as 'product' | 'package')}>
-                            <option value="product">Тариф</option>
-                            <option value="package">Пакет</option>
+                            <option value="product">Доп. опция</option>
+                            <option value="package">Пакет публикации</option>
                         </SelectField>
                         <SelectField label="Позиция" value={priceForm.data.priceable_id} onChange={(e) => priceForm.setData('priceable_id', Number(e.target.value))}>
-                            {(priceForm.data.priceable_type === 'product' ? products : packages).map((item) => (
+                            {(priceForm.data.priceable_type === 'product' ? products : packages.filter((p) => p.is_active)).map((item) => (
                                 <option key={item.id} value={item.id}>
                                     {item.name}
                                 </option>
@@ -298,7 +308,7 @@ export default function AdminPromotions({ products, packages, prices, settings, 
                             <tbody>
                                 {prices.map((p) => (
                                     <tr key={p.id}>
-                                        <td>{p.priceable_type}</td>
+                                        <td>{p.priceable_type === 'package' ? 'Пакет' : 'Доп. опция'}</td>
                                         <td>{p.priceable_id}</td>
                                         <td>{p.city_name}</td>
                                         <td>{rub(p.price)}</td>
@@ -317,6 +327,7 @@ export default function AdminPromotions({ products, packages, prices, settings, 
 
             {tab === 'limits' ? (
                 <div className="stack-lg">
+                    <p className="text-sm text-muted">Лимиты одновременных размещений буста и баннеров в городе. Срок каждой услуги задаётся во вкладке «Доп. опции».</p>
                     <form className="card stack" onSubmit={saveLimit}>
                         <h2>Лимиты размещений</h2>
                         <SelectField label="Город" value={limitForm.data.city_id} onChange={(e) => limitForm.setData('city_id', e.target.value)}>

@@ -14,8 +14,8 @@ class PromotionSeeder extends Seeder
     public function run(): void
     {
         $boost = PromotionProduct::updateOrCreate(['code' => 'boost'], [
-            'name' => 'Буст «Рекомендуем»',
-            'description' => 'Блок «Рекомендуем» вверху каталога и приоритет в списке.',
+            'name' => 'Подъём в каталоге «Рекомендуем»',
+            'description' => 'Блок «Рекомендуем» вверху каталога и приоритет в списке. Покупается отдельно при активном пакете публикации.',
             'duration_days' => 30,
             'requires_moderation' => false,
             'is_active' => true,
@@ -23,8 +23,8 @@ class PromotionSeeder extends Seeder
         ]);
 
         $bannerHome = PromotionProduct::updateOrCreate(['code' => 'banner_home'], [
-            'name' => 'Баннер на главной',
-            'description' => 'Баннер на главной странице города.',
+            'name' => 'Рекламный баннер на главной',
+            'description' => 'Баннер на главной странице города. Покупается отдельно при активном пакете публикации.',
             'duration_days' => 30,
             'requires_moderation' => true,
             'is_active' => true,
@@ -32,40 +32,45 @@ class PromotionSeeder extends Seeder
         ]);
 
         $bannerCatalog = PromotionProduct::updateOrCreate(['code' => 'banner_catalog'], [
-            'name' => 'Баннер в каталоге',
-            'description' => 'Баннер над списком клиник.',
+            'name' => 'Рекламный баннер в каталоге',
+            'description' => 'Баннер над списком клиник. Покупается отдельно при активном пакете публикации.',
             'duration_days' => 30,
             'requires_moderation' => true,
             'is_active' => true,
             'sort' => 30,
         ]);
 
-        $start = PromotionPackage::updateOrCreate(['code' => 'start'], [
-            'name' => 'Старт',
-            'description' => 'Базовое продвижение в каталоге.',
+        PromotionPackage::query()->whereIn('code', ['start', 'growth', 'max'])->each(function (PromotionPackage $legacy) {
+            $legacy->products()->detach();
+            $legacy->update(['is_active' => false]);
+        });
+
+        $publish1m = PromotionPackage::updateOrCreate(['code' => 'publish_1m'], [
+            'name' => 'Публикация 1 месяц',
+            'description' => 'Право на размещение клиники в каталоге на 30 дней.',
             'duration_days' => 30,
             'is_active' => true,
             'sort' => 10,
         ]);
-        $start->products()->sync([$boost->id]);
+        $publish1m->products()->detach();
 
-        $growth = PromotionPackage::updateOrCreate(['code' => 'growth'], [
-            'name' => 'Продвижение',
-            'description' => 'Буст и баннер в каталоге.',
-            'duration_days' => 30,
+        $publish6m = PromotionPackage::updateOrCreate(['code' => 'publish_6m'], [
+            'name' => 'Публикация 6 месяцев',
+            'description' => 'Право на размещение клиники в каталоге на 180 дней.',
+            'duration_days' => 180,
             'is_active' => true,
             'sort' => 20,
         ]);
-        $growth->products()->sync([$boost->id, $bannerCatalog->id]);
+        $publish6m->products()->detach();
 
-        $max = PromotionPackage::updateOrCreate(['code' => 'max'], [
-            'name' => 'Максимум',
-            'description' => 'Полный набор: буст и баннеры на главной и в каталоге.',
-            'duration_days' => 30,
+        $publish12m = PromotionPackage::updateOrCreate(['code' => 'publish_12m'], [
+            'name' => 'Публикация 12 месяцев',
+            'description' => 'Право на размещение клиники в каталоге на 365 дней.',
+            'duration_days' => 365,
             'is_active' => true,
             'sort' => 30,
         ]);
-        $max->products()->sync([$boost->id, $bannerHome->id, $bannerCatalog->id]);
+        $publish12m->products()->detach();
 
         PromotionSetting::updateOrCreate(['city_id' => null], [
             'max_boost' => 3,
@@ -77,9 +82,9 @@ class PromotionSeeder extends Seeder
             ['product', $boost->id, 490000],
             ['product', $bannerHome->id, 990000],
             ['product', $bannerCatalog->id, 790000],
-            ['package', $start->id, 449000],
-            ['package', $growth->id, 1090000],
-            ['package', $max->id, 1790000],
+            ['package', $publish1m->id, 299000],
+            ['package', $publish6m->id, 1490000],
+            ['package', $publish12m->id, 2490000],
         ];
 
         foreach ($defaultPrices as [$type, $id, $price]) {
@@ -101,9 +106,9 @@ class PromotionSeeder extends Seeder
                 ['product', $boost->id, 690000],
                 ['product', $bannerHome->id, 1490000],
                 ['product', $bannerCatalog->id, 1190000],
-                ['package', $start->id, 649000],
-                ['package', $growth->id, 1590000],
-                ['package', $max->id, 2490000],
+                ['package', $publish1m->id, 499000],
+                ['package', $publish6m->id, 2490000],
+                ['package', $publish12m->id, 4490000],
             ];
 
             foreach ($moscowPrices as [$type, $id, $price]) {

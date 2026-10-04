@@ -6,6 +6,7 @@ use App\Models\City;
 use App\Models\Clinic;
 use App\Models\Organization;
 use App\Models\PromotionOrder;
+use App\Models\PromotionPackage;
 use App\Models\PromotionProduct;
 use App\Models\User;
 use App\Services\PromotionService;
@@ -42,11 +43,38 @@ class PromotionTest extends TestCase
             ->assertInertia(fn ($page) => $page->component('Cabinet/Promotions'));
     }
 
-    public function test_paid_boost_order_creates_active_promotion(): void
+    public function test_publication_package_creates_active_entitlement(): void
+    {
+        [$owner, $clinic] = $this->clinicOwner();
+        $package = PromotionPackage::query()->where('code', 'publish_1m')->firstOrFail();
+
+        $order = app(PromotionService::class)->createOrder($clinic, $owner, 'package', $package->id);
+        app(PromotionService::class)->markPaid($order);
+
+        $this->assertDatabaseHas('clinic_promotions', [
+            'clinic_id' => $clinic->id,
+            'product_code' => 'publication',
+            'status' => 'active',
+        ]);
+    }
+
+    public function test_boost_requires_active_publication(): void
     {
         [$owner, $clinic] = $this->clinicOwner();
         $product = PromotionProduct::query()->where('code', 'boost')->firstOrFail();
 
+        $check = app(PromotionService::class)->canPurchase($clinic, 'product', $product->id);
+
+        $this->assertFalse($check['ok']);
+        $this->assertStringContainsString('публикации', $check['message'] ?? '');
+    }
+
+    public function test_paid_boost_order_creates_active_promotion(): void
+    {
+        [$owner, $clinic] = $this->clinicOwner();
+        $this->activatePublication($clinic, $owner);
+
+        $product = PromotionProduct::query()->where('code', 'boost')->firstOrFail();
         $order = app(PromotionService::class)->createOrder($clinic, $owner, 'product', $product->id);
         app(PromotionService::class)->markPaid($order);
 
@@ -60,6 +88,8 @@ class PromotionTest extends TestCase
     public function test_banner_order_requires_moderation_before_active(): void
     {
         [$owner, $clinic] = $this->clinicOwner();
+        $this->activatePublication($clinic, $owner);
+
         $product = PromotionProduct::query()->where('code', 'banner_home')->firstOrFail();
 
         $order = PromotionOrder::create([
@@ -95,9 +125,11 @@ class PromotionTest extends TestCase
     public function test_catalog_includes_recommended_block_when_boosted(): void
     {
         [$owner, $clinic] = $this->clinicOwner();
+        $this->activatePublication($clinic, $owner);
+
         $product = PromotionProduct::query()->where('code', 'boost')->firstOrFail();
         app(PromotionService::class)->createOrder($clinic, $owner, 'product', $product->id);
-        app(PromotionService::class)->markPaid(PromotionOrder::first());
+        app(PromotionService::class)->markPaid(PromotionOrder::query()->where('priceable_type', 'product')->first());
 
         $city = City::query()->findOrFail($clinic->city_id);
 
@@ -125,5 +157,12 @@ class PromotionTest extends TestCase
         ]);
 
         return [$owner, $clinic];
+    }
+
+    private function activatePublication(Clinic $clinic, User $owner): void
+    {
+        $package = PromotionPackage::query()->where('code', 'publish_1m')->firstOrFail();
+        $order = app(PromotionService::class)->createOrder($clinic, $owner, 'package', $package->id);
+        app(PromotionService::class)->markPaid($order);
     }
 }

@@ -1,5 +1,5 @@
 import { useForm, usePage } from '@inertiajs/react';
-import { useState, type FormEvent } from 'react';
+import { type FormEvent } from 'react';
 import { PageHead } from '@/components/Dash';
 import { Button } from '@/components/ui/Button';
 import FileDropzone from '@/components/ui/FileDropzone';
@@ -24,8 +24,6 @@ interface PackageItem {
     name: string;
     description: string | null;
     duration_days: number;
-    products: string[];
-    requires_moderation: boolean;
     price: number | null | undefined;
 }
 
@@ -52,6 +50,7 @@ interface Props {
     packages: PackageItem[];
     active: ActivePromotion[];
     orders: OrderRow[];
+    has_publication: boolean;
     yookassa_configured: boolean;
     labels: Record<string, string>;
 }
@@ -61,7 +60,33 @@ function formatPrice(kopecks: number | null | undefined): string {
     return `${Math.round(kopecks / 100).toLocaleString('ru-RU')} ₽`;
 }
 
-function CheckoutForm({ type, id, requiresBanner, name, price }: { type: 'product' | 'package'; id: number; requiresBanner: boolean; name: string; price: number | null | undefined }) {
+function formatDuration(days: number): string {
+    if (days >= 365) return `${Math.round(days / 365)} год`;
+    if (days >= 30) return `${Math.round(days / 30)} мес.`;
+    return `${days} дн.`;
+}
+
+function CheckoutForm({
+    type,
+    id,
+    requiresBanner,
+    name,
+    price,
+    description,
+    durationDays,
+    disabled,
+    disabledReason,
+}: {
+    type: 'product' | 'package';
+    id: number;
+    requiresBanner: boolean;
+    name: string;
+    price: number | null | undefined;
+    description?: string | null;
+    durationDays?: number;
+    disabled?: boolean;
+    disabledReason?: string;
+}) {
     const form = useForm({
         type,
         id,
@@ -81,7 +106,11 @@ function CheckoutForm({ type, id, requiresBanner, name, price }: { type: 'produc
     return (
         <form className="card stack promo-offer" onSubmit={submit}>
             <div className="row row--wrap row--between">
-                <h3 className="promo-offer__title">{name}</h3>
+                <div className="stack" style={{ gap: 4 }}>
+                    <h3 className="promo-offer__title">{name}</h3>
+                    {durationDays ? <p className="text-sm text-muted">Срок: {formatDuration(durationDays)}</p> : null}
+                    {description ? <p className="text-sm text-muted">{description}</p> : null}
+                </div>
                 <strong className="promo-offer__price">{formatPrice(price)}</strong>
             </div>
             {requiresBanner ? (
@@ -91,7 +120,8 @@ function CheckoutForm({ type, id, requiresBanner, name, price }: { type: 'produc
                     <FileDropzone label="Изображение баннера" accept="image/*" onChange={(file) => form.setData('banner_image', file)} error={form.errors.banner_image} hint="JPG или PNG, до 4 МБ. После оплаты — модерация администратора." />
                 </>
             ) : null}
-            <Button type="submit" disabled={form.processing || !price}>
+            {disabledReason ? <p className="alert alert--warning">{disabledReason}</p> : null}
+            <Button type="submit" disabled={form.processing || !price || disabled}>
                 Оплатить через ЮKassa
             </Button>
             {form.errors.payment ? <p className="field-error">{form.errors.payment}</p> : null}
@@ -99,13 +129,15 @@ function CheckoutForm({ type, id, requiresBanner, name, price }: { type: 'produc
     );
 }
 
-export default function CabinetPromotions({ products, packages, active, orders, yookassa_configured, labels }: Props) {
+export default function CabinetPromotions({ products, packages, active, orders, has_publication, yookassa_configured, labels }: Props) {
     const { flash } = usePage<SharedProps>().props;
-    const [tab, setTab] = useState<'products' | 'packages'>('packages');
 
     return (
         <>
-            <PageHead title="Продвижение" text="Поднимите клинику в каталоге или разместите баннер. Оплата через ЮKassa." />
+            <PageHead
+                title="Продвижение"
+                text="Пакеты — право на публикацию клиники в каталоге. Буст и баннеры покупаются отдельно при активном пакете."
+            />
             {flash?.success ? <p className="alert alert--success">{flash.success}</p> : null}
             {!yookassa_configured ? <p className="alert alert--warning">Оплата временно недоступна: не настроена ЮKassa на сервере.</p> : null}
 
@@ -129,36 +161,47 @@ export default function CabinetPromotions({ products, packages, active, orders, 
             ) : null}
 
             <section className="stack-lg">
-                <div className="row row--wrap" style={{ gap: 8 }}>
-                    <Button variant={tab === 'packages' ? 'primary' : 'outline'} type="button" onClick={() => setTab('packages')}>
-                        Пакеты
-                    </Button>
-                    <Button variant={tab === 'products' ? 'primary' : 'outline'} type="button" onClick={() => setTab('products')}>
-                        Отдельные услуги
-                    </Button>
-                </div>
+                <h2>Пакеты публикации</h2>
+                <p className="text-sm text-muted">Выберите срок размещения клиники на сервисе: 1, 6 или 12 месяцев.</p>
+                {packages.length === 0 ? (
+                    <EmptyState title="Пакеты пока не настроены" text="Обратитесь к администратору каталога." />
+                ) : (
+                    <div className="promo-grid">
+                        {packages.map((p) => (
+                            <CheckoutForm key={p.id} type="package" id={p.id} name={p.name} price={p.price} description={p.description} durationDays={p.duration_days} requiresBanner={false} />
+                        ))}
+                    </div>
+                )}
+            </section>
 
-                {tab === 'packages' ? (
-                    packages.length === 0 ? (
-                        <EmptyState title="Пакеты пока не настроены" text="Обратитесь к администратору каталога." />
-                    ) : (
-                        <div className="promo-grid">
-                            {packages.map((p) => (
-                                <CheckoutForm key={p.id} type="package" id={p.id} name={p.name} price={p.price} requiresBanner={p.requires_moderation} />
-                            ))}
-                        </div>
-                    )
-                ) : products.length === 0 ? (
-                    <EmptyState title="Тарифы пока не настроены" />
+            <section className="stack-lg">
+                <h2>Дополнительные опции</h2>
+                <p className="text-sm text-muted">Подъём в каталоге и рекламные баннеры. Доступны только при активном пакете публикации.</p>
+                {!has_publication ? <p className="alert alert--warning">Сначала оформите пакет публикации — без него доп. опции недоступны.</p> : null}
+                {products.length === 0 ? (
+                    <EmptyState title="Доп. опции пока не настроены" />
                 ) : (
                     <div className="promo-grid">
                         {products.map((p) => (
                             <div key={p.id} className="stack">
-                                {p.available === 0 && p.code !== 'boost' ? (
-                                    <p className="text-sm text-muted">Свободных мест: 0</p>
-                                ) : null}
-                                <CheckoutForm type="product" id={p.id} name={p.name} price={p.price} requiresBanner={p.requires_moderation} />
-                                {p.description ? <p className="text-sm text-muted">{p.description}</p> : null}
+                                {p.available === 0 ? <p className="text-sm text-muted">Свободных мест: 0</p> : null}
+                                <CheckoutForm
+                                    type="product"
+                                    id={p.id}
+                                    name={p.name}
+                                    price={p.price}
+                                    description={p.description}
+                                    durationDays={p.duration_days}
+                                    requiresBanner={p.requires_moderation}
+                                    disabled={!has_publication || p.available === 0}
+                                    disabledReason={
+                                        !has_publication
+                                            ? 'Требуется активный пакет публикации.'
+                                            : p.available === 0
+                                              ? 'Достигнут лимит размещений в вашем городе.'
+                                              : undefined
+                                    }
+                                />
                             </div>
                         ))}
                     </div>
