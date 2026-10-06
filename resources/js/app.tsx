@@ -18,5 +18,5 @@ createInertiaApp({
         if (name === 'Error') return AuthLayout;
         return PublicLayout;
     },
-    progress: { color: '#FA4F04', delay: 150 },
+    progress: { color: '#FF4D00', delay: 150 },
 });

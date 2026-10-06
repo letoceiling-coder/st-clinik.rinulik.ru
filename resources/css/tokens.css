@@ -1,22 +1,23 @@
-/* Design tokens. Единственный источник значений для всего интерфейса. */
+/* Design tokens — палитра и типографика babenko-clinic-elevated (mestolov.ru). */
 :root {
     /* Цвет */
-    --color-primary: #fa4f04;
-    --color-primary-hover: #e24500;
-    --color-primary-active: #c93d00;
-    --color-primary-soft: #fff1ea;
-    --color-primary-text: #c23b00; /* оранжевый текст на белом: контраст ≥ 4.5:1 */
+    --color-primary: #ff4d00;
+    --color-primary-hover: #e64500;
+    --color-primary-active: #cc3d00;
+    --color-primary-soft: rgb(255 77 0 / 0.1);
+    --color-primary-text: #cc4400;
     --color-on-primary: #ffffff;
-    --color-primary-gradient: linear-gradient(135deg, #fa4f04 0%, #ff7a3d 100%);
+    --color-primary-gradient: linear-gradient(135deg, #ff4d00 0%, #ff6a33 100%);
 
-    --color-text: #151515;
-    --color-muted: #66615e;
+    --color-text: #1a1a1a;
+    --color-muted: #666666;
+    --color-muted-2: #8c8c8c;
     --color-surface: #ffffff;
-    --color-surface-muted: #f7f6f5;
+    --color-surface-muted: #f5f5f5;
     --color-surface-elevated: #ffffff;
-    --color-page: #faf9f8;
-    --color-border: #ebe8e6;
-    --color-border-strong: #d4cfcc;
+    --color-page: #ffffff;
+    --color-border: #e6e6e6;
+    --color-border-strong: #e6e6e6;
 
     --color-success: #12795a;
     --color-success-soft: #e6f5ef;
@@ -36,9 +37,9 @@
     --radius-pill: 999px;
 
     /* Тени */
-    --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.07);
-    --shadow-soft: 0 4px 14px rgba(0, 0, 0, 0.05);
-    --shadow-pop: 0 18px 50px rgba(0, 0, 0, 0.16);
+    --shadow-card: 0 8px 28px rgb(26 26 26 / 0.1);
+    --shadow-soft: 0 4px 14px rgb(26 26 26 / 0.05);
+    --shadow-pop: 0 18px 50px rgb(26 26 26 / 0.16);
 
     /* Сетка и отступы */
     --container: 1280px;
@@ -53,7 +54,7 @@
     --space-16: 64px;
 
     /* Типографика */
-    --font-sans: 'Manrope Variable', 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+    --font-sans: 'Geist', system-ui, -apple-system, sans-serif;
     --fs-xs: 0.8125rem;
     --fs-sm: 0.9375rem;
     --fs-md: 1rem;
@@ -71,10 +72,10 @@
     --control-h-sm: 44px;
     --header-h: 72px;
     --tabbar-h: 64px;
-    --header-shadow: 0 1px 0 rgba(21, 21, 21, 0.06), 0 8px 24px rgba(21, 21, 21, 0.04);
+    --header-shadow: 0 1px 0 rgb(26 26 26 / 0.06), 0 8px 24px rgb(26 26 26 / 0.04);
 
     --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
-    --focus-ring: 0 0 0 3px #fff, 0 0 0 5px #151515;
+    --focus-ring: 0 0 0 3px #fff, 0 0 0 5px #1a1a1a;
 
     --photo-radius: var(--radius-20);
     --photo-ratio-clinic: 4 / 3;

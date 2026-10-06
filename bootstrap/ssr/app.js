@@ -2748,7 +2748,7 @@ var renderPromise = createInertiaApp({
 		return PublicLayout;
 	},
 	progress: {
-		color: "#FA4F04",
+		color: "#FF4D00",
 		delay: 150
 	}
 });
