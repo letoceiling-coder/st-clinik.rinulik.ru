@@ -2,10 +2,21 @@ import { n as Button } from "./Button-D8Mzgn6o.js";
 import { a as Alert, b as TextArea, g as Check, x as TextField, y as SelectField } from "../app.js";
 import { r as PageHead } from "./Dash-BbiOlhfn.js";
 import { Link, useForm } from "@inertiajs/react";
+import { useMemo } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
 //#region resources/js/pages/Cabinet/BranchForm.tsx
-function BranchForm({ branchForm, cities, districts, specialties, payments }) {
+function BranchForm({ branchForm, cities, districts, specialties, payments, propertyTypes }) {
 	const b = branchForm ?? {};
+	const propertyDefaults = Object.fromEntries(propertyTypes.map((p) => [p.column, Boolean(b[p.column])]));
+	const propertyGroups = useMemo(() => {
+		const groups = /* @__PURE__ */ new Map();
+		propertyTypes.forEach((p) => {
+			const list = groups.get(p.group) ?? [];
+			list.push(p);
+			groups.set(p.group, list);
+		});
+		return [...groups.entries()];
+	}, [propertyTypes]);
 	const form = useForm({
 		name: b.name ?? "",
 		tagline: b.tagline ?? "",
@@ -27,13 +38,8 @@ function BranchForm({ branchForm, cities, districts, specialties, payments }) {
 		specialty_ids: (b.specialty_ids ?? []).map(String),
 		accepts_children: Boolean(b.accepts_children),
 		children_age_from: b.children_age_from ?? "",
-		has_installment: Boolean(b.has_installment),
 		installment_months: b.installment_months ?? "",
-		accepts_dms: Boolean(b.accepts_dms),
-		has_sedation: Boolean(b.has_sedation),
-		has_anesthesia: Boolean(b.has_anesthesia),
-		has_microscope: Boolean(b.has_microscope),
-		has_ct: Boolean(b.has_ct)
+		...propertyDefaults
 	});
 	const submit = (e) => {
 		e.preventDefault();
@@ -208,47 +214,15 @@ function BranchForm({ branchForm, cities, districts, specialties, payments }) {
 				children: [
 					/* @__PURE__ */ jsx("h2", {
 						className: "card-title",
-						children: "Условия"
+						children: "Условия и свойства"
 					}),
-					/* @__PURE__ */ jsxs("div", {
+					/* @__PURE__ */ jsx("div", {
 						className: "check-grid",
-						children: [
-							/* @__PURE__ */ jsx(Check, {
-								label: "Детский приём",
-								checked: form.data.accepts_children,
-								onChange: (e) => form.setData("accepts_children", e.target.checked)
-							}),
-							/* @__PURE__ */ jsx(Check, {
-								label: "Рассрочка",
-								checked: form.data.has_installment,
-								onChange: (e) => form.setData("has_installment", e.target.checked)
-							}),
-							/* @__PURE__ */ jsx(Check, {
-								label: "ДМС",
-								checked: form.data.accepts_dms,
-								onChange: (e) => form.setData("accepts_dms", e.target.checked)
-							}),
-							/* @__PURE__ */ jsx(Check, {
-								label: "Седация",
-								checked: form.data.has_sedation,
-								onChange: (e) => form.setData("has_sedation", e.target.checked)
-							}),
-							/* @__PURE__ */ jsx(Check, {
-								label: "Наркоз",
-								checked: form.data.has_anesthesia,
-								onChange: (e) => form.setData("has_anesthesia", e.target.checked)
-							}),
-							/* @__PURE__ */ jsx(Check, {
-								label: "Микроскоп",
-								checked: form.data.has_microscope,
-								onChange: (e) => form.setData("has_microscope", e.target.checked)
-							}),
-							/* @__PURE__ */ jsx(Check, {
-								label: "КТ",
-								checked: form.data.has_ct,
-								onChange: (e) => form.setData("has_ct", e.target.checked)
-							})
-						]
+						children: /* @__PURE__ */ jsx(Check, {
+							label: "Детский приём",
+							checked: form.data.accepts_children,
+							onChange: (e) => form.setData("accepts_children", e.target.checked)
+						})
 					}),
 					form.data.accepts_children ? /* @__PURE__ */ jsx(TextField, {
 						label: "Дети с какого возраста",
@@ -256,6 +230,20 @@ function BranchForm({ branchForm, cities, districts, specialties, payments }) {
 						value: form.data.children_age_from,
 						onChange: (e) => form.setData("children_age_from", e.target.value)
 					}) : null,
+					propertyGroups.map(([group, items]) => /* @__PURE__ */ jsxs("div", {
+						className: "stack",
+						children: [/* @__PURE__ */ jsx("h3", {
+							className: "text-sm text-muted",
+							children: group
+						}), /* @__PURE__ */ jsx("div", {
+							className: "check-grid",
+							children: items.map((p) => /* @__PURE__ */ jsx(Check, {
+								label: p.name,
+								checked: Boolean(form.data[p.column]),
+								onChange: (e) => form.setData(p.column, e.target.checked)
+							}, p.slug))
+						})]
+					}, group)),
 					form.data.has_installment ? /* @__PURE__ */ jsx(TextField, {
 						label: "Рассрочка, мес.",
 						type: "number",
@@ -284,4 +272,4 @@ function BranchForm({ branchForm, cities, districts, specialties, payments }) {
 //#endregion
 export { BranchForm as default };
 
-//# sourceMappingURL=BranchForm-DizerrCB.js.map
+//# sourceMappingURL=BranchForm-BIV15K84.js.map

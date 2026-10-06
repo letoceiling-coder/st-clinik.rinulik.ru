@@ -1,10 +1,12 @@
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
+import { useState } from 'react';
 import AdSlot, { type AdBanner } from '@/components/AdSlot';
 import ClinicCard from '@/components/ClinicCard';
 import DoctorCard from '@/components/DoctorCard';
+import HeroServiceFinder, { type HeroChip } from '@/components/HeroServiceFinder';
 import Icon from '@/components/Icon';
 import ReviewCard from '@/components/ReviewCard';
-import SearchBox from '@/components/SearchBox';
+import ServicePickerModal, { type PickerService } from '@/components/ServicePickerModal';
 import { ConcernChips, SpecialtyCircles, SpecialtyTile } from '@/components/Tiles';
 import { LinkButton } from '@/components/ui/Button';
 import { SectionHead } from '@/components/ui/Misc';
@@ -14,9 +16,11 @@ import { clinicsWord, doctorsWord, priceFrom, reviewsWord } from '@/lib/format';
 import type { ClinicCardData, ConcernData, DoctorData, ReviewData, SpecialtyData } from '@/lib/types';
 
 interface Props {
-    stats: { clinics: number; clinics_total: number; doctors: number; reviews: number };
+    stats: { clinics: number; clinics_total: number; doctors: number; reviews: number; same_day: number };
     concerns: ConcernData[];
     popular_services: { name: string; slug: string; specialty: string | null; price_from: number | null; clinics: number }[];
+    catalog_services: PickerService[];
+    hero_chips: HeroChip[];
     specialties: SpecialtyData[];
     top_clinics: ClinicCardData[];
     top_doctors: DoctorData[];
@@ -30,8 +34,15 @@ const TRUST = [
     { icon: 'ruble', title: 'Честные цены «от»', text: 'Показываем минимальные цены клиник. Итоговую стоимость называет врач после осмотра.' },
 ] as const;
 
-export default function Home({ stats, concerns, popular_services, specialties, top_clinics, top_doctors, latest_reviews, banner_home }: Props) {
+export default function Home({ stats, concerns, popular_services, catalog_services, hero_chips, specialties, top_clinics, top_doctors, latest_reviews, banner_home }: Props) {
     const city = useCity();
+    const [servicePickerOpen, setServicePickerOpen] = useState(false);
+    const [pickerSeed, setPickerSeed] = useState<string[]>([]);
+
+    const openServicePicker = (slug?: string) => {
+        setPickerSeed(slug ? [slug] : []);
+        setServicePickerOpen(true);
+    };
 
     return (
         <>
@@ -45,22 +56,7 @@ export default function Home({ stats, concerns, popular_services, specialties, t
                             {city.nameIn}
                         </h1>
                         <p className="hero__lead">Сравнивайте клиники и врачей по цене, рейтингу и отзывам. Записывайтесь онлайн или по телефону.</p>
-                        <SearchBox variant="hero" />
-                        <div className="hero__quick">
-                            <span className="text-muted text-sm">Часто ищут:</span>
-                            <Link href={city.path('clinics', { same_day: 1 })} className="chip chip--soft">
-                                Запись на сегодня
-                            </Link>
-                            <Link href={city.path('clinics', { is_24_7: 1 })} className="chip chip--soft">
-                                Круглосуточно
-                            </Link>
-                            <Link href={city.path('clinics', { children: 1 })} className="chip chip--soft">
-                                Детская стоматология
-                            </Link>
-                            <Link href={city.path('clinics', { installment: 1 })} className="chip chip--soft">
-                                Рассрочка
-                            </Link>
-                        </div>
+                        <HeroServiceFinder services={catalog_services} chips={hero_chips} stats={{ clinics: stats.clinics, same_day: stats.same_day }} />
                         <dl className="hero__stats hero__stats--inline" aria-label="Сервис в цифрах">
                             <div>
                                 <dt>Клиник</dt>
@@ -153,22 +149,27 @@ export default function Home({ stats, concerns, popular_services, specialties, t
                 <div className="container">
                     <SectionHead
                         title={<span id="services-h">Популярные услуги и цены</span>}
-                        text="Минимальные цены клиник города. Итоговая стоимость определяется после осмотра."
+                        text="Выберите одну или несколько услуг — покажем клиники с этими позициями в прайсе."
                         action={
-                            <Link href={city.path('prices')} className="link-arrow hide-mobile">
-                                Весь прайс <Icon name="arrow-right" size={18} />
-                            </Link>
+                            <button type="button" className="link-arrow hide-mobile" onClick={() => openServicePicker()}>
+                                Все услуги <Icon name="arrow-right" size={18} />
+                            </button>
                         }
                     />
                     <div className="grid grid--services">
                         {popular_services.map((s) => (
-                            <Link key={s.slug} href={city.path('clinics', { service: s.slug })} className="service-card card card--link">
+                            <button type="button" key={s.slug} className="service-card card card--link" onClick={() => openServicePicker(s.slug)}>
                                 <span className="text-xs text-muted">{s.specialty}</span>
                                 <b>{s.name}</b>
                                 <span className="service-card__price">{priceFrom(s.price_from)}</span>
                                 <span className="text-xs text-muted">{s.clinics > 0 ? `в ${clinicsWord(s.clinics)}` : 'нет предложений'}</span>
-                            </Link>
+                            </button>
                         ))}
+                    </div>
+                    <div className="show-mobile" style={{ marginTop: 16 }}>
+                        <LinkButton href={city.path('prices')} variant="outline" block>
+                            Весь прайс
+                        </LinkButton>
                     </div>
                 </div>
             </section>
@@ -241,6 +242,19 @@ export default function Home({ stats, concerns, popular_services, specialties, t
                     </div>
                 </div>
             </section>
+
+            <ServicePickerModal
+                open={servicePickerOpen}
+                onClose={() => setServicePickerOpen(false)}
+                services={catalog_services}
+                initialSelected={pickerSeed}
+                onApply={(slugs) => {
+                    const query: Record<string, string> = {};
+                    if (slugs.length === 1) query.service = slugs[0];
+                    else if (slugs.length > 1) query.services = slugs.join(',');
+                    router.get(city.path('clinics', query));
+                }}
+            />
         </>
     );
 }

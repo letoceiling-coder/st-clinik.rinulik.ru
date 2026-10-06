@@ -21,8 +21,8 @@ use App\Models\UserNotification;
 use App\Services\ProfileMetrics;
 use App\Support\Text;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 
 /**
  * Демонстрационные данные: все клиники, врачи, цены и отзывы вымышленные.
@@ -35,10 +35,10 @@ class DemoSeeder extends Seeder
     /** @var array<string,User> */
     private array $users = [];
 
-    /** @var \Illuminate\Support\Collection<string,int> */
+    /** @var Collection<string,int> */
     private $specialtyIds;
 
-    /** @var \Illuminate\Support\Collection<int,Service> */
+    /** @var Collection<int,Service> */
     private $services;
 
     /** @var array<string,int> */
@@ -254,6 +254,8 @@ class DemoSeeder extends Seeder
             'has_installment' => $installment,
             'installment_months' => $installment ? $this->pick([6, 12, 18, 24]) : null,
             'accepts_dms' => $dms,
+            'accepts_oms' => $this->chance(0.12 + $q * 0.2),
+            'has_partial_payment' => $this->chance(0.18 + $q * 0.25),
             'has_sedation' => $this->chance(0.15 + $q * 0.4),
             'has_anesthesia' => $this->chance(0.08 + $q * 0.3),
             'has_microscope' => $this->chance(0.1 + $q * 0.5),

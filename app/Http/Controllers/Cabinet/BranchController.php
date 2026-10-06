@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Cabinet;
 
 use App\Models\City;
 use App\Models\Clinic;
+use App\Models\ClinicPropertyType;
 use App\Models\District;
 use App\Models\Specialty;
 use App\Services\Audit;
@@ -46,13 +47,15 @@ class BranchController extends CabinetController
 
     private function form(Request $request, ?Clinic $clinic): Response
     {
+        $propertyTypes = ClinicPropertyType::forCabinet();
+        $propertyColumns = $propertyTypes->pluck('db_column')->all();
+
         return $this->render($request, 'Cabinet/BranchForm', $clinic ? 'Редактирование филиала' : 'Новый филиал', [
-            'branchForm' => $clinic ? array_merge($clinic->only([
+            'branchForm' => $clinic ? array_merge($clinic->only(array_merge([
                 'id', 'name', 'tagline', 'description', 'address', 'metro', 'lat', 'lng', 'phone', 'email', 'website', 'founded_year',
                 'city_id', 'district_id', 'license_number', 'license_issuer', 'restrictions', 'payment_methods', 'achievements',
-                'is_24_7', 'accepts_children', 'children_age_from', 'same_day', 'has_installment', 'installment_months',
-                'accepts_dms', 'has_sedation', 'has_anesthesia', 'has_microscope', 'has_ct', 'status', 'moderation_note',
-            ]), [
+                'accepts_children', 'children_age_from', 'installment_months', 'status', 'moderation_note',
+            ], $propertyColumns)), [
                 'license_date' => $clinic->license_date?->toDateString(),
                 'specialty_ids' => $clinic->specialties()->pluck('specialties.id'),
             ]) : null,
@@ -60,6 +63,12 @@ class BranchController extends CabinetController
             'districts' => District::orderBy('name')->get(['id', 'city_id', 'name']),
             'specialties' => Specialty::orderBy('name')->get(['id', 'name']),
             'payments' => self::PAYMENTS,
+            'propertyTypes' => $propertyTypes->map(fn ($p) => [
+                'slug' => $p->slug,
+                'name' => $p->name,
+                'group' => $p->group,
+                'column' => $p->db_column,
+            ])->values(),
         ]);
     }
 
@@ -175,7 +184,7 @@ class BranchController extends CabinetController
     /** @return array<string,mixed> */
     private function validated(Request $request): array
     {
-        return $request->validate([
+        $rules = [
             'name' => 'required|string|min:3|max:120',
             'tagline' => 'nullable|string|max:160',
             'description' => 'nullable|string|max:3000',
@@ -199,16 +208,16 @@ class BranchController extends CabinetController
             'achievements.*' => 'string|max:160',
             'accepts_children' => 'boolean',
             'children_age_from' => 'nullable|integer|between:0,17',
-            'has_installment' => 'boolean',
             'installment_months' => 'nullable|integer|between:3,36',
-            'accepts_dms' => 'boolean',
-            'has_sedation' => 'boolean',
-            'has_anesthesia' => 'boolean',
-            'has_microscope' => 'boolean',
-            'has_ct' => 'boolean',
             'specialty_ids' => 'nullable|array',
             'specialty_ids.*' => 'exists:specialties,id',
-        ], [
+        ];
+
+        foreach (ClinicPropertyType::forCabinet() as $type) {
+            $rules[$type->db_column] = 'boolean';
+        }
+
+        return $request->validate($rules, [
             'name.required' => 'Укажите название филиала.', 'address.required' => 'Укажите адрес.',
             'phone.required' => 'Укажите телефон.', 'phone.regex' => 'Введите телефон в формате +7 (900) 000-00-00.',
             'city_id.required' => 'Выберите город.',
@@ -226,6 +235,10 @@ class BranchController extends CabinetController
         }
         if (empty($data['has_installment'])) {
             $data['installment_months'] = null;
+        }
+
+        foreach (ClinicPropertyType::forCabinet() as $type) {
+            $data[$type->db_column] = (bool) ($data[$type->db_column] ?? false);
         }
 
         return $data;

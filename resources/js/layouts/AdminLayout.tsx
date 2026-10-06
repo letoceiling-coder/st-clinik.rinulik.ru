@@ -20,6 +20,7 @@ const ALL: (NavItem & { perm: string })[] = [
     { href: '/admin/dictionaries/specialties', label: 'Направления', icon: 'sparkle', group: 'Справочники', perm: 'admin.dictionaries' },
     { href: '/admin/dictionaries/services', label: 'Услуги', icon: 'tooth', group: 'Справочники', perm: 'admin.dictionaries' },
     { href: '/admin/dictionaries/concerns', label: 'Что беспокоит', icon: 'pain', group: 'Справочники', perm: 'admin.dictionaries' },
+    { href: '/admin/dictionaries/clinic_property_types', label: 'Свойства клиник', icon: 'sparkle', group: 'Справочники', perm: 'admin.dictionaries' },
     { href: '/admin/dictionaries/pages', label: 'CMS-страницы', icon: 'file', group: 'Контент и SEO', perm: 'admin.cms' },
     { href: '/admin/dictionaries/seo', label: 'SEO-шаблоны', icon: 'globe', group: 'Контент и SEO', perm: 'admin.seo' },
     { href: '/admin/users', label: 'Пользователи', icon: 'users', group: 'Система', perm: 'admin.users' },

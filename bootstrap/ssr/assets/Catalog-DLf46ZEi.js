@@ -6,18 +6,6 @@ import { router, usePage } from "@inertiajs/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
 //#region resources/js/components/FilterPanel.tsx
-var FLAGS = [
-	["verified", "Клиника проверена"],
-	["is_24_7", "Круглосуточно"],
-	["same_day", "Запись на сегодня"],
-	["installment", "Рассрочка"],
-	["dms", "Принимает ДМС"],
-	["sedation", "Седация"],
-	["anesthesia", "Наркоз"],
-	["microscope", "Лечение под микроскопом"],
-	["ct", "КТ в клинике"],
-	["achievements", "Есть награды и достижения"]
-];
 var PRICES = [
 	5e3,
 	15e3,
@@ -29,14 +17,7 @@ var RATINGS = [
 	4.5,
 	4.8
 ];
-function toValues(filters) {
-	const out = {};
-	Object.entries(filters).forEach(([k, v]) => {
-		if (v !== null && v !== void 0 && v !== "" && v !== false) out[k] = String(v);
-	});
-	return out;
-}
-var FILTER_KEYS = [
+var BASE_FILTER_KEYS = [
 	"district",
 	"specialty",
 	"service",
@@ -45,16 +26,37 @@ var FILTER_KEYS = [
 	"reviews_min",
 	"children",
 	"child_age",
-	"experience_min",
-	"achievements",
-	...FLAGS.map(([k]) => k)
+	"experience_min"
 ];
-function activeCount(values) {
-	return FILTER_KEYS.filter((k) => values[k] !== void 0).length;
+function propertyFilterKeys(options) {
+	return (options.properties ?? []).map((p) => p.slug);
+}
+function allFilterKeys(options) {
+	return [...BASE_FILTER_KEYS, ...propertyFilterKeys(options)];
+}
+function toValues(filters) {
+	const out = {};
+	Object.entries(filters).forEach(([k, v]) => {
+		if (v !== null && v !== void 0 && v !== "" && v !== false) out[k] = String(v);
+	});
+	return out;
+}
+function activeCount(values, options) {
+	return allFilterKeys(options).filter((k) => values[k] !== void 0).length;
 }
 function FilterPanel({ values, options, onApply, mode, auto = false, idPrefix = "f" }) {
 	const [draft, setDraft] = useState(values);
 	const first = useRef(true);
+	const filterKeys = useMemo(() => allFilterKeys(options), [options]);
+	const propertyGroups = useMemo(() => {
+		const groups = /* @__PURE__ */ new Map();
+		(options.properties ?? []).forEach((p) => {
+			const list = groups.get(p.group) ?? [];
+			list.push(p);
+			groups.set(p.group, list);
+		});
+		return [...groups.entries()];
+	}, [options.properties]);
 	useEffect(() => setDraft(values), [JSON.stringify(values)]);
 	useEffect(() => {
 		if (!auto) return;
@@ -77,13 +79,12 @@ function FilterPanel({ values, options, onApply, mode, auto = false, idPrefix = 
 	const reset = () => {
 		const cleared = {};
 		Object.entries(draft).forEach(([k, v]) => {
-			if (!FILTER_KEYS.includes(k)) cleared[k] = v;
+			if (!filterKeys.includes(k)) cleared[k] = v;
 		});
 		setDraft(cleared);
-		if (!auto) onApply(cleared);
-		else onApply(cleared);
+		onApply(cleared);
 	};
-	const count = activeCount(draft);
+	const count = activeCount(draft, options);
 	return /* @__PURE__ */ jsxs("form", {
 		className: "filters",
 		onSubmit: (e) => {
@@ -256,19 +257,19 @@ function FilterPanel({ values, options, onApply, mode, auto = false, idPrefix = 
 					}) : null
 				]
 			}),
-			/* @__PURE__ */ jsxs("fieldset", {
+			propertyGroups.map(([group, items]) => /* @__PURE__ */ jsxs("fieldset", {
 				className: "filters__group",
-				children: [/* @__PURE__ */ jsx("legend", { children: "Возможности" }), /* @__PURE__ */ jsx("div", {
+				children: [/* @__PURE__ */ jsx("legend", { children: group }), /* @__PURE__ */ jsx("div", {
 					className: "stack",
 					style: { ["--gap"]: "10px" },
-					children: FLAGS.map(([k, label]) => /* @__PURE__ */ jsx(Check, {
-						id: `${idPrefix}-${k}`,
-						label,
-						checked: draft[k] === "1",
-						onChange: (e) => set(k, e.target.checked)
-					}, k))
+					children: items.map((p) => /* @__PURE__ */ jsx(Check, {
+						id: `${idPrefix}-${p.slug}`,
+						label: p.name,
+						checked: draft[p.slug] === "1",
+						onChange: (e) => set(p.slug, e.target.checked)
+					}, p.slug))
 				})]
-			}),
+			}, group)),
 			/* @__PURE__ */ jsxs("div", {
 				className: "filters__actions",
 				children: [!auto ? /* @__PURE__ */ jsx(Button, {
@@ -297,19 +298,7 @@ var SORTS = {
 	price_desc: "Сначала дороже",
 	experience: "По стажу"
 };
-var LABELS = {
-	verified: "Проверена",
-	is_24_7: "24/7",
-	same_day: "Запись сегодня",
-	installment: "Рассрочка",
-	dms: "ДМС",
-	sedation: "Седация",
-	anesthesia: "Наркоз",
-	microscope: "Микроскоп",
-	ct: "КТ",
-	achievements: "Награды",
-	children: "Дети"
-};
+var STATIC_LABELS = { children: "Дети" };
 function useCatalog(filters) {
 	const { url } = usePage();
 	const values = useMemo(() => toValues(filters), [filters]);
@@ -347,14 +336,29 @@ function useCatalog(filters) {
 	};
 }
 function activeChips(values, options) {
+	const propertyLabels = Object.fromEntries((options.properties ?? []).map((p) => [p.slug, p.name]));
+	const keys = [
+		"district",
+		"specialty",
+		"service",
+		"services",
+		"price_max",
+		"rating_min",
+		"reviews_min",
+		"children",
+		"child_age",
+		"experience_min",
+		...(options.properties ?? []).map((p) => p.slug)
+	];
 	const out = [];
-	FILTER_KEYS.forEach((k) => {
+	keys.forEach((k) => {
 		const v = values[k];
 		if (v === void 0) return;
-		let label = LABELS[k];
+		let label = propertyLabels[k] ?? STATIC_LABELS[k];
 		if (k === "district") label = options.districts.find((d) => d.slug === v)?.name ?? v;
 		if (k === "specialty") label = options.specialties.find((d) => d.slug === v)?.name ?? v;
 		if (k === "service") label = options.services.find((d) => d.slug === v)?.name ?? v;
+		if (k === "services") label = String(v).split(",").map((slug) => options.services.find((d) => d.slug === slug)?.name ?? slug).join(", ");
 		if (k === "price_max") label = `до ${new Intl.NumberFormat("ru-RU").format(Number(v))} ₽`;
 		if (k === "rating_min") label = `Рейтинг ${v.replace(".", ",")}+`;
 		if (k === "reviews_min") label = `Отзывов от ${v}`;
@@ -370,7 +374,8 @@ function activeChips(values, options) {
 function CatalogLayout({ values, options, mode, apply, patch, remove, loading, total, children }) {
 	const [drawer, setDrawer] = useState(false);
 	const chips = activeChips(values, options);
-	const count = activeCount(values);
+	const count = activeCount(values, options);
+	const filterKeys = allFilterKeys(options);
 	const sorts = mode === "doctors" ? [
 		"relevance",
 		"rating",
@@ -463,7 +468,7 @@ function CatalogLayout({ values, options, mode, apply, patch, remove, loading, t
 						}) }, c.key)), /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsx("button", {
 							type: "button",
 							className: "btn btn--ghost btn--sm chip-reset",
-							onClick: () => apply(Object.fromEntries(Object.entries(values).filter(([k]) => !FILTER_KEYS.includes(k)))),
+							onClick: () => apply(Object.fromEntries(Object.entries(values).filter(([k]) => !filterKeys.includes(k)))),
 							children: "Сбросить все"
 						}) })]
 					}) : null,
@@ -495,4 +500,4 @@ function CatalogLayout({ values, options, mode, apply, patch, remove, loading, t
 //#endregion
 export { useCatalog as n, CatalogLayout as t };
 
-//# sourceMappingURL=Catalog-BYgW9g69.js.map
+//# sourceMappingURL=Catalog-DLf46ZEi.js.map

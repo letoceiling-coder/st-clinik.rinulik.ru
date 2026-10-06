@@ -33,6 +33,8 @@ class Clinic extends Model
             'same_day' => 'boolean',
             'has_installment' => 'boolean',
             'accepts_dms' => 'boolean',
+            'accepts_oms' => 'boolean',
+            'has_partial_payment' => 'boolean',
             'has_sedation' => 'boolean',
             'has_anesthesia' => 'boolean',
             'has_microscope' => 'boolean',

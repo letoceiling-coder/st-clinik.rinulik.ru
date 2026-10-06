@@ -1,9 +1,12 @@
 import { Link, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
+import { useMemo } from 'react';
 import { PageHead } from '@/components/Dash';
 import { Button } from '@/components/ui/Button';
 import { Check, SelectField, TextArea, TextField } from '@/components/ui/Fields';
 import { Alert } from '@/components/ui/Misc';
+
+type PropertyType = { slug: string; name: string; group: string; column: string };
 
 type Branch = Record<string, unknown> & {
     id?: number;
@@ -19,14 +22,27 @@ export default function BranchForm({
     districts,
     specialties,
     payments,
+    propertyTypes,
 }: {
     branchForm: Branch | null;
     cities: { id: number; name: string }[];
     districts: { id: number; city_id: number; name: string }[];
     specialties: { id: number; name: string }[];
     payments: string[];
+    propertyTypes: PropertyType[];
 }) {
     const b = branchForm ?? {};
+    const propertyDefaults = Object.fromEntries(propertyTypes.map((p) => [p.column, Boolean(b[p.column])]));
+    const propertyGroups = useMemo(() => {
+        const groups = new Map<string, PropertyType[]>();
+        propertyTypes.forEach((p) => {
+            const list = groups.get(p.group) ?? [];
+            list.push(p);
+            groups.set(p.group, list);
+        });
+        return [...groups.entries()];
+    }, [propertyTypes]);
+
     const form = useForm<Record<string, any>>({
         name: (b.name as string) ?? '',
         tagline: (b.tagline as string) ?? '',
@@ -48,13 +64,8 @@ export default function BranchForm({
         specialty_ids: ((b.specialty_ids as number[]) ?? []).map(String),
         accepts_children: Boolean(b.accepts_children),
         children_age_from: (b.children_age_from as number) ?? '',
-        has_installment: Boolean(b.has_installment),
         installment_months: (b.installment_months as number) ?? '',
-        accepts_dms: Boolean(b.accepts_dms),
-        has_sedation: Boolean(b.has_sedation),
-        has_anesthesia: Boolean(b.has_anesthesia),
-        has_microscope: Boolean(b.has_microscope),
-        has_ct: Boolean(b.has_ct),
+        ...propertyDefaults,
     });
 
     const submit = (e: FormEvent) => {
@@ -116,17 +127,26 @@ export default function BranchForm({
                 </div>
             </section>
             <section className="card stack">
-                <h2 className="card-title">Условия</h2>
+                <h2 className="card-title">Условия и свойства</h2>
                 <div className="check-grid">
                     <Check label="Детский приём" checked={form.data.accepts_children} onChange={(e) => form.setData('accepts_children', e.target.checked)} />
-                    <Check label="Рассрочка" checked={form.data.has_installment} onChange={(e) => form.setData('has_installment', e.target.checked)} />
-                    <Check label="ДМС" checked={form.data.accepts_dms} onChange={(e) => form.setData('accepts_dms', e.target.checked)} />
-                    <Check label="Седация" checked={form.data.has_sedation} onChange={(e) => form.setData('has_sedation', e.target.checked)} />
-                    <Check label="Наркоз" checked={form.data.has_anesthesia} onChange={(e) => form.setData('has_anesthesia', e.target.checked)} />
-                    <Check label="Микроскоп" checked={form.data.has_microscope} onChange={(e) => form.setData('has_microscope', e.target.checked)} />
-                    <Check label="КТ" checked={form.data.has_ct} onChange={(e) => form.setData('has_ct', e.target.checked)} />
                 </div>
                 {form.data.accepts_children ? <TextField label="Дети с какого возраста" type="number" value={form.data.children_age_from} onChange={(e) => form.setData('children_age_from', e.target.value)} /> : null}
+                {propertyGroups.map(([group, items]) => (
+                    <div key={group} className="stack">
+                        <h3 className="text-sm text-muted">{group}</h3>
+                        <div className="check-grid">
+                            {items.map((p) => (
+                                <Check
+                                    key={p.slug}
+                                    label={p.name}
+                                    checked={Boolean(form.data[p.column])}
+                                    onChange={(e) => form.setData(p.column, e.target.checked)}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                ))}
                 {form.data.has_installment ? <TextField label="Рассрочка, мес." type="number" value={form.data.installment_months} onChange={(e) => form.setData('installment_months', e.target.value)} /> : null}
                 <div className="check-grid">
                     {payments.map((p) => <Check key={p} label={p} checked={form.data.payment_methods.includes(p)} onChange={() => togglePay(p)} />)}

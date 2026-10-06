@@ -7,6 +7,7 @@ use App\Http\Resources\DoctorResource;
 use App\Http\Resources\PromotionBannerResource;
 use App\Http\Resources\ReviewResource;
 use App\Models\City;
+use App\Models\ClinicPropertyType;
 use App\Repositories\Contracts\CatalogRepository;
 use App\Repositories\Contracts\ClinicRepository;
 use App\Repositories\Contracts\DoctorRepository;
@@ -50,6 +51,12 @@ class CatalogController extends Controller
             'districts' => $this->catalog->districts($city->id)->map(fn ($d) => ['slug' => $d->slug, 'name' => $d->name])->values(),
             'specialties' => $this->catalog->specialties()->map(fn ($s) => ['slug' => $s->slug, 'name' => $s->name])->values(),
             'services' => $this->catalog->services()->map(fn ($s) => ['slug' => $s->slug, 'name' => $s->name, 'group' => $s->specialty?->name])->values(),
+            'properties' => ClinicPropertyType::forFilter()->map(fn ($p) => [
+                'slug' => $p->slug,
+                'name' => $p->name,
+                'group' => $p->group,
+                'kind' => $p->filter_kind,
+            ])->values(),
         ];
     }
 
@@ -63,7 +70,12 @@ class CatalogController extends Controller
         $recommended = $this->clinics->byIds($this->promotions->boostedClinicIds($city->id));
         $recommended->each(fn ($c) => $c->setAttribute('is_promoted', true));
 
-        $serviceName = $filters->service ? $this->catalog->services()->firstWhere('slug', $filters->service)?->name : null;
+        $serviceSlugs = $filters->serviceSlugs();
+        $serviceName = match (count($serviceSlugs)) {
+            0 => null,
+            1 => $this->catalog->services()->firstWhere('slug', $serviceSlugs[0])?->name,
+            default => implode(', ', $this->catalog->services()->whereIn('slug', $serviceSlugs)->pluck('name')->all()),
+        };
         $seoData = $this->seo->build('city_clinics', ['city' => $city->name, 'city_in' => $city->name_in, 'count' => $page->total()], [
             $this->schema->breadcrumbs($this->crumbs($city, 'Клиники')),
             $this->schema->itemList($page->getCollection()->map(fn ($c) => ['name' => $c->name, 'url' => route('clinics.show', $c->slug)])->all()),

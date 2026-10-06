@@ -6,6 +6,7 @@ use App\Http\Resources\ClinicResource;
 use App\Http\Resources\DoctorResource;
 use App\Http\Resources\PromotionBannerResource;
 use App\Http\Resources\ReviewResource;
+use App\Models\Clinic;
 use App\Models\Doctor;
 use App\Models\Lead;
 use App\Models\Review;
@@ -52,7 +53,25 @@ class HomeController extends Controller
             'clinics_total' => $clinics->countPublished(),
             'doctors' => Doctor::published()->whereHas('clinic', fn ($c) => $c->published()->where('city_id', $city->id))->count(),
             'reviews' => Review::published()->count(),
+            'same_day' => Clinic::published()->where('city_id', $city->id)->where('same_day', true)->count(),
         ]);
+
+        $catalogServices = $catalog->services()->map(fn ($s) => [
+            'slug' => $s->slug,
+            'name' => $s->name,
+            'group' => $s->specialty?->name ?? 'Прочее',
+            'price_from' => $prices[$s->id]['min'] ?? $s->price_hint_from,
+        ])->values();
+
+        $heroChips = [
+            ['label' => 'Лечить зуб', 'services' => ['lechenie-kariesa']],
+            ['label' => 'Болит зуб', 'services' => ['lechenie-pulpita']],
+            ['label' => 'Чистка', 'services' => ['professionalnaya-chistka']],
+            ['label' => 'Удаление', 'services' => ['udalenie-zuba-prostoe']],
+            ['label' => 'Имплантация', 'services' => ['implant-standart']],
+            ['label' => 'Брекеты', 'services' => ['bregety-metall']],
+            ['label' => 'Детский стоматолог', 'flag' => 'detskaya'],
+        ];
 
         $seoData = $seo->build('home', ['count' => $stats['clinics_total'], 'city' => $city->name], [$schema->website()]);
 
@@ -60,6 +79,8 @@ class HomeController extends Controller
             'stats' => $stats,
             'concerns' => $concerns,
             'popular_services' => $popular,
+            'catalog_services' => $catalogServices,
+            'hero_chips' => $heroChips,
             'specialties' => $catalog->specialties()->map(fn ($s) => [
                 'slug' => $s->slug, 'name' => $s->name, 'short' => $s->short, 'icon' => $s->icon,
             ])->values(),

@@ -60,7 +60,7 @@ class EloquentCatalogRepository implements CatalogRepository
 
     public function flush(): void
     {
-        foreach (['cities', 'specialties', 'services', 'concerns'] as $key) {
+        foreach (['cities', 'specialties', 'services', 'concerns', 'clinic_property_types'] as $key) {
             Cache::forget("dict.$key");
         }
         foreach (City::query()->pluck('id') as $id) {

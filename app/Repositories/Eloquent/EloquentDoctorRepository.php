@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Eloquent;
 
+use App\Models\ClinicPropertyType;
 use App\Models\Doctor;
 use App\Repositories\Contracts\DoctorRepository;
 use App\Repositories\Filters\DoctorFilters;
@@ -53,8 +54,11 @@ class EloquentDoctorRepository implements DoctorRepository
 
         if ($f->flags) {
             $query->whereHas('clinic', function ($c) use ($f) {
-                foreach ($f->flags as $flag) {
-                    $c->where(DoctorFilters::CLINIC_FLAGS[$flag], true);
+                foreach ($f->flags as $slug) {
+                    $type = ClinicPropertyType::findBySlug($slug);
+                    if ($type?->filter_kind === 'boolean' && $type->db_column) {
+                        $c->where($type->db_column, true);
+                    }
                 }
             });
         }

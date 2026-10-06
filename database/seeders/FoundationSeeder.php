@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\City;
+use App\Models\ClinicPropertyType;
 use App\Models\CmsPage;
 use App\Models\Concern;
 use App\Models\District;
@@ -35,6 +36,7 @@ class FoundationSeeder extends Seeder
     {
         $this->roles();
         $this->dictionaries();
+        $this->clinicPropertyTypes();
         $this->cms();
     }
 
@@ -92,6 +94,25 @@ class FoundationSeeder extends Seeder
             ]);
             $concern->services()->sync(array_values(array_filter(array_map(fn ($s) => $services[$s] ?? null, $serviceSlugs))));
         }
+    }
+
+    private function clinicPropertyTypes(): void
+    {
+        foreach (require database_path('seeders/data/clinic_property_types.php') as [$slug, $name, $group, $kind, $column, $value, $sort, $inFilter, $inCabinet]) {
+            ClinicPropertyType::updateOrCreate(['slug' => $slug], [
+                'name' => $name,
+                'group' => $group,
+                'filter_kind' => $kind,
+                'db_column' => $column,
+                'filter_value' => $value,
+                'sort' => $sort,
+                'show_in_filter' => $inFilter,
+                'show_in_cabinet' => $inCabinet,
+                'is_active' => true,
+            ]);
+        }
+
+        ClinicPropertyType::flushCache();
     }
 
     private function cms(): void

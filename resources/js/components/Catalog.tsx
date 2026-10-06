@@ -3,7 +3,7 @@ import { useCallback, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { cx } from '@/lib/format';
 import type { Flat, FilterOptions } from '@/lib/types';
-import FilterPanel, { FILTER_KEYS, activeCount, toValues, type FilterValues } from './FilterPanel';
+import FilterPanel, { activeCount, allFilterKeys, toValues, type FilterValues } from './FilterPanel';
 import Icon from './Icon';
 import { Button } from './ui/Button';
 import { Drawer } from './ui/Overlay';
@@ -17,17 +17,7 @@ export const SORTS: Record<string, string> = {
     experience: 'По стажу',
 };
 
-const LABELS: Record<string, string> = {
-    verified: 'Проверена',
-    is_24_7: '24/7',
-    same_day: 'Запись сегодня',
-    installment: 'Рассрочка',
-    dms: 'ДМС',
-    sedation: 'Седация',
-    anesthesia: 'Наркоз',
-    microscope: 'Микроскоп',
-    ct: 'КТ',
-    achievements: 'Награды',
+const STATIC_LABELS: Record<string, string> = {
     children: 'Дети',
 };
 
@@ -67,14 +57,32 @@ export function useCatalog(filters: Flat) {
 }
 
 export function activeChips(values: FilterValues, options: FilterOptions): { key: string; label: string }[] {
+    const propertyLabels = Object.fromEntries((options.properties ?? []).map((p) => [p.slug, p.name]));
+    const keys = [
+        'district',
+        'specialty',
+        'service',
+        'services',
+        'price_max',
+        'rating_min',
+        'reviews_min',
+        'children',
+        'child_age',
+        'experience_min',
+        ...(options.properties ?? []).map((p) => p.slug),
+    ];
     const out: { key: string; label: string }[] = [];
-    FILTER_KEYS.forEach((k) => {
+    keys.forEach((k) => {
         const v = values[k];
         if (v === undefined) return;
-        let label = LABELS[k];
+        let label = propertyLabels[k] ?? STATIC_LABELS[k];
         if (k === 'district') label = options.districts.find((d) => d.slug === v)?.name ?? v;
         if (k === 'specialty') label = options.specialties.find((d) => d.slug === v)?.name ?? v;
         if (k === 'service') label = options.services.find((d) => d.slug === v)?.name ?? v;
+        if (k === 'services') {
+            const names = String(v).split(',').map((slug) => options.services.find((d) => d.slug === slug)?.name ?? slug);
+            label = names.join(', ');
+        }
         if (k === 'price_max') label = `до ${new Intl.NumberFormat('ru-RU').format(Number(v))} ₽`;
         if (k === 'rating_min') label = `Рейтинг ${v.replace('.', ',')}+`;
         if (k === 'reviews_min') label = `Отзывов от ${v}`;
@@ -108,7 +116,8 @@ export function CatalogLayout({
 }) {
     const [drawer, setDrawer] = useState(false);
     const chips = activeChips(values, options);
-    const count = activeCount(values);
+    const count = activeCount(values, options);
+    const filterKeys = allFilterKeys(options);
     const sorts = mode === 'doctors' ? ['relevance', 'rating', 'reviews', 'experience', 'price_asc'] : ['relevance', 'rating', 'reviews', 'price_asc', 'price_desc'];
 
     return (
@@ -157,7 +166,7 @@ export function CatalogLayout({
                             <button
                                 type="button"
                                 className="btn btn--ghost btn--sm chip-reset"
-                                onClick={() => apply(Object.fromEntries(Object.entries(values).filter(([k]) => !FILTER_KEYS.includes(k))))}
+                                onClick={() => apply(Object.fromEntries(Object.entries(values).filter(([k]) => !filterKeys.includes(k))))}
                             >
                                 Сбросить все
                             </button>

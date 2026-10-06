@@ -3,7 +3,7 @@ import { n as Button } from "./Button-D8Mzgn6o.js";
 import { c as Breadcrumbs, d as Pagination, l as EmptyState, n as useCity } from "../app.js";
 import { n as ClinicCardSkeleton, t as ClinicCard } from "./ClinicCard-ChPAtBVA.js";
 import { t as AdSlot } from "./AdSlot-BWHf9w1U.js";
-import { n as useCatalog, t as CatalogLayout } from "./Catalog-BYgW9g69.js";
+import { n as useCatalog, t as CatalogLayout } from "./Catalog-DLf46ZEi.js";
 import { t as YandexMap } from "./YandexMap-Bx-QJpGw.js";
 import { usePage } from "@inertiajs/react";
 import { useState } from "react";
@@ -111,4 +111,4 @@ function ClinicsIndex({ clinics, recommended_clinics, banner_catalog, map_clinic
 //#endregion
 export { ClinicsIndex as default };
 
-//# sourceMappingURL=Index-BoBNFUp5.js.map
+//# sourceMappingURL=Index-C8dWq4yr.js.map

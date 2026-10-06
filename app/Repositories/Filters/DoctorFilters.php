@@ -2,21 +2,11 @@
 
 namespace App\Repositories\Filters;
 
+use App\Models\ClinicPropertyType;
+
 final class DoctorFilters
 {
     public const SORTS = ['relevance', 'rating', 'reviews', 'experience', 'price_asc'];
-
-    /** Флаги, относящиеся к клинике врача. */
-    public const CLINIC_FLAGS = [
-        'is_24_7' => 'is_24_7',
-        'same_day' => 'same_day',
-        'installment' => 'has_installment',
-        'dms' => 'accepts_dms',
-        'sedation' => 'has_sedation',
-        'anesthesia' => 'has_anesthesia',
-        'microscope' => 'has_microscope',
-        'ct' => 'has_ct',
-    ];
 
     public function __construct(
         public readonly ?int $cityId = null,
@@ -56,7 +46,7 @@ final class DoctorFilters
             childAge: $base->childAge,
             experienceMin: $base->experienceMin,
             achievements: $base->achievements,
-            flags: array_values(array_intersect($base->flags, array_keys(self::CLINIC_FLAGS))),
+            flags: array_values(array_intersect($base->flags, array_keys(ClinicPropertyType::booleanFlagMap()))),
             sort: in_array($sort, self::SORTS, true) ? $sort : 'relevance',
             ids: $base->ids,
         );

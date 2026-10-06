@@ -4,6 +4,7 @@ namespace App\Repositories\Eloquent;
 
 use App\Models\Clinic;
 use App\Models\ClinicPromotion;
+use App\Models\ClinicPropertyType;
 use App\Models\ClinicService;
 use App\Repositories\Contracts\ClinicRepository;
 use App\Repositories\Filters\ClinicFilters;
@@ -57,13 +58,17 @@ class EloquentClinicRepository implements ClinicRepository
             ->when($f->experienceMin, fn (Builder $q, $v) => $q->where('clinics.max_experience', '>=', $v))
             ->when($f->achievements, fn (Builder $q) => $q->whereJsonLength('clinics.achievements', '>', 0));
 
-        if ($f->service) {
-            $query->whereHas('clinicServices', function ($cs) use ($f) {
-                $cs->whereHas('service', fn ($s) => $s->where('slug', $f->service));
-                if ($f->priceMax) {
-                    $cs->where('price_from', '<=', $f->priceMax);
-                }
-            });
+        $serviceSlugs = $f->serviceSlugs();
+        if ($serviceSlugs !== []) {
+            foreach ($serviceSlugs as $slug) {
+                $query->whereHas('clinicServices', fn ($cs) => $cs->whereHas('service', fn ($s) => $s->where('slug', $slug)));
+            }
+            if ($f->priceMax) {
+                $query->whereHas('clinicServices', function ($cs) use ($f, $serviceSlugs) {
+                    $cs->whereHas('service', fn ($s) => $s->whereIn('slug', $serviceSlugs))
+                        ->where('price_from', '<=', $f->priceMax);
+                });
+            }
         } elseif ($f->priceMax) {
             $query->whereNotNull('clinics.min_price')->where('clinics.min_price', '<=', $f->priceMax);
         }
@@ -75,8 +80,17 @@ class EloquentClinicRepository implements ClinicRepository
             }
         }
 
-        foreach ($f->flags as $flag) {
-            $query->where('clinics.'.ClinicFilters::FLAGS[$flag], true);
+        foreach ($f->flags as $slug) {
+            $type = ClinicPropertyType::findBySlug($slug);
+            if (! $type) {
+                continue;
+            }
+
+            match ($type->filter_kind) {
+                'boolean' => $type->db_column ? $query->where('clinics.'.$type->db_column, true) : null,
+                'specialty' => $query->whereHas('specialties', fn ($s) => $s->where('slug', $type->filter_value)),
+                default => null,
+            };
         }
 
         foreach ($f->tokens() as $token) {

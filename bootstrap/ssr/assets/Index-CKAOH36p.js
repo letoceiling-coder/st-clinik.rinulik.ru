@@ -2,7 +2,7 @@ import { i as doctorsWord } from "./format-BPZIj7DQ.js";
 import { n as Button } from "./Button-D8Mzgn6o.js";
 import { c as Breadcrumbs, d as Pagination, l as EmptyState, n as useCity, p as Skeleton } from "../app.js";
 import { t as DoctorCard } from "./DoctorCard-DD2yuAuy.js";
-import { n as useCatalog, t as CatalogLayout } from "./Catalog-BYgW9g69.js";
+import { n as useCatalog, t as CatalogLayout } from "./Catalog-DLf46ZEi.js";
 import { usePage } from "@inertiajs/react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 //#region resources/js/pages/Doctors/Index.tsx
@@ -48,4 +48,4 @@ function DoctorsIndex({ doctors, filters, options, breadcrumbs }) {
 //#endregion
 export { DoctorsIndex as default };
 
-//# sourceMappingURL=Index-bKb1YH0c.js.map
+//# sourceMappingURL=Index-CKAOH36p.js.map

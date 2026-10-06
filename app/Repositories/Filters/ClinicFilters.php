@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Filters;
 
+use App\Models\ClinicPropertyType;
 use App\Support\Text;
 
 /**
@@ -11,26 +12,17 @@ final class ClinicFilters
 {
     public const SORTS = ['relevance', 'rating', 'reviews', 'price_asc', 'price_desc', 'experience'];
 
-    public const FLAGS = [
-        'verified' => 'is_verified',
-        'is_24_7' => 'is_24_7',
-        'same_day' => 'same_day',
-        'installment' => 'has_installment',
-        'dms' => 'accepts_dms',
-        'sedation' => 'has_sedation',
-        'anesthesia' => 'has_anesthesia',
-        'microscope' => 'has_microscope',
-        'ct' => 'has_ct',
-    ];
-
     /**
      * @param  list<int>  $ids
+     * @param  list<string>  $flags
      */
     public function __construct(
         public readonly ?int $cityId = null,
         public readonly ?string $district = null,
         public readonly ?string $specialty = null,
         public readonly ?string $service = null,
+        /** @var list<string> */
+        public readonly array $services = [],
         public readonly ?string $q = null,
         public readonly ?int $priceMax = null,
         public readonly ?float $ratingMin = null,
@@ -52,13 +44,30 @@ final class ClinicFilters
         $str = fn ($k) => isset($input[$k]) && is_string($input[$k]) && trim($input[$k]) !== '' ? trim($input[$k]) : null;
 
         $flags = [];
-        foreach (array_keys(self::FLAGS) as $flag) {
-            if ($bool($flag)) {
-                $flags[] = $flag;
+        $achievements = $bool('achievements');
+        $sort = $str('sort') ?? 'relevance';
+        $specialty = $str('specialty');
+
+        foreach (ClinicPropertyType::forFilter() as $type) {
+            if (! $bool($type->slug)) {
+                continue;
+            }
+
+            $flags[] = $type->slug;
+
+            if ($type->filter_kind === 'achievement') {
+                $achievements = true;
+            }
+
+            if ($type->filter_kind === 'sort' && filled($type->filter_value)) {
+                $sort = $type->filter_value;
+            }
+
+            if ($type->filter_kind === 'specialty' && filled($type->filter_value) && $specialty === null) {
+                $specialty = $type->filter_value;
             }
         }
 
-        $sort = $str('sort');
         $ids = [];
         if ($str('ids')) {
             $ids = array_values(array_unique(array_filter(array_map('intval', explode(',', $str('ids'))))));
@@ -66,12 +75,14 @@ final class ClinicFilters
         }
 
         $rating = isset($input['rating_min']) && is_numeric($input['rating_min']) ? (float) $input['rating_min'] : null;
+        $services = self::parseServices($input);
 
         return new self(
             cityId: $cityId,
             district: $str('district'),
-            specialty: $str('specialty'),
-            service: $str('service'),
+            specialty: $specialty,
+            service: count($services) === 1 ? $services[0] : null,
+            services: $services,
             q: $str('q') ? mb_substr($str('q'), 0, 80) : null,
             priceMax: $int('price_max'),
             ratingMin: $rating,
@@ -79,7 +90,7 @@ final class ClinicFilters
             children: $bool('children') || $int('child_age') !== null,
             childAge: $int('child_age'),
             experienceMin: $int('experience_min'),
-            achievements: $bool('achievements'),
+            achievements: $achievements,
             flags: $flags,
             sort: in_array($sort, self::SORTS, true) ? $sort : 'relevance',
             ids: $ids,
@@ -113,10 +124,30 @@ final class ClinicFilters
     /** @return array<string,mixed> активные параметры для ссылок и отображения чипов */
     public function active(): array
     {
+        $sort = $this->sort !== 'relevance' ? $this->sort : null;
+        foreach (ClinicPropertyType::forFilter()->where('filter_kind', 'sort') as $type) {
+            if (in_array($type->slug, $this->flags, true) && $type->filter_value === $this->sort) {
+                $sort = null;
+                break;
+            }
+        }
+
+        $specialty = $this->specialty;
+        foreach (ClinicPropertyType::forFilter()->where('filter_kind', 'specialty') as $type) {
+            if (in_array($type->slug, $this->flags, true) && $type->filter_value === $specialty) {
+                $specialty = null;
+                break;
+            }
+        }
+
+        $service = count($this->services) === 1 ? $this->services[0] : null;
+        $services = count($this->services) > 1 ? implode(',', $this->services) : null;
+
         return array_filter([
             'district' => $this->district,
-            'specialty' => $this->specialty,
-            'service' => $this->service,
+            'specialty' => $specialty,
+            'service' => $service,
+            'services' => $services,
             'q' => $this->q,
             'price_max' => $this->priceMax,
             'rating_min' => $this->ratingMin,
@@ -124,9 +155,34 @@ final class ClinicFilters
             'children' => $this->children ? 1 : null,
             'child_age' => $this->childAge,
             'experience_min' => $this->experienceMin,
-            'achievements' => $this->achievements ? 1 : null,
-            'sort' => $this->sort !== 'relevance' ? $this->sort : null,
+            'sort' => $sort,
             ...array_fill_keys($this->flags, 1),
         ], fn ($v) => $v !== null && $v !== '');
+    }
+
+    /** @return list<string> */
+    public function serviceSlugs(): array
+    {
+        return $this->services;
+    }
+
+    /** @param array<string,mixed> $input */
+    private static function parseServices(array $input): array
+    {
+        $raw = $input['services'] ?? $input['service'] ?? null;
+        if ($raw === null || $raw === '') {
+            return [];
+        }
+
+        if (is_array($raw)) {
+            $parts = $raw;
+        } else {
+            $parts = explode(',', (string) $raw);
+        }
+
+        return array_values(array_unique(array_filter(array_map(
+            fn (string $s) => preg_match('/^[a-z0-9\-]+$/', $s) ? $s : null,
+            array_map(fn ($v) => trim((string) $v), $parts)
+        ))));
     }
 }

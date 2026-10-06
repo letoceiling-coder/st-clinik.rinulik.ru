@@ -233,6 +233,7 @@ export interface FilterOptions {
     districts: { slug: string; name: string }[];
     specialties: { slug: string; name: string }[];
     services: { slug: string; name: string; group: string | null }[];
+    properties?: { slug: string; name: string; group: string; kind: string }[];
 }
 
 export type Flat = Record<string, string | number | boolean | null | undefined>;

@@ -44,6 +44,8 @@ class ClinicResource extends JsonResource
             'has_installment' => (bool) $c->has_installment,
             'installment_months' => $c->installment_months,
             'accepts_dms' => (bool) $c->accepts_dms,
+            'accepts_oms' => (bool) $c->accepts_oms,
+            'has_partial_payment' => (bool) $c->has_partial_payment,
             'has_sedation' => (bool) $c->has_sedation,
             'has_anesthesia' => (bool) $c->has_anesthesia,
             'has_microscope' => (bool) $c->has_microscope,

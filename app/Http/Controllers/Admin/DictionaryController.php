@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\CmsPage;
 use App\Models\City;
+use App\Models\ClinicPropertyType;
+use App\Models\CmsPage;
 use App\Models\Concern;
 use App\Models\District;
-use App\Models\Service;
 use App\Models\SeoTemplate;
+use App\Models\Service;
 use App\Models\Specialty;
 use App\Repositories\Contracts\CatalogRepository;
 use App\Services\Audit;
@@ -90,6 +91,39 @@ class DictionaryController extends AdminController
                 ],
                 'rules' => ['specialty_id' => 'required|exists:specialties,id', 'name' => 'required|string|max:160', 'slug' => self::SLUG, 'description' => 'nullable|string|max:2000', 'price_hint_from' => 'nullable|integer|min:0', 'duration_min' => 'nullable|integer|min:0|max:1000', 'is_popular' => 'boolean', 'is_active' => 'boolean'],
                 'in_use' => fn (Service $s) => $s->clinicServices()->exists() ? 'Услуга есть в прайсах клиник. Скройте её вместо удаления.' : null,
+            ],
+            'clinic_property_types' => [
+                'title' => 'Свойства клиник', 'perm' => 'admin.dictionaries', 'model' => ClinicPropertyType::class, 'search' => ['name', 'slug', 'group'],
+                'columns' => ['name', 'slug', 'group', 'filter_kind', 'is_active', 'show_in_filter', 'show_in_cabinet'], 'order' => ['sort', 'asc'],
+                'fields' => [
+                    ['name' => 'name', 'label' => 'Название', 'type' => 'text', 'required' => true],
+                    ['name' => 'slug', 'label' => 'Slug (параметр URL)', 'type' => 'text', 'help' => 'Латиницей; если пусто — сформируется из названия.'],
+                    ['name' => 'group', 'label' => 'Группа в фильтре', 'type' => 'text', 'help' => 'Например: Оплата, Оборудование, Возможности.'],
+                    ['name' => 'filter_kind', 'label' => 'Тип фильтра', 'type' => 'select', 'required' => true, 'options' => [
+                        ['value' => 'boolean', 'label' => 'Флаг клиники (boolean)'],
+                        ['value' => 'specialty', 'label' => 'Направление (specialty slug)'],
+                        ['value' => 'sort', 'label' => 'Сортировка'],
+                        ['value' => 'achievement', 'label' => 'Есть достижения'],
+                    ]],
+                    ['name' => 'db_column', 'label' => 'Колонка в clinics', 'type' => 'select', 'options' => collect(ClinicPropertyType::DB_COLUMNS)->map(fn ($c) => ['value' => $c, 'label' => $c])->all()],
+                    ['name' => 'filter_value', 'label' => 'Значение фильтра', 'type' => 'text', 'help' => 'Slug направления или ключ сортировки (price_asc).'],
+                    ['name' => 'sort', 'label' => 'Порядок', 'type' => 'number'],
+                    ['name' => 'is_active', 'label' => 'Активно', 'type' => 'checkbox'],
+                    ['name' => 'show_in_filter', 'label' => 'Показывать в фильтре каталога', 'type' => 'checkbox'],
+                    ['name' => 'show_in_cabinet', 'label' => 'Показывать в ЛК клиники', 'type' => 'checkbox'],
+                ],
+                'rules' => [
+                    'name' => 'required|string|max:120',
+                    'slug' => self::SLUG,
+                    'group' => 'nullable|string|max:60',
+                    'filter_kind' => 'required|in:'.implode(',', ClinicPropertyType::KINDS),
+                    'db_column' => 'nullable|string|in:'.implode(',', ClinicPropertyType::DB_COLUMNS),
+                    'filter_value' => 'nullable|string|max:60',
+                    'sort' => 'nullable|integer|min:0|max:9999',
+                    'is_active' => 'boolean',
+                    'show_in_filter' => 'boolean',
+                    'show_in_cabinet' => 'boolean',
+                ],
             ],
             'concerns' => [
                 'title' => 'Что беспокоит', 'perm' => 'admin.dictionaries', 'model' => Concern::class, 'search' => ['name', 'keywords'],
@@ -267,6 +301,7 @@ class DictionaryController extends AdminController
 
     private function flush(): void
     {
+        ClinicPropertyType::flushCache();
         app(CatalogRepository::class)->flush();
         Seo::flush();
     }
