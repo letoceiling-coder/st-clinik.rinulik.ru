@@ -41,11 +41,11 @@ class ClinicPropertyType extends Model
     /** @return Collection<int, self> */
     public static function cached(): Collection
     {
-        return Cache::remember('dict.clinic_property_types', 3600, fn () => self::query()
+        return self::query()
             ->where('is_active', true)
             ->orderBy('sort')
             ->orderBy('id')
-            ->get());
+            ->get();
     }
 
     public static function flushCache(): void

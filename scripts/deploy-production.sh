@@ -100,6 +100,7 @@ docker exec "$CONTAINER" chmod +x /entrypoint.sh
 
 echo "==> Running migrations and clearing caches"
 docker exec "$CONTAINER" php artisan migrate --force --no-interaction
+docker exec "$CONTAINER" php artisan cache:clear
 docker exec "$CONTAINER" php artisan config:cache
 docker exec "$CONTAINER" php artisan route:clear
 docker exec "$CONTAINER" php artisan view:clear
