@@ -29,17 +29,7 @@
     "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
     "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
-    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff",
-    "/build/assets/geist-cyrillic-ext-700-normal-CVY63QZD.woff2",
-    "/build/assets/geist-cyrillic-ext-700-normal-CBIC21Ex.woff",
-    "/build/assets/geist-cyrillic-700-normal-BSHy2ewF.woff2",
-    "/build/assets/geist-cyrillic-700-normal-BH7gZKkM.woff",
-    "/build/assets/geist-vietnamese-700-normal-Bnl4KG60.woff2",
-    "/build/assets/geist-vietnamese-700-normal-Dm6ODIDG.woff",
-    "/build/assets/geist-latin-ext-700-normal-BnofTsEi.woff2",
-    "/build/assets/geist-latin-ext-700-normal-DKAtFBEc.woff",
-    "/build/assets/geist-latin-700-normal-CFi8mLqe.woff2",
-    "/build/assets/geist-latin-700-normal-Bod5GerT.woff"
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/app.tsx": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -71,17 +61,7 @@
     "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
     "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
-    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff",
-    "/build/assets/geist-cyrillic-ext-700-normal-CVY63QZD.woff2",
-    "/build/assets/geist-cyrillic-ext-700-normal-CBIC21Ex.woff",
-    "/build/assets/geist-cyrillic-700-normal-BSHy2ewF.woff2",
-    "/build/assets/geist-cyrillic-700-normal-BH7gZKkM.woff",
-    "/build/assets/geist-vietnamese-700-normal-Bnl4KG60.woff2",
-    "/build/assets/geist-vietnamese-700-normal-Dm6ODIDG.woff",
-    "/build/assets/geist-latin-ext-700-normal-BnofTsEi.woff2",
-    "/build/assets/geist-latin-ext-700-normal-DKAtFBEc.woff",
-    "/build/assets/geist-latin-700-normal-CFi8mLqe.woff2",
-    "/build/assets/geist-latin-700-normal-Bod5GerT.woff"
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/components/AdSlot.tsx": [
     "/build/assets/AdSlot-BWHf9w1U.js"
@@ -152,17 +132,7 @@
     "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
     "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
-    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff",
-    "/build/assets/geist-cyrillic-ext-700-normal-CVY63QZD.woff2",
-    "/build/assets/geist-cyrillic-ext-700-normal-CBIC21Ex.woff",
-    "/build/assets/geist-cyrillic-700-normal-BSHy2ewF.woff2",
-    "/build/assets/geist-cyrillic-700-normal-BH7gZKkM.woff",
-    "/build/assets/geist-vietnamese-700-normal-Bnl4KG60.woff2",
-    "/build/assets/geist-vietnamese-700-normal-Dm6ODIDG.woff",
-    "/build/assets/geist-latin-ext-700-normal-BnofTsEi.woff2",
-    "/build/assets/geist-latin-ext-700-normal-DKAtFBEc.woff",
-    "/build/assets/geist-latin-700-normal-CFi8mLqe.woff2",
-    "/build/assets/geist-latin-700-normal-Bod5GerT.woff"
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/components/LeadContext.tsx": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -194,17 +164,7 @@
     "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
     "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
-    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff",
-    "/build/assets/geist-cyrillic-ext-700-normal-CVY63QZD.woff2",
-    "/build/assets/geist-cyrillic-ext-700-normal-CBIC21Ex.woff",
-    "/build/assets/geist-cyrillic-700-normal-BSHy2ewF.woff2",
-    "/build/assets/geist-cyrillic-700-normal-BH7gZKkM.woff",
-    "/build/assets/geist-vietnamese-700-normal-Bnl4KG60.woff2",
-    "/build/assets/geist-vietnamese-700-normal-Dm6ODIDG.woff",
-    "/build/assets/geist-latin-ext-700-normal-BnofTsEi.woff2",
-    "/build/assets/geist-latin-ext-700-normal-DKAtFBEc.woff",
-    "/build/assets/geist-latin-700-normal-CFi8mLqe.woff2",
-    "/build/assets/geist-latin-700-normal-Bod5GerT.woff"
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/components/LeadModal.tsx": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -236,17 +196,7 @@
     "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
     "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
-    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff",
-    "/build/assets/geist-cyrillic-ext-700-normal-CVY63QZD.woff2",
-    "/build/assets/geist-cyrillic-ext-700-normal-CBIC21Ex.woff",
-    "/build/assets/geist-cyrillic-700-normal-BSHy2ewF.woff2",
-    "/build/assets/geist-cyrillic-700-normal-BH7gZKkM.woff",
-    "/build/assets/geist-vietnamese-700-normal-Bnl4KG60.woff2",
-    "/build/assets/geist-vietnamese-700-normal-Dm6ODIDG.woff",
-    "/build/assets/geist-latin-ext-700-normal-BnofTsEi.woff2",
-    "/build/assets/geist-latin-ext-700-normal-DKAtFBEc.woff",
-    "/build/assets/geist-latin-700-normal-CFi8mLqe.woff2",
-    "/build/assets/geist-latin-700-normal-Bod5GerT.woff"
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/components/PhotoArt.tsx": [
     "/build/assets/PhotoArt-BefU5AAo.js"
@@ -287,17 +237,7 @@
     "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
     "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
-    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff",
-    "/build/assets/geist-cyrillic-ext-700-normal-CVY63QZD.woff2",
-    "/build/assets/geist-cyrillic-ext-700-normal-CBIC21Ex.woff",
-    "/build/assets/geist-cyrillic-700-normal-BSHy2ewF.woff2",
-    "/build/assets/geist-cyrillic-700-normal-BH7gZKkM.woff",
-    "/build/assets/geist-vietnamese-700-normal-Bnl4KG60.woff2",
-    "/build/assets/geist-vietnamese-700-normal-Dm6ODIDG.woff",
-    "/build/assets/geist-latin-ext-700-normal-BnofTsEi.woff2",
-    "/build/assets/geist-latin-ext-700-normal-DKAtFBEc.woff",
-    "/build/assets/geist-latin-700-normal-CFi8mLqe.woff2",
-    "/build/assets/geist-latin-700-normal-Bod5GerT.woff"
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/components/Tiles.tsx": [
     "/build/assets/Tiles-_iQru-fi.js"
@@ -332,17 +272,7 @@
     "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
     "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
-    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff",
-    "/build/assets/geist-cyrillic-ext-700-normal-CVY63QZD.woff2",
-    "/build/assets/geist-cyrillic-ext-700-normal-CBIC21Ex.woff",
-    "/build/assets/geist-cyrillic-700-normal-BSHy2ewF.woff2",
-    "/build/assets/geist-cyrillic-700-normal-BH7gZKkM.woff",
-    "/build/assets/geist-vietnamese-700-normal-Bnl4KG60.woff2",
-    "/build/assets/geist-vietnamese-700-normal-Dm6ODIDG.woff",
-    "/build/assets/geist-latin-ext-700-normal-BnofTsEi.woff2",
-    "/build/assets/geist-latin-ext-700-normal-DKAtFBEc.woff",
-    "/build/assets/geist-latin-700-normal-CFi8mLqe.woff2",
-    "/build/assets/geist-latin-700-normal-Bod5GerT.woff"
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/components/YandexMap.tsx": [
     "/build/assets/YandexMap-Bx-QJpGw.js"
@@ -380,17 +310,7 @@
     "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
     "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
-    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff",
-    "/build/assets/geist-cyrillic-ext-700-normal-CVY63QZD.woff2",
-    "/build/assets/geist-cyrillic-ext-700-normal-CBIC21Ex.woff",
-    "/build/assets/geist-cyrillic-700-normal-BSHy2ewF.woff2",
-    "/build/assets/geist-cyrillic-700-normal-BH7gZKkM.woff",
-    "/build/assets/geist-vietnamese-700-normal-Bnl4KG60.woff2",
-    "/build/assets/geist-vietnamese-700-normal-Dm6ODIDG.woff",
-    "/build/assets/geist-latin-ext-700-normal-BnofTsEi.woff2",
-    "/build/assets/geist-latin-ext-700-normal-DKAtFBEc.woff",
-    "/build/assets/geist-latin-700-normal-CFi8mLqe.woff2",
-    "/build/assets/geist-latin-700-normal-Bod5GerT.woff"
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/components/ui/FileDropzone.tsx": [
     "/build/assets/FileDropzone-PX-lgEUM.js"
@@ -425,17 +345,7 @@
     "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
     "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
-    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff",
-    "/build/assets/geist-cyrillic-ext-700-normal-CVY63QZD.woff2",
-    "/build/assets/geist-cyrillic-ext-700-normal-CBIC21Ex.woff",
-    "/build/assets/geist-cyrillic-700-normal-BSHy2ewF.woff2",
-    "/build/assets/geist-cyrillic-700-normal-BH7gZKkM.woff",
-    "/build/assets/geist-vietnamese-700-normal-Bnl4KG60.woff2",
-    "/build/assets/geist-vietnamese-700-normal-Dm6ODIDG.woff",
-    "/build/assets/geist-latin-ext-700-normal-BnofTsEi.woff2",
-    "/build/assets/geist-latin-ext-700-normal-DKAtFBEc.woff",
-    "/build/assets/geist-latin-700-normal-CFi8mLqe.woff2",
-    "/build/assets/geist-latin-700-normal-Bod5GerT.woff"
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/components/ui/Overlay.tsx": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -467,17 +377,7 @@
     "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
     "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
-    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff",
-    "/build/assets/geist-cyrillic-ext-700-normal-CVY63QZD.woff2",
-    "/build/assets/geist-cyrillic-ext-700-normal-CBIC21Ex.woff",
-    "/build/assets/geist-cyrillic-700-normal-BSHy2ewF.woff2",
-    "/build/assets/geist-cyrillic-700-normal-BH7gZKkM.woff",
-    "/build/assets/geist-vietnamese-700-normal-Bnl4KG60.woff2",
-    "/build/assets/geist-vietnamese-700-normal-Dm6ODIDG.woff",
-    "/build/assets/geist-latin-ext-700-normal-BnofTsEi.woff2",
-    "/build/assets/geist-latin-ext-700-normal-DKAtFBEc.woff",
-    "/build/assets/geist-latin-700-normal-CFi8mLqe.woff2",
-    "/build/assets/geist-latin-700-normal-Bod5GerT.woff"
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/layouts/AccountLayout.tsx": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -509,17 +409,7 @@
     "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
     "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
-    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff",
-    "/build/assets/geist-cyrillic-ext-700-normal-CVY63QZD.woff2",
-    "/build/assets/geist-cyrillic-ext-700-normal-CBIC21Ex.woff",
-    "/build/assets/geist-cyrillic-700-normal-BSHy2ewF.woff2",
-    "/build/assets/geist-cyrillic-700-normal-BH7gZKkM.woff",
-    "/build/assets/geist-vietnamese-700-normal-Bnl4KG60.woff2",
-    "/build/assets/geist-vietnamese-700-normal-Dm6ODIDG.woff",
-    "/build/assets/geist-latin-ext-700-normal-BnofTsEi.woff2",
-    "/build/assets/geist-latin-ext-700-normal-DKAtFBEc.woff",
-    "/build/assets/geist-latin-700-normal-CFi8mLqe.woff2",
-    "/build/assets/geist-latin-700-normal-Bod5GerT.woff"
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/layouts/AdminLayout.tsx": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -551,17 +441,7 @@
     "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
     "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
-    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff",
-    "/build/assets/geist-cyrillic-ext-700-normal-CVY63QZD.woff2",
-    "/build/assets/geist-cyrillic-ext-700-normal-CBIC21Ex.woff",
-    "/build/assets/geist-cyrillic-700-normal-BSHy2ewF.woff2",
-    "/build/assets/geist-cyrillic-700-normal-BH7gZKkM.woff",
-    "/build/assets/geist-vietnamese-700-normal-Bnl4KG60.woff2",
-    "/build/assets/geist-vietnamese-700-normal-Dm6ODIDG.woff",
-    "/build/assets/geist-latin-ext-700-normal-BnofTsEi.woff2",
-    "/build/assets/geist-latin-ext-700-normal-DKAtFBEc.woff",
-    "/build/assets/geist-latin-700-normal-CFi8mLqe.woff2",
-    "/build/assets/geist-latin-700-normal-Bod5GerT.woff"
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/layouts/AuthLayout.tsx": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -593,17 +473,7 @@
     "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
     "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
-    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff",
-    "/build/assets/geist-cyrillic-ext-700-normal-CVY63QZD.woff2",
-    "/build/assets/geist-cyrillic-ext-700-normal-CBIC21Ex.woff",
-    "/build/assets/geist-cyrillic-700-normal-BSHy2ewF.woff2",
-    "/build/assets/geist-cyrillic-700-normal-BH7gZKkM.woff",
-    "/build/assets/geist-vietnamese-700-normal-Bnl4KG60.woff2",
-    "/build/assets/geist-vietnamese-700-normal-Dm6ODIDG.woff",
-    "/build/assets/geist-latin-ext-700-normal-BnofTsEi.woff2",
-    "/build/assets/geist-latin-ext-700-normal-DKAtFBEc.woff",
-    "/build/assets/geist-latin-700-normal-CFi8mLqe.woff2",
-    "/build/assets/geist-latin-700-normal-Bod5GerT.woff"
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/layouts/CabinetLayout.tsx": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -635,17 +505,7 @@
     "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
     "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
-    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff",
-    "/build/assets/geist-cyrillic-ext-700-normal-CVY63QZD.woff2",
-    "/build/assets/geist-cyrillic-ext-700-normal-CBIC21Ex.woff",
-    "/build/assets/geist-cyrillic-700-normal-BSHy2ewF.woff2",
-    "/build/assets/geist-cyrillic-700-normal-BH7gZKkM.woff",
-    "/build/assets/geist-vietnamese-700-normal-Bnl4KG60.woff2",
-    "/build/assets/geist-vietnamese-700-normal-Dm6ODIDG.woff",
-    "/build/assets/geist-latin-ext-700-normal-BnofTsEi.woff2",
-    "/build/assets/geist-latin-ext-700-normal-DKAtFBEc.woff",
-    "/build/assets/geist-latin-700-normal-CFi8mLqe.woff2",
-    "/build/assets/geist-latin-700-normal-Bod5GerT.woff"
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/layouts/CityPicker.tsx": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -677,17 +537,7 @@
     "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
     "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
-    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff",
-    "/build/assets/geist-cyrillic-ext-700-normal-CVY63QZD.woff2",
-    "/build/assets/geist-cyrillic-ext-700-normal-CBIC21Ex.woff",
-    "/build/assets/geist-cyrillic-700-normal-BSHy2ewF.woff2",
-    "/build/assets/geist-cyrillic-700-normal-BH7gZKkM.woff",
-    "/build/assets/geist-vietnamese-700-normal-Bnl4KG60.woff2",
-    "/build/assets/geist-vietnamese-700-normal-Dm6ODIDG.woff",
-    "/build/assets/geist-latin-ext-700-normal-BnofTsEi.woff2",
-    "/build/assets/geist-latin-ext-700-normal-DKAtFBEc.woff",
-    "/build/assets/geist-latin-700-normal-CFi8mLqe.woff2",
-    "/build/assets/geist-latin-700-normal-Bod5GerT.woff"
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/layouts/DashboardShell.tsx": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -719,17 +569,7 @@
     "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
     "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
-    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff",
-    "/build/assets/geist-cyrillic-ext-700-normal-CVY63QZD.woff2",
-    "/build/assets/geist-cyrillic-ext-700-normal-CBIC21Ex.woff",
-    "/build/assets/geist-cyrillic-700-normal-BSHy2ewF.woff2",
-    "/build/assets/geist-cyrillic-700-normal-BH7gZKkM.woff",
-    "/build/assets/geist-vietnamese-700-normal-Bnl4KG60.woff2",
-    "/build/assets/geist-vietnamese-700-normal-Dm6ODIDG.woff",
-    "/build/assets/geist-latin-ext-700-normal-BnofTsEi.woff2",
-    "/build/assets/geist-latin-ext-700-normal-DKAtFBEc.woff",
-    "/build/assets/geist-latin-700-normal-CFi8mLqe.woff2",
-    "/build/assets/geist-latin-700-normal-Bod5GerT.woff"
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/layouts/Logo.tsx": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -761,17 +601,7 @@
     "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
     "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
-    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff",
-    "/build/assets/geist-cyrillic-ext-700-normal-CVY63QZD.woff2",
-    "/build/assets/geist-cyrillic-ext-700-normal-CBIC21Ex.woff",
-    "/build/assets/geist-cyrillic-700-normal-BSHy2ewF.woff2",
-    "/build/assets/geist-cyrillic-700-normal-BH7gZKkM.woff",
-    "/build/assets/geist-vietnamese-700-normal-Bnl4KG60.woff2",
-    "/build/assets/geist-vietnamese-700-normal-Dm6ODIDG.woff",
-    "/build/assets/geist-latin-ext-700-normal-BnofTsEi.woff2",
-    "/build/assets/geist-latin-ext-700-normal-DKAtFBEc.woff",
-    "/build/assets/geist-latin-700-normal-CFi8mLqe.woff2",
-    "/build/assets/geist-latin-700-normal-Bod5GerT.woff"
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/layouts/PublicLayout.tsx": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -803,17 +633,7 @@
     "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
     "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
-    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff",
-    "/build/assets/geist-cyrillic-ext-700-normal-CVY63QZD.woff2",
-    "/build/assets/geist-cyrillic-ext-700-normal-CBIC21Ex.woff",
-    "/build/assets/geist-cyrillic-700-normal-BSHy2ewF.woff2",
-    "/build/assets/geist-cyrillic-700-normal-BH7gZKkM.woff",
-    "/build/assets/geist-vietnamese-700-normal-Bnl4KG60.woff2",
-    "/build/assets/geist-vietnamese-700-normal-Dm6ODIDG.woff",
-    "/build/assets/geist-latin-ext-700-normal-BnofTsEi.woff2",
-    "/build/assets/geist-latin-ext-700-normal-DKAtFBEc.woff",
-    "/build/assets/geist-latin-700-normal-CFi8mLqe.woff2",
-    "/build/assets/geist-latin-700-normal-Bod5GerT.woff"
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/lib/auth.ts": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -845,17 +665,7 @@
     "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
     "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
-    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff",
-    "/build/assets/geist-cyrillic-ext-700-normal-CVY63QZD.woff2",
-    "/build/assets/geist-cyrillic-ext-700-normal-CBIC21Ex.woff",
-    "/build/assets/geist-cyrillic-700-normal-BSHy2ewF.woff2",
-    "/build/assets/geist-cyrillic-700-normal-BH7gZKkM.woff",
-    "/build/assets/geist-vietnamese-700-normal-Bnl4KG60.woff2",
-    "/build/assets/geist-vietnamese-700-normal-Dm6ODIDG.woff",
-    "/build/assets/geist-latin-ext-700-normal-BnofTsEi.woff2",
-    "/build/assets/geist-latin-ext-700-normal-DKAtFBEc.woff",
-    "/build/assets/geist-latin-700-normal-CFi8mLqe.woff2",
-    "/build/assets/geist-latin-700-normal-Bod5GerT.woff"
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/lib/banner-specs.ts": [
     "/build/assets/banner-specs-BL8mmY3b.js"
@@ -890,17 +700,7 @@
     "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
     "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
-    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff",
-    "/build/assets/geist-cyrillic-ext-700-normal-CVY63QZD.woff2",
-    "/build/assets/geist-cyrillic-ext-700-normal-CBIC21Ex.woff",
-    "/build/assets/geist-cyrillic-700-normal-BSHy2ewF.woff2",
-    "/build/assets/geist-cyrillic-700-normal-BH7gZKkM.woff",
-    "/build/assets/geist-vietnamese-700-normal-Bnl4KG60.woff2",
-    "/build/assets/geist-vietnamese-700-normal-Dm6ODIDG.woff",
-    "/build/assets/geist-latin-ext-700-normal-BnofTsEi.woff2",
-    "/build/assets/geist-latin-ext-700-normal-DKAtFBEc.woff",
-    "/build/assets/geist-latin-700-normal-CFi8mLqe.woff2",
-    "/build/assets/geist-latin-700-normal-Bod5GerT.woff"
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/lib/collections.ts": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -932,17 +732,7 @@
     "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
     "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
-    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff",
-    "/build/assets/geist-cyrillic-ext-700-normal-CVY63QZD.woff2",
-    "/build/assets/geist-cyrillic-ext-700-normal-CBIC21Ex.woff",
-    "/build/assets/geist-cyrillic-700-normal-BSHy2ewF.woff2",
-    "/build/assets/geist-cyrillic-700-normal-BH7gZKkM.woff",
-    "/build/assets/geist-vietnamese-700-normal-Bnl4KG60.woff2",
-    "/build/assets/geist-vietnamese-700-normal-Dm6ODIDG.woff",
-    "/build/assets/geist-latin-ext-700-normal-BnofTsEi.woff2",
-    "/build/assets/geist-latin-ext-700-normal-DKAtFBEc.woff",
-    "/build/assets/geist-latin-700-normal-CFi8mLqe.woff2",
-    "/build/assets/geist-latin-700-normal-Bod5GerT.woff"
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/lib/demo-images.ts": [
     "/build/assets/demo-images-CwyQSe03.js"
@@ -983,17 +773,7 @@
     "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
     "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
-    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff",
-    "/build/assets/geist-cyrillic-ext-700-normal-CVY63QZD.woff2",
-    "/build/assets/geist-cyrillic-ext-700-normal-CBIC21Ex.woff",
-    "/build/assets/geist-cyrillic-700-normal-BSHy2ewF.woff2",
-    "/build/assets/geist-cyrillic-700-normal-BH7gZKkM.woff",
-    "/build/assets/geist-vietnamese-700-normal-Bnl4KG60.woff2",
-    "/build/assets/geist-vietnamese-700-normal-Dm6ODIDG.woff",
-    "/build/assets/geist-latin-ext-700-normal-BnofTsEi.woff2",
-    "/build/assets/geist-latin-ext-700-normal-DKAtFBEc.woff",
-    "/build/assets/geist-latin-700-normal-CFi8mLqe.woff2",
-    "/build/assets/geist-latin-700-normal-Bod5GerT.woff"
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/lib/seo.ts": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -1025,17 +805,7 @@
     "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
     "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
-    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff",
-    "/build/assets/geist-cyrillic-ext-700-normal-CVY63QZD.woff2",
-    "/build/assets/geist-cyrillic-ext-700-normal-CBIC21Ex.woff",
-    "/build/assets/geist-cyrillic-700-normal-BSHy2ewF.woff2",
-    "/build/assets/geist-cyrillic-700-normal-BH7gZKkM.woff",
-    "/build/assets/geist-vietnamese-700-normal-Bnl4KG60.woff2",
-    "/build/assets/geist-vietnamese-700-normal-Dm6ODIDG.woff",
-    "/build/assets/geist-latin-ext-700-normal-BnofTsEi.woff2",
-    "/build/assets/geist-latin-ext-700-normal-DKAtFBEc.woff",
-    "/build/assets/geist-latin-700-normal-CFi8mLqe.woff2",
-    "/build/assets/geist-latin-700-normal-Bod5GerT.woff"
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/lib/toast.ts": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -1067,17 +837,7 @@
     "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
     "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
-    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff",
-    "/build/assets/geist-cyrillic-ext-700-normal-CVY63QZD.woff2",
-    "/build/assets/geist-cyrillic-ext-700-normal-CBIC21Ex.woff",
-    "/build/assets/geist-cyrillic-700-normal-BSHy2ewF.woff2",
-    "/build/assets/geist-cyrillic-700-normal-BH7gZKkM.woff",
-    "/build/assets/geist-vietnamese-700-normal-Bnl4KG60.woff2",
-    "/build/assets/geist-vietnamese-700-normal-Dm6ODIDG.woff",
-    "/build/assets/geist-latin-ext-700-normal-BnofTsEi.woff2",
-    "/build/assets/geist-latin-ext-700-normal-DKAtFBEc.woff",
-    "/build/assets/geist-latin-700-normal-CFi8mLqe.woff2",
-    "/build/assets/geist-latin-700-normal-Bod5GerT.woff"
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/pages/Account/Compare.tsx": [
     "/build/assets/Compare-BLUoLxTL.js"

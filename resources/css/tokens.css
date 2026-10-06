@@ -1,35 +1,44 @@
-/* Design tokens — палитра и типографика babenko-clinic-elevated (mestolov.ru). */
+/* Design tokens — палитра babenko-clinic-elevated (ivory, ink, lime). */
 :root {
-    /* Цвет */
-    --color-primary: #ff4d00;
-    --color-primary-hover: #e64500;
-    --color-primary-active: #cc3d00;
-    --color-primary-soft: rgb(255 77 0 / 0.1);
-    --color-primary-text: #cc4400;
-    --color-on-primary: #ffffff;
-    --color-primary-gradient: linear-gradient(135deg, #ff4d00 0%, #ff6a33 100%);
-
-    --color-text: #1a1a1a;
-    --color-muted: #666666;
-    --color-muted-2: #8c8c8c;
+    /* Базовые цвета babenko */
+    --color-ivory: #f5f4f0;
     --color-surface: #ffffff;
-    --color-surface-muted: #f5f5f5;
+    --color-surface-muted: #ebebe6;
+    --color-graphite: #171816;
+
+    --color-text: #151613;
+    --color-muted: #6f716a;
+    --color-muted-2: #9a9d95;
+
+    --color-line: rgb(21 22 19 / 0.08);
+    --color-line-strong: rgb(21 22 19 / 0.14);
+    --color-border: #e0e0dc;
+    --color-border-strong: rgb(21 22 19 / 0.14);
+
+    /* Lime — основной акцент (кнопки, ссылки) */
+    --color-primary: #caf65a;
+    --color-primary-hover: #bff042;
+    --color-primary-active: #a8d830;
+    --color-primary-soft: #f0f7de;
+    --color-primary-text: #151613;
+    --color-on-primary: #151613;
+    --color-primary-gradient: linear-gradient(135deg, #caf65a 0%, #bff042 100%);
+
+    --color-on-graphite: #f5f4f0;
+    --color-page: #f5f4f0;
     --color-surface-elevated: #ffffff;
-    --color-page: #ffffff;
-    --color-border: #e6e6e6;
-    --color-border-strong: #e6e6e6;
 
     --color-success: #12795a;
     --color-success-soft: #e6f5ef;
     --color-warning: #8a5a00;
     --color-warning-soft: #fff4d6;
-    --color-danger: #c2260f;
+    --color-danger: #cf2f24;
     --color-danger-soft: #fdecea;
     --color-info: #1f5fbf;
     --color-info-soft: #e8f0fc;
     --color-star: #f5a100;
 
-    /* Скругления */
+    /* Скругления — babenko radius 1rem base */
     --radius-12: 12px;
     --radius-16: 16px;
     --radius-20: 20px;
@@ -37,9 +46,11 @@
     --radius-pill: 999px;
 
     /* Тени */
-    --shadow-card: 0 8px 28px rgb(26 26 26 / 0.1);
-    --shadow-soft: 0 4px 14px rgb(26 26 26 / 0.05);
-    --shadow-pop: 0 18px 50px rgb(26 26 26 / 0.16);
+    --shadow-card: 0 8px 28px rgb(21 22 19 / 0.1);
+    --shadow-soft: 0 4px 14px rgb(21 22 19 / 0.05);
+    --shadow-pop: 0 18px 50px rgb(21 22 19 / 0.16);
+    --shadow-sheet: 0 -8px 40px rgb(21 22 19 / 0.1);
+    --shadow-float: 0 8px 28px rgb(21 22 19 / 0.1);
 
     /* Сетка и отступы */
     --container: 1280px;
@@ -53,7 +64,7 @@
     --space-12: 48px;
     --space-16: 64px;
 
-    /* Типографика */
+    /* Типографика — Geist 400/500/600 */
     --font-sans: 'Geist', system-ui, -apple-system, sans-serif;
     --fs-xs: 0.8125rem;
     --fs-sm: 0.9375rem;
@@ -72,10 +83,10 @@
     --control-h-sm: 44px;
     --header-h: 72px;
     --tabbar-h: 64px;
-    --header-shadow: 0 1px 0 rgb(26 26 26 / 0.06), 0 8px 24px rgb(26 26 26 / 0.04);
+    --header-shadow: 0 1px 0 rgb(21 22 19 / 0.06), 0 8px 24px rgb(21 22 19 / 0.04);
 
     --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
-    --focus-ring: 0 0 0 3px #fff, 0 0 0 5px #1a1a1a;
+    --focus-ring: 0 0 0 3px var(--color-ivory), 0 0 0 5px rgb(21 22 19 / 0.4);
 
     --photo-radius: var(--radius-20);
     --photo-ratio-clinic: 4 / 3;

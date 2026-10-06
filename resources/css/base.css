@@ -94,8 +94,8 @@ table {
 }
 
 ::selection {
-    background: var(--color-primary);
-    color: #fff;
+    background: var(--color-primary-soft);
+    color: var(--color-text);
 }
 
 .visually-hidden {
