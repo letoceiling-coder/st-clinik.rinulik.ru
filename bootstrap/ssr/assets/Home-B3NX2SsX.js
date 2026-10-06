@@ -87,11 +87,21 @@ function ServicePickerModal({ open, onClose, services, initialSelected = [], onA
 					className: "service-picker__group",
 					children: [/* @__PURE__ */ jsx("h3", { children: group }), /* @__PURE__ */ jsx("div", {
 						className: "service-picker__list",
-						children: items.map((s) => /* @__PURE__ */ jsxs("label", {
+						children: items.map((s) => /* @__PURE__ */ jsxs("div", {
 							className: cx("service-picker__item", selected.includes(s.slug) && "is-active"),
+							role: "button",
+							tabIndex: 0,
+							onClick: () => toggle(s.slug),
+							onKeyDown: (e) => {
+								if (e.key === "Enter" || e.key === " ") {
+									e.preventDefault();
+									toggle(s.slug);
+								}
+							},
 							children: [/* @__PURE__ */ jsx(Check, {
 								checked: selected.includes(s.slug),
 								onChange: () => toggle(s.slug),
+								onClick: (e) => e.stopPropagation(),
 								label: s.name
 							}), s.price_from ? /* @__PURE__ */ jsx("span", {
 								className: "service-picker__price",
@@ -555,4 +565,4 @@ function Home({ stats, concerns, popular_services, catalog_services, hero_chips,
 //#endregion
 export { Home as default };
 
-//# sourceMappingURL=Home-DY8KnGh7.js.map
+//# sourceMappingURL=Home-B3NX2SsX.js.map

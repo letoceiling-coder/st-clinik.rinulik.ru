@@ -93,10 +93,27 @@ export default function ServicePickerModal({ open, onClose, services, initialSel
                             <h3>{group}</h3>
                             <div className="service-picker__list">
                                 {items.map((s) => (
-                                    <label key={s.slug} className={cx('service-picker__item', selected.includes(s.slug) && 'is-active')}>
-                                        <Check checked={selected.includes(s.slug)} onChange={() => toggle(s.slug)} label={s.name} />
+                                    <div
+                                        key={s.slug}
+                                        className={cx('service-picker__item', selected.includes(s.slug) && 'is-active')}
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={() => toggle(s.slug)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                toggle(s.slug);
+                                            }
+                                        }}
+                                    >
+                                        <Check
+                                            checked={selected.includes(s.slug)}
+                                            onChange={() => toggle(s.slug)}
+                                            onClick={(e) => e.stopPropagation()}
+                                            label={s.name}
+                                        />
                                         {s.price_from ? <span className="service-picker__price">{money(s.price_from)}</span> : null}
-                                    </label>
+                                    </div>
                                 ))}
                             </div>
                         </section>
