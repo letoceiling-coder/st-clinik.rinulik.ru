@@ -209,7 +209,7 @@
 .textarea:focus {
     outline: none;
     border-color: var(--color-text);
-    box-shadow: 0 0 0 3px rgba(21, 21, 21, 0.12);
+    box-shadow: 0 0 0 3px rgb(26 26 26 / 0.12);
 }
 .input[aria-invalid='true'],
 .select[aria-invalid='true'],
@@ -322,7 +322,7 @@
     height: 28px;
     margin: 0;
     border-radius: var(--radius-pill);
-    background: #cfcac7;
+    background: var(--color-border);
     cursor: pointer;
     transition: background-color 0.15s;
 }
@@ -669,7 +669,7 @@
     color: var(--color-primary-text);
 }
 .compare-btn.is-active:hover:not(:disabled) {
-    background: #ffe8dc;
+    background: var(--color-primary-soft);
 }
 
 .fav-btn {
@@ -979,7 +979,7 @@
     align-items: center;
     justify-content: center;
     padding: 16px;
-    background: rgba(21, 21, 21, 0.5);
+    background: rgb(26 26 26 / 0.5);
     backdrop-filter: blur(2px);
     animation: fade 0.18s var(--ease);
 }
@@ -1151,7 +1151,7 @@
 .skeleton {
     display: block;
     border-radius: var(--radius-12);
-    background: linear-gradient(90deg, #efeceb 0%, #f8f7f6 50%, #efeceb 100%);
+    background: linear-gradient(90deg, var(--color-surface-muted) 0%, var(--color-surface) 50%, var(--color-surface-muted) 100%);
     background-size: 200% 100%;
     animation: shimmer 1.3s linear infinite;
 }
@@ -1350,7 +1350,7 @@ a.page-btn:hover {
     vertical-align: middle;
 }
 .table tr:hover td {
-    background: #fcfbfa;
+    background: var(--color-surface);
 }
 .table .num {
     text-align: right;
