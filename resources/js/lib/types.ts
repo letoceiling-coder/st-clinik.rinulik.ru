@@ -121,7 +121,7 @@ export interface ClinicCardData {
     services_count?: number;
     doctors_preview: { slug: string; name: string; position: string; art_seed: number; rating: number; photo_url?: string | null }[];
     photos: PhotoRef[];
-    promo_offers: { id: number; title: string; slug: string }[];
+    promo_offers: { id: string; title: string; slug: string | null }[];
 }
 
 export interface ClinicPostData {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\ClinicCardPromos;
 use App\Support\Schedule;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -70,9 +71,7 @@ class ClinicResource extends JsonResource
             'photos' => $c->relationLoaded('photos') ? $c->photos->take(3)->map(fn ($p) => [
                 'kind' => $p->kind, 'caption' => $p->caption, 'art_seed' => $p->art_seed, 'url' => $p->path ? Storage::disk('public')->url($p->path) : null,
             ])->values() : [],
-            'promo_offers' => $c->relationLoaded('cardPromos')
-                ? $c->cardPromos->map(fn ($p) => ['id' => $p->id, 'title' => $p->title, 'slug' => $p->slug])->values()
-                : [],
+            'promo_offers' => ClinicCardPromos::forClinic($c),
         ];
     }
 }

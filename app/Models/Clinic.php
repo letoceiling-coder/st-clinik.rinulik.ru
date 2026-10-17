@@ -111,6 +111,12 @@ class Clinic extends Model
         return $this->hasMany(ClinicPost::class);
     }
 
+    /** Строки прайса для авто-офферов на карточке (фильтр — в eager load). */
+    public function cardOfferServices(): HasMany
+    {
+        return $this->hasMany(ClinicService::class);
+    }
+
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);

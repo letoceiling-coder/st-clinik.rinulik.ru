@@ -141,6 +141,10 @@ class EloquentClinicRepository implements ClinicRepository
                 ->where('price_from', '>', 0)->orderBy('price_from'),
             'cardPromos' => fn ($q) => $q->where('type', 'promo')->published()->active()
                 ->orderByDesc('is_pinned')->orderBy('sort')->orderByDesc('id')->limit(3),
+            'cardOfferServices' => fn ($q) => $q->with('service:id,slug')
+                ->where(function ($inner) {
+                    $inner->where('price_from', 0)->orWhere('is_promo', true);
+                }),
         ]);
     }
 
