@@ -100,3 +100,10 @@
         --control-h: 48px;
     }
 }
+
+@media (max-width: 374px) {
+    :root {
+        --gutter: 12px;
+        --fs-hero: clamp(1.625rem, 5vw + 1.1rem, 2rem);
+    }
+}

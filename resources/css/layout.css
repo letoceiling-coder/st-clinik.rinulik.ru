@@ -310,6 +310,9 @@
     box-shadow: var(--shadow-soft);
     margin: 8px 0 20px;
 }
+.hero-finder.card {
+    padding: 18px;
+}
 .hero-finder__search {
     display: flex;
     align-items: center;
@@ -2461,8 +2464,167 @@
     }
 }
 
-/* Кабинеты и админка: узкие экраны от 320px */
+/* Публичный сайт и кабинеты: от 320px (374px breakpoint) */
 @media (max-width: 374px) {
+    .header__row {
+        gap: 6px;
+    }
+    .logo {
+        max-width: 46vw;
+    }
+    .logo__text {
+        font-size: 0.9375rem;
+    }
+    .city-btn {
+        min-height: 36px;
+        padding: 0 8px;
+        font-size: var(--fs-xs);
+        max-width: 38vw;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .icon-link {
+        width: 40px;
+        height: 40px;
+    }
+    .main {
+        padding-bottom: calc(var(--tabbar-h) + 44px + env(safe-area-inset-bottom));
+    }
+    .tabbar {
+        left: 8px;
+        right: 8px;
+        bottom: calc(6px + env(safe-area-inset-bottom));
+        height: 56px;
+        padding: 3px;
+    }
+    .tabbar__item {
+        font-size: 10px;
+        gap: 3px;
+    }
+    .hero {
+        padding-top: 24px;
+        padding-bottom: 20px;
+    }
+    .hero h1 {
+        max-width: none;
+    }
+    .hero__lead {
+        margin: 12px 0 14px;
+        font-size: 0.9375rem;
+        line-height: 1.5;
+    }
+    .hero-finder,
+    .hero-finder.card {
+        padding: 12px;
+        gap: 10px;
+        margin: 4px 0 14px;
+    }
+    .hero-finder__search {
+        min-height: 48px;
+        padding: 0 12px;
+        gap: 8px;
+        font-size: var(--fs-xs);
+    }
+    .hero-finder__search span {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .hero-finder__chips {
+        gap: 6px;
+    }
+    .hero-finder__chips .chip {
+        min-height: 36px;
+        padding: 6px 12px;
+        font-size: var(--fs-xs);
+        white-space: normal;
+        line-height: 1.25;
+        text-align: center;
+    }
+    .hero-finder__meta {
+        font-size: 0.8125rem;
+        line-height: 1.45;
+    }
+    .hero__stats {
+        padding: 10px 8px;
+        gap: 6px;
+    }
+    .hero__stats dt {
+        font-size: 0.6875rem;
+        line-height: 1.25;
+    }
+    .hero__stats dd {
+        font-size: 1.125rem;
+    }
+    .section {
+        padding-block: var(--space-6);
+    }
+    .section-head {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--space-3);
+        margin-bottom: var(--space-4);
+    }
+    .section-head h2 {
+        font-size: 1.25rem;
+    }
+    .section-head p {
+        font-size: var(--fs-sm);
+    }
+    .grid--tiles {
+        gap: var(--space-4);
+    }
+    .tile {
+        gap: 12px;
+    }
+    .tile__icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+    }
+    .doctor-card {
+        padding: 12px;
+        gap: 10px;
+    }
+    .doctor-card__photo {
+        width: 56px;
+        height: 56px;
+    }
+    .doctor-card__body {
+        padding-right: 28px;
+        gap: 6px;
+    }
+    .doctor-card__name {
+        font-size: 0.9375rem;
+        padding-right: 4px;
+    }
+    .doctor-card .fav-btn {
+        right: 8px;
+        top: 8px;
+    }
+    .doctor-card__meta .badge {
+        font-size: 0.6875rem;
+        min-height: 22px;
+        padding: 2px 8px;
+    }
+    .clinic-card__body {
+        padding: var(--space-4);
+    }
+    .clinic-card--tile {
+        --clinic-photo-h: 152px;
+    }
+    .clinic-card--tile .clinic-card__promos--tile {
+        min-height: 3.25rem;
+    }
+    .clinic-card__promos-list li {
+        font-size: 0.6875rem;
+    }
+    .clinic-card--tile .clinic-card__head {
+        gap: var(--space-2);
+        padding-right: 36px;
+    }
     .shell__top-row {
         padding: 0 10px;
         gap: 6px;
