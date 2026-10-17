@@ -1,7 +1,7 @@
 import { n as cx, t as clinicsWord } from "./format-BPZIj7DQ.js";
 import { n as Button } from "./Button-D8Mzgn6o.js";
 import { c as Breadcrumbs, d as Pagination, l as EmptyState, n as useCity } from "../app.js";
-import { n as ClinicCardSkeleton, t as ClinicCard } from "./ClinicCard-CV_fiS2g.js";
+import { n as ClinicCardSkeleton, t as ClinicCard } from "./ClinicCard-_h4B3ECh.js";
 import { t as AdSlot } from "./AdSlot-BWHf9w1U.js";
 import { n as useCatalog, t as CatalogLayout } from "./Catalog-DLf46ZEi.js";
 import { t as YandexMap } from "./YandexMap-Bx-QJpGw.js";
@@ -111,4 +111,4 @@ function ClinicsIndex({ clinics, recommended_clinics, banner_catalog, map_clinic
 //#endregion
 export { ClinicsIndex as default };
 
-//# sourceMappingURL=Index-Cjx2zj6Z.js.map
+//# sourceMappingURL=Index-BsGLN2GO.js.map

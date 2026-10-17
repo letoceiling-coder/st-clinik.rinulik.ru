@@ -3,7 +3,7 @@ import { c as plural, l as priceFrom, n as cx, s as phoneHref, u as reviewsWord 
 import { i as LinkButton, n as Button, t as AnchorButton } from "./Button-D8Mzgn6o.js";
 import { a as Alert, b as TextArea, c as Breadcrumbs, d as Pagination, g as Check, i as useLead, l as EmptyState, s as Badge, x as TextField, y as SelectField } from "../app.js";
 import { n as FavoriteButton, t as CompareButton } from "./CollectionButtons-BKdZIxph.js";
-import { r as ClinicFeatures, t as ClinicCard } from "./ClinicCard-CV_fiS2g.js";
+import { r as ClinicFeatures, t as ClinicCard } from "./ClinicCard-_h4B3ECh.js";
 import { t as DoctorCard } from "./DoctorCard-DD2yuAuy.js";
 import { t as YandexMap } from "./YandexMap-Bx-QJpGw.js";
 import { a as documentTitle, i as ScheduleView, n as PriceTable, r as RatingSummary, t as Gallery } from "./ClinicParts-DWb9NADn.js";
@@ -841,4 +841,4 @@ function ClinicShow({ clinic, reviews, review_filters, distribution, similar, co
 //#endregion
 export { ClinicShow as default };
 
-//# sourceMappingURL=Show-B6kT-HEJ.js.map
+//# sourceMappingURL=Show-CPl933Le.js.map

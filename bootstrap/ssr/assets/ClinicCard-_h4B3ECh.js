@@ -117,15 +117,17 @@ function DoctorAvatarStack({ doctors, total }) {
 		}) : null]
 	});
 }
-function ClinicCardPromoStrip({ offers }) {
+function ClinicCardPromoStrip({ offers, layout }) {
 	if (!offers?.length) return null;
+	const visible = offers.slice(0, 3);
 	return /* @__PURE__ */ jsx("div", {
-		className: "clinic-card__promos",
+		className: cx("clinic-card__promos", layout === "tile" && "clinic-card__promos--tile"),
 		"aria-label": "Акции и бонусы",
+		"data-count": visible.length,
 		children: /* @__PURE__ */ jsx("ul", {
 			className: "clinic-card__promos-list",
-			children: offers.map((offer) => /* @__PURE__ */ jsxs("li", { children: [/* @__PURE__ */ jsx(Icon, {
-				name: "percent",
+			children: visible.map((offer) => /* @__PURE__ */ jsxs("li", { children: [/* @__PURE__ */ jsx(Icon, {
+				name: "sparkle",
 				size: 14,
 				"aria-hidden": true
 			}), /* @__PURE__ */ jsx("span", { children: offer.title })] }, offer.id))
@@ -220,7 +222,10 @@ function ClinicCard({ clinic, layout = "row", priority, interactive = true }) {
 							children: clinic.children_age_from ? `Дети с ${clinic.children_age_from}` : "Дети"
 						}) : null]
 					})]
-				}), /* @__PURE__ */ jsx(ClinicCardPromoStrip, { offers: clinic.promo_offers ?? [] })]
+				}), !isTile ? /* @__PURE__ */ jsx(ClinicCardPromoStrip, {
+					offers: clinic.promo_offers ?? [],
+					layout
+				}) : null]
 			}),
 			/* @__PURE__ */ jsx(FavoriteButton, {
 				type: "clinic",
@@ -230,6 +235,10 @@ function ClinicCard({ clinic, layout = "row", priority, interactive = true }) {
 			/* @__PURE__ */ jsxs("div", {
 				className: "clinic-card__body",
 				children: [
+					isTile ? /* @__PURE__ */ jsx(ClinicCardPromoStrip, {
+						offers: clinic.promo_offers ?? [],
+						layout
+					}) : null,
 					/* @__PURE__ */ jsxs("div", {
 						className: "clinic-card__summary",
 						children: [
@@ -425,4 +434,4 @@ function ClinicCardSkeleton() {
 //#endregion
 export { ClinicCardSkeleton as n, ClinicFeatures as r, ClinicCard as t };
 
-//# sourceMappingURL=ClinicCard-CV_fiS2g.js.map
+//# sourceMappingURL=ClinicCard-_h4B3ECh.js.map

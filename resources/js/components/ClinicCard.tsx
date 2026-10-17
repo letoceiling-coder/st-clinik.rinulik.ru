@@ -143,17 +143,23 @@ function DoctorAvatarStack({
     );
 }
 
-function ClinicCardPromoStrip({ offers }: { offers: ClinicCardData['promo_offers'] }) {
+function ClinicCardPromoStrip({ offers, layout }: { offers: ClinicCardData['promo_offers']; layout: 'row' | 'tile' }) {
     if (!offers?.length) {
         return null;
     }
 
+    const visible = offers.slice(0, 3);
+
     return (
-        <div className="clinic-card__promos" aria-label="Акции и бонусы">
+        <div
+            className={cx('clinic-card__promos', layout === 'tile' && 'clinic-card__promos--tile')}
+            aria-label="Акции и бонусы"
+            data-count={visible.length}
+        >
             <ul className="clinic-card__promos-list">
-                {offers.map((offer) => (
+                {visible.map((offer) => (
                     <li key={offer.id}>
-                        <Icon name="percent" size={14} aria-hidden />
+                        <Icon name="sparkle" size={14} aria-hidden />
                         <span>{offer.title}</span>
                     </li>
                 ))}
@@ -225,11 +231,12 @@ export default function ClinicCard({
                         {clinic.accepts_children ? <Badge tone="primary">{clinic.children_age_from ? `Дети с ${clinic.children_age_from}` : 'Дети'}</Badge> : null}
                     </div>
                 </Link>
-                <ClinicCardPromoStrip offers={clinic.promo_offers ?? []} />
+                {!isTile ? <ClinicCardPromoStrip offers={clinic.promo_offers ?? []} layout={layout} /> : null}
             </div>
             <FavoriteButton type="clinic" id={clinic.id} name={clinic.name} />
 
             <div className="clinic-card__body">
+                {isTile ? <ClinicCardPromoStrip offers={clinic.promo_offers ?? []} layout={layout} /> : null}
                 <div className="clinic-card__summary">
                     <div className="clinic-card__head">
                         <h3 id={`clinic-${clinic.id}`} className="clinic-card__title">

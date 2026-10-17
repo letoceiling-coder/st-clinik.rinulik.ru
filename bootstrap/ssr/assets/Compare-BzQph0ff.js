@@ -1,4 +1,4 @@
-import { t as CompareView } from "./CollectionViews-wBC0JPA5.js";
+import { t as CompareView } from "./CollectionViews-DgxFEOGJ.js";
 import { r as PageHead } from "./Dash-BbiOlhfn.js";
 import { jsx, jsxs } from "react/jsx-runtime";
 //#region resources/js/pages/Account/Compare.tsx
@@ -14,4 +14,4 @@ function Compare() {
 //#endregion
 export { Compare as default };
 
-//# sourceMappingURL=Compare-DwHCDW3G.js.map
+//# sourceMappingURL=Compare-BzQph0ff.js.map
