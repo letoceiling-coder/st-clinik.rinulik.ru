@@ -823,10 +823,13 @@
     gap: var(--space-3);
 }
 .clinic-card--tile .clinic-card__buttons {
+    display: flex;
     width: 100%;
     margin-left: 0;
     justify-content: flex-start;
     flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
 }
 .clinic-card--tile .clinic-card__buttons .compare-btn,
 .clinic-card--tile .clinic-card__buttons .btn--icon { flex: none; }
@@ -1129,13 +1132,31 @@
     .clinic-card:not(.clinic-card--tile) { grid-template-columns: 1fr; }
     .clinic-card__head { padding-right: 40px; }
     .clinic-card__buttons {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto auto;
-        align-items: stretch;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 8px;
     }
-    .clinic-card__buttons .clinic-card__details { grid-column: 1 / -1; }
-    .clinic-card__buttons .compare-btn { justify-self: start; }
-    .clinic-card__buttons .btn--primary { grid-column: 1 / -1; }
+    .clinic-card__buttons .clinic-card__details {
+        flex: 1 1 100%;
+        width: 100%;
+    }
+    .clinic-card__buttons .compare-btn,
+    .clinic-card__buttons .btn--icon {
+        flex: none;
+    }
+    .clinic-card__buttons .btn--primary {
+        flex: 1 1 100%;
+        width: 100%;
+    }
+    .clinic-card--tile .clinic-card__buttons {
+        flex-wrap: wrap;
+    }
+    .clinic-card--tile .clinic-card__buttons .btn--primary {
+        flex: 1 1 100%;
+        width: 100%;
+    }
 }
 @media (max-width: 480px) {
     .clinic-card:not(.clinic-card--tile) .clinic-card__media {
@@ -1163,9 +1184,6 @@
     .clinic-card__prices-from { margin-left: auto; }
     .clinic-card__prices-more { flex-wrap: wrap; }
     .clinic-card__prices-all { margin-left: auto; }
-    .clinic-card__buttons { grid-template-columns: 1fr 1fr; }
-    .clinic-card__buttons .clinic-card__details { grid-column: 1 / -1; }
-    .clinic-card__buttons .btn--primary { grid-column: 1 / -1; }
 }
 @media (max-width: 640px) {
     .clinic-card--tile.clinic-card--prices-open {
