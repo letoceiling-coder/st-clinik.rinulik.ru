@@ -208,6 +208,10 @@
     gap: clamp(24px, 4vw, 48px);
     align-items: center;
 }
+.hero__copy {
+    min-width: 0;
+    max-width: 100%;
+}
 .eyebrow { color: var(--color-muted); font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; font-size: var(--fs-xs); margin-bottom: 12px; }
 .hero h1 { font-size: var(--fs-hero); max-width: 14ch; }
 .hero__lead { margin: 16px 0 24px; color: var(--color-muted); font-size: clamp(1rem, 0.95rem + 0.4vw, 1.125rem); max-width: 36rem; line-height: 1.55; }
@@ -222,9 +226,21 @@
     border: 1px solid var(--color-border);
     border-radius: var(--radius-20);
     box-shadow: var(--shadow-soft);
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+.hero__stats > div {
+    min-width: 0;
+    text-align: center;
 }
 .hero__stats--inline { max-width: 28rem; }
-.hero__stats dt { color: var(--color-muted); font-size: var(--fs-xs); font-weight: 600; }
+.hero__stats dt {
+    color: var(--color-muted);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
 .hero__stats dd { font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem); font-weight: 800; line-height: 1.1; margin-top: 4px; }
 .hero__visual {
     position: relative;
@@ -309,6 +325,10 @@
     border: 1px solid var(--color-border);
     box-shadow: var(--shadow-soft);
     margin: 8px 0 20px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 .hero-finder.card {
     padding: 18px;
@@ -330,9 +350,30 @@
     cursor: pointer;
 }
 .hero-finder__search:hover { color: var(--color-text); }
-.hero-finder__chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.hero-finder__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+}
+.hero-finder__chips .chip {
+    flex: 1 1 calc(50% - 4px);
+    max-width: calc(50% - 4px);
+    min-width: 0;
+    justify-content: center;
+}
+.hero-finder__chips .chip:last-child:nth-child(odd) {
+    flex-basis: 100%;
+    max-width: 100%;
+}
 .hero-finder__cta { border-radius: var(--radius-pill) !important; font-weight: 800; }
-.hero-finder__meta { margin: 0; font-size: var(--fs-sm); color: var(--color-muted); text-align: center; }
+.hero-finder__meta {
+    margin: 0;
+    font-size: var(--fs-sm);
+    color: var(--color-muted);
+    text-align: center;
+    overflow-wrap: anywhere;
+}
 
 .service-picker { display: grid; gap: 16px; min-height: 0; }
 .service-picker__search {
@@ -2466,6 +2507,20 @@
 
 /* Публичный сайт и кабинеты: от 320px (374px breakpoint) */
 @media (max-width: 374px) {
+    .hero {
+        overflow-x: clip;
+    }
+    .hero__grid,
+    .grid,
+    .grid--cards,
+    .grid--cards > * {
+        min-width: 0;
+        max-width: 100%;
+    }
+    .eyebrow {
+        letter-spacing: 0.06em;
+        overflow-wrap: anywhere;
+    }
     .header__row {
         gap: 6px;
     }
@@ -2501,6 +2556,15 @@
     .tabbar__item {
         font-size: 10px;
         gap: 3px;
+        min-width: 0;
+        max-width: 100%;
+        padding-inline: 2px;
+    }
+    .tabbar__item > span:last-child {
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
     .hero {
         padding-top: 24px;
@@ -2537,15 +2601,30 @@
     }
     .hero-finder__chips .chip {
         min-height: 36px;
-        padding: 6px 12px;
+        padding: 6px 10px;
         font-size: var(--fs-xs);
         white-space: normal;
         line-height: 1.25;
+        text-align: center;
+        flex: 1 1 calc(50% - 3px);
+        max-width: calc(50% - 3px);
+    }
+    .hero-finder__chips .chip:last-child:nth-child(odd) {
+        flex-basis: 100%;
+        max-width: 100%;
+    }
+    .hero-finder .btn--lg {
+        min-height: 48px;
+        padding-inline: 12px;
+        font-size: 0.9375rem;
+        line-height: 1.25;
+        white-space: normal;
         text-align: center;
     }
     .hero-finder__meta {
         font-size: 0.8125rem;
         line-height: 1.45;
+        hyphens: auto;
     }
     .hero__stats {
         padding: 10px 8px;
@@ -2557,6 +2636,10 @@
     }
     .hero__stats dd {
         font-size: 1.125rem;
+        overflow-wrap: anywhere;
+    }
+    .hero__stats--inline {
+        max-width: 100%;
     }
     .section {
         padding-block: var(--space-6);
@@ -2620,6 +2703,15 @@
     }
     .clinic-card__promos-list li {
         font-size: 0.6875rem;
+    }
+    .clinic-card__promos-list li span {
+        overflow-wrap: anywhere;
+    }
+    .clinic-card__title {
+        overflow-wrap: anywhere;
+    }
+    .clinic-card--tile {
+        max-width: 100%;
     }
     .clinic-card--tile .clinic-card__head {
         gap: var(--space-2);
