@@ -2,7 +2,7 @@ import { t as Icon } from "./Icon-DQahs-u2.js";
 import { d as yearsWord, i as doctorsWord, l as priceFrom, n as cx, o as money, u as reviewsWord } from "./format-BPZIj7DQ.js";
 import { i as LinkButton, n as Button, r as IconButton } from "./Button-D8Mzgn6o.js";
 import { a as Alert, h as Tabs, l as EmptyState, n as useCity, p as Skeleton, t as useCollections, u as ErrorState } from "../app.js";
-import { n as ClinicCardSkeleton, t as ClinicCard } from "./ClinicCard-CCQ9mzrw.js";
+import { n as ClinicCardSkeleton, t as ClinicCard } from "./ClinicCard-DGkrZVzJ.js";
 import { t as DoctorCard } from "./DoctorCard-DSIUNBsF.js";
 import { Link } from "@inertiajs/react";
 import { useEffect, useState } from "react";
@@ -392,4 +392,4 @@ function CompareView() {
 //#endregion
 export { FavoritesView as n, CompareView as t };
 
-//# sourceMappingURL=CollectionViews-DtfdcG9R.js.map
+//# sourceMappingURL=CollectionViews-Cu3RL_5-.js.map

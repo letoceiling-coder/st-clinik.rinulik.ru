@@ -193,6 +193,16 @@ function DoctorAvatarStack({ doctors, total }) {
 		}) : null]
 	});
 }
+function promoOfferIcon(offer) {
+	if (offer.id === "free-consult" || offer.slug?.includes("konsultaciya")) return "user";
+	if (offer.id === "cashback" || offer.slug?.includes("keshbek")) return "card";
+	if (offer.id === "treatment-discount" || offer.slug?.includes("skidka")) return "percent";
+	const title = offer.title.toLowerCase();
+	if (title.includes("консульт")) return "user";
+	if (title.includes("кешб") || title.includes("cashback")) return "card";
+	if (title.includes("скид")) return "percent";
+	return "sparkle";
+}
 function ClinicCardPromoStrip({ offers, layout }) {
 	if (!offers?.length) return null;
 	const visible = offers.slice(0, 3);
@@ -203,7 +213,7 @@ function ClinicCardPromoStrip({ offers, layout }) {
 		children: /* @__PURE__ */ jsx("ul", {
 			className: "clinic-card__promos-list",
 			children: visible.map((offer) => /* @__PURE__ */ jsxs("li", { children: [/* @__PURE__ */ jsx(Icon, {
-				name: "sparkle",
+				name: promoOfferIcon(offer),
 				size: 14,
 				"aria-hidden": true
 			}), /* @__PURE__ */ jsx("span", { children: offer.title })] }, offer.id))
@@ -500,4 +510,4 @@ function ClinicCardSkeleton() {
 //#endregion
 export { ClinicCardSkeleton as n, ClinicFeatures as r, ClinicCard as t };
 
-//# sourceMappingURL=ClinicCard-CCQ9mzrw.js.map
+//# sourceMappingURL=ClinicCard-DGkrZVzJ.js.map

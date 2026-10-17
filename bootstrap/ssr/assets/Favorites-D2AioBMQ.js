@@ -1,4 +1,4 @@
-import { n as FavoritesView } from "./CollectionViews-DtfdcG9R.js";
+import { n as FavoritesView } from "./CollectionViews-Cu3RL_5-.js";
 import { r as PageHead } from "./Dash-BbiOlhfn.js";
 import { jsx, jsxs } from "react/jsx-runtime";
 //#region resources/js/pages/Account/Favorites.tsx
@@ -14,4 +14,4 @@ function Favorites() {
 //#endregion
 export { Favorites as default };
 
-//# sourceMappingURL=Favorites-h3rcEWfc.js.map
+//# sourceMappingURL=Favorites-D2AioBMQ.js.map

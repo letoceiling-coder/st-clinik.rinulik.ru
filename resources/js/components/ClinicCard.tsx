@@ -3,7 +3,7 @@ import { useEffect, useId, useState, type MouseEvent } from 'react';
 import { cx, doctorsWord, phoneHref, plural, priceFrom, reviewsWord } from '@/lib/format';
 import type { ClinicCardData } from '@/lib/types';
 import { CompareButton, FavoriteButton } from './CollectionButtons';
-import Icon from './Icon';
+import Icon, { type IconName } from './Icon';
 import { useLead } from './LeadContext';
 import ClinicCardGallery from './ClinicCardGallery';
 import { DoctorArt } from './PhotoArt';
@@ -144,6 +144,31 @@ function DoctorAvatarStack({
     );
 }
 
+function promoOfferIcon(offer: ClinicCardData['promo_offers'][number]): IconName {
+    if (offer.id === 'free-consult' || offer.slug?.includes('konsultaciya')) {
+        return 'user';
+    }
+    if (offer.id === 'cashback' || offer.slug?.includes('keshbek')) {
+        return 'card';
+    }
+    if (offer.id === 'treatment-discount' || offer.slug?.includes('skidka')) {
+        return 'percent';
+    }
+
+    const title = offer.title.toLowerCase();
+    if (title.includes('консульт')) {
+        return 'user';
+    }
+    if (title.includes('кешб') || title.includes('cashback')) {
+        return 'card';
+    }
+    if (title.includes('скид')) {
+        return 'percent';
+    }
+
+    return 'sparkle';
+}
+
 function ClinicCardPromoStrip({ offers, layout }: { offers: ClinicCardData['promo_offers']; layout: 'row' | 'tile' }) {
     if (!offers?.length) {
         return null;
@@ -160,7 +185,7 @@ function ClinicCardPromoStrip({ offers, layout }: { offers: ClinicCardData['prom
             <ul className="clinic-card__promos-list">
                 {visible.map((offer) => (
                     <li key={offer.id}>
-                        <Icon name="sparkle" size={14} aria-hidden />
+                        <Icon name={promoOfferIcon(offer)} size={14} aria-hidden />
                         <span>{offer.title}</span>
                     </li>
                 ))}

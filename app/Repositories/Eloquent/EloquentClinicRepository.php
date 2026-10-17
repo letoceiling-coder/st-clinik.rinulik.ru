@@ -135,7 +135,7 @@ class EloquentClinicRepository implements ClinicRepository
             'district:id,name',
             'specialties:id,name,slug',
             'doctors' => fn ($q) => $q->published()->orderByDesc('rating')->orderByDesc('experience_years'),
-            'photos' => fn ($q) => $q->where('status', 'approved'),
+            'photos' => fn ($q) => $q->where('status', 'approved')->orderBy('sort'),
             'documents' => fn ($q) => $q->where('type', 'license')->where('status', 'approved'),
             'clinicServices' => fn ($q) => $q->with('service:id,name,slug,is_popular')
                 ->where('price_from', '>', 0)->orderBy('price_from'),
@@ -166,7 +166,7 @@ class EloquentClinicRepository implements ClinicRepository
             'organization:id,name,legal_name',
             'city', 'district', 'specialties',
             'doctors' => fn ($q) => $q->published()->with('specialties:id,name,slug')->orderByDesc('rating')->orderByDesc('experience_years'),
-            'photos' => fn ($q) => $q->where('status', 'approved'),
+            'photos' => fn ($q) => $q->where('status', 'approved')->orderBy('sort'),
             'documents' => fn ($q) => $q->where('status', 'approved'),
             'clinicServices' => fn ($q) => $q->with('service.specialty:id,name,slug')->orderBy('price_from'),
             'posts' => fn ($q) => $q->published()->active()->orderByDesc('is_pinned')->orderBy('sort')->orderByDesc('id'),

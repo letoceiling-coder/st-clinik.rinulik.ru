@@ -4,7 +4,7 @@ import { n as Button } from "./Button-D8Mzgn6o.js";
 import { a as Alert, c as Breadcrumbs, d as Pagination, i as useLead, l as EmptyState, s as Badge } from "../app.js";
 import { n as FavoriteButton, t as CompareButton } from "./CollectionButtons-BKdZIxph.js";
 import { n as DoctorArt } from "./PhotoArt-PCnImkhZ.js";
-import { t as ClinicCard } from "./ClinicCard-CCQ9mzrw.js";
+import { t as ClinicCard } from "./ClinicCard-DGkrZVzJ.js";
 import { t as DoctorCard } from "./DoctorCard-DSIUNBsF.js";
 import { r as RatingSummary } from "./ClinicParts-rApFeqGH.js";
 import { t as ReviewCard } from "./ReviewCard-DMd-uulm.js";
@@ -278,4 +278,4 @@ function DoctorShow({ doctor, clinic, prices, reviews, distribution, colleagues,
 //#endregion
 export { DoctorShow as default };
 
-//# sourceMappingURL=Show-DUbAYcSN.js.map
+//# sourceMappingURL=Show-pprctN14.js.map
