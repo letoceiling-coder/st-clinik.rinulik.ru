@@ -117,6 +117,21 @@ function DoctorAvatarStack({ doctors, total }) {
 		}) : null]
 	});
 }
+function ClinicCardPromoStrip({ offers }) {
+	if (!offers?.length) return null;
+	return /* @__PURE__ */ jsx("div", {
+		className: "clinic-card__promos",
+		"aria-label": "Акции и бонусы",
+		children: /* @__PURE__ */ jsx("ul", {
+			className: "clinic-card__promos-list",
+			children: offers.map((offer) => /* @__PURE__ */ jsxs("li", { children: [/* @__PURE__ */ jsx(Icon, {
+				name: "percent",
+				size: 14,
+				"aria-hidden": true
+			}), /* @__PURE__ */ jsx("span", { children: offer.title })] }, offer.id))
+		})
+	});
+}
 function ClinicFeatures({ clinic, limit = 5 }) {
 	const items = [];
 	if (clinic.same_day) items.push({
@@ -178,31 +193,34 @@ function ClinicCard({ clinic, layout = "row", priority, interactive = true }) {
 				"aria-label": `Открыть «${clinic.name}»`,
 				tabIndex: -1
 			}) : null,
-			/* @__PURE__ */ jsxs(Link, {
-				href,
-				className: "clinic-card__media",
-				tabIndex: -1,
-				"aria-hidden": "true",
-				children: [photo?.url ? /* @__PURE__ */ jsx(DemoImg, {
-					src: photo.url,
-					aspect: "4/3",
-					loading: priority ? "eager" : "lazy",
-					className: "clinic-card__photo"
-				}) : /* @__PURE__ */ jsx(PhotoArt, {
-					seed: photo?.art_seed ?? clinic.art_seed,
-					kind: photo?.kind ?? "interior",
-					priority,
-					className: "clinic-card__photo"
-				}), /* @__PURE__ */ jsxs("div", {
-					className: "clinic-card__badges",
-					children: [clinic.is_24_7 ? /* @__PURE__ */ jsx(Badge, {
-						tone: "dark",
-						children: "24/7"
-					}) : null, clinic.accepts_children ? /* @__PURE__ */ jsx(Badge, {
-						tone: "primary",
-						children: clinic.children_age_from ? `Дети с ${clinic.children_age_from}` : "Дети"
-					}) : null]
-				})]
+			/* @__PURE__ */ jsxs("div", {
+				className: "clinic-card__aside",
+				children: [/* @__PURE__ */ jsxs(Link, {
+					href,
+					className: "clinic-card__media",
+					tabIndex: -1,
+					"aria-hidden": "true",
+					children: [photo?.url ? /* @__PURE__ */ jsx(DemoImg, {
+						src: photo.url,
+						aspect: "4/3",
+						loading: priority ? "eager" : "lazy",
+						className: "clinic-card__photo"
+					}) : /* @__PURE__ */ jsx(PhotoArt, {
+						seed: photo?.art_seed ?? clinic.art_seed,
+						kind: photo?.kind ?? "interior",
+						priority,
+						className: "clinic-card__photo"
+					}), /* @__PURE__ */ jsxs("div", {
+						className: "clinic-card__badges",
+						children: [clinic.is_24_7 ? /* @__PURE__ */ jsx(Badge, {
+							tone: "dark",
+							children: "24/7"
+						}) : null, clinic.accepts_children ? /* @__PURE__ */ jsx(Badge, {
+							tone: "primary",
+							children: clinic.children_age_from ? `Дети с ${clinic.children_age_from}` : "Дети"
+						}) : null]
+					})]
+				}), /* @__PURE__ */ jsx(ClinicCardPromoStrip, { offers: clinic.promo_offers ?? [] })]
 			}),
 			/* @__PURE__ */ jsx(FavoriteButton, {
 				type: "clinic",
@@ -407,4 +425,4 @@ function ClinicCardSkeleton() {
 //#endregion
 export { ClinicCardSkeleton as n, ClinicFeatures as r, ClinicCard as t };
 
-//# sourceMappingURL=ClinicCard-ChPAtBVA.js.map
+//# sourceMappingURL=ClinicCard-CV_fiS2g.js.map

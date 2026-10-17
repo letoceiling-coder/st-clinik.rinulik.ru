@@ -143,6 +143,25 @@ function DoctorAvatarStack({
     );
 }
 
+function ClinicCardPromoStrip({ offers }: { offers: ClinicCardData['promo_offers'] }) {
+    if (!offers?.length) {
+        return null;
+    }
+
+    return (
+        <div className="clinic-card__promos" aria-label="Акции и бонусы">
+            <ul className="clinic-card__promos-list">
+                {offers.map((offer) => (
+                    <li key={offer.id}>
+                        <Icon name="percent" size={14} aria-hidden />
+                        <span>{offer.title}</span>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+}
+
 export function ClinicFeatures({ clinic, limit = 5 }: { clinic: ClinicCardData; limit?: number }) {
     const items: { icon: Parameters<typeof Icon>[0]['name']; label: string }[] = [];
     if (clinic.same_day) items.push({ icon: 'flash', label: 'Запись на сегодня' });
@@ -194,17 +213,20 @@ export default function ClinicCard({
             aria-labelledby={`clinic-${clinic.id}`}
         >
             {interactive ? <Link href={href} className="clinic-card__hit" aria-label={`Открыть «${clinic.name}»`} tabIndex={-1} /> : null}
-            <Link href={href} className="clinic-card__media" tabIndex={-1} aria-hidden="true">
-                {photo?.url ? (
-                    <DemoImg src={photo.url} aspect="4/3" loading={priority ? 'eager' : 'lazy'} className="clinic-card__photo" />
-                ) : (
-                    <PhotoArt seed={photo?.art_seed ?? clinic.art_seed} kind={photo?.kind ?? 'interior'} priority={priority} className="clinic-card__photo" />
-                )}
-                <div className="clinic-card__badges">
-                    {clinic.is_24_7 ? <Badge tone="dark">24/7</Badge> : null}
-                    {clinic.accepts_children ? <Badge tone="primary">{clinic.children_age_from ? `Дети с ${clinic.children_age_from}` : 'Дети'}</Badge> : null}
-                </div>
-            </Link>
+            <div className="clinic-card__aside">
+                <Link href={href} className="clinic-card__media" tabIndex={-1} aria-hidden="true">
+                    {photo?.url ? (
+                        <DemoImg src={photo.url} aspect="4/3" loading={priority ? 'eager' : 'lazy'} className="clinic-card__photo" />
+                    ) : (
+                        <PhotoArt seed={photo?.art_seed ?? clinic.art_seed} kind={photo?.kind ?? 'interior'} priority={priority} className="clinic-card__photo" />
+                    )}
+                    <div className="clinic-card__badges">
+                        {clinic.is_24_7 ? <Badge tone="dark">24/7</Badge> : null}
+                        {clinic.accepts_children ? <Badge tone="primary">{clinic.children_age_from ? `Дети с ${clinic.children_age_from}` : 'Дети'}</Badge> : null}
+                    </div>
+                </Link>
+                <ClinicCardPromoStrip offers={clinic.promo_offers ?? []} />
+            </div>
             <FavoriteButton type="clinic" id={clinic.id} name={clinic.name} />
 
             <div className="clinic-card__body">

@@ -105,6 +105,12 @@ class Clinic extends Model
         return $this->hasMany(ClinicPost::class)->orderByDesc('is_pinned')->orderBy('sort')->orderByDesc('id');
     }
 
+    /** Активные акции для карточки в каталоге (ограничение — в eager load). */
+    public function cardPromos(): HasMany
+    {
+        return $this->hasMany(ClinicPost::class);
+    }
+
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);

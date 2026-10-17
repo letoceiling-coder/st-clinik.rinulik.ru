@@ -3,7 +3,7 @@ import { i as doctorsWord, l as priceFrom, n as cx, o as money, t as clinicsWord
 import { i as LinkButton, n as Button } from "./Button-D8Mzgn6o.js";
 import { f as SectionHead, g as Check, n as useCity, w as Modal } from "../app.js";
 import { t as HERO_PHOTOS } from "./demo-images-CwyQSe03.js";
-import { t as ClinicCard } from "./ClinicCard-ChPAtBVA.js";
+import { t as ClinicCard } from "./ClinicCard-CV_fiS2g.js";
 import { t as DoctorCard } from "./DoctorCard-DD2yuAuy.js";
 import { t as AdSlot } from "./AdSlot-BWHf9w1U.js";
 import { t as ReviewCard } from "./ReviewCard-DMd-uulm.js";
@@ -565,4 +565,4 @@ function Home({ stats, concerns, popular_services, catalog_services, hero_chips,
 //#endregion
 export { Home as default };
 
-//# sourceMappingURL=Home-B3NX2SsX.js.map
+//# sourceMappingURL=Home-tmpR51nt.js.map

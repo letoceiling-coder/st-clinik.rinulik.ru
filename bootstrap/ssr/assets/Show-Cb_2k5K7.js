@@ -2,7 +2,7 @@ import { t as Icon } from "./Icon-DQahs-u2.js";
 import { l as priceFrom, t as clinicsWord } from "./format-BPZIj7DQ.js";
 import { i as LinkButton } from "./Button-D8Mzgn6o.js";
 import { a as Alert, c as Breadcrumbs, f as SectionHead, l as EmptyState, n as useCity } from "../app.js";
-import { t as ClinicCard } from "./ClinicCard-ChPAtBVA.js";
+import { t as ClinicCard } from "./ClinicCard-CV_fiS2g.js";
 import { t as DoctorCard } from "./DoctorCard-DD2yuAuy.js";
 import { t as ConcernChips } from "./Tiles-_iQru-fi.js";
 import { Link, usePage } from "@inertiajs/react";
@@ -162,4 +162,4 @@ function DirectionShow({ specialty, services, clinics, clinics_total, doctors, c
 //#endregion
 export { DirectionShow as default };
 
-//# sourceMappingURL=Show-CN440mKe.js.map
+//# sourceMappingURL=Show-Cb_2k5K7.js.map

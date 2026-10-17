@@ -6,6 +6,7 @@ use App\Models\City;
 use App\Models\Clinic;
 use App\Models\ClinicDocument;
 use App\Models\ClinicPhoto;
+use App\Models\ClinicPost;
 use App\Models\Concern;
 use App\Models\Doctor;
 use App\Models\HistoryEntry;
@@ -273,6 +274,7 @@ class DemoSeeder extends Seeder
         $this->makePhotos($clinic);
         $this->makeDocuments($clinic);
         $this->makeReviews($clinic, $tier);
+        $this->makePromos($clinic);
 
         return $clinic;
     }
@@ -311,6 +313,37 @@ class DemoSeeder extends Seeder
         $schedule['sun'] = $tier === 'premium' || $this->chance(0.3) ? ['open' => '10:00', 'close' => '16:00'] : null;
 
         return $schedule;
+    }
+
+    private function makePromos(Clinic $clinic): void
+    {
+        if (! $this->chance(0.42)) {
+            return;
+        }
+
+        $templates = [
+            ['title' => 'Бесплатная консультация', 'slug' => 'besplatnaya-konsultaciya'],
+            ['title' => 'Кешбэк при первой оплате', 'slug' => 'keshbek-pervaya-oplata'],
+            ['title' => 'Скидка на лечение', 'slug' => 'skidka-na-lechenie'],
+            ['title' => 'Скидка 15% на гигиену', 'slug' => 'skidka-15-gigiena'],
+            ['title' => 'Подарок при первом визите', 'slug' => 'podarok-pervyj-vizit'],
+        ];
+
+        foreach ($this->sample($templates, mt_rand(1, 3)) as $i => $template) {
+            ClinicPost::create([
+                'clinic_id' => $clinic->id,
+                'type' => 'promo',
+                'title' => $template['title'],
+                'slug' => $template['slug'].'-'.$clinic->id,
+                'excerpt' => 'Демо-акция для карточки в каталоге.',
+                'body' => 'Условия акции уточняйте администратора клиники. Демонстрационная запись для прототипа.',
+                'starts_at' => now()->subDays(3),
+                'ends_at' => now()->addMonths(2),
+                'is_pinned' => $i === 0,
+                'status' => 'published',
+                'sort' => ($i + 1) * 10,
+            ]);
+        }
     }
 
     // ------------------------------------------------------------------ doctors

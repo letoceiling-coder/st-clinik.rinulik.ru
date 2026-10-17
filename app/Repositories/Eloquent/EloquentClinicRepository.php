@@ -139,6 +139,8 @@ class EloquentClinicRepository implements ClinicRepository
             'documents' => fn ($q) => $q->where('type', 'license')->where('status', 'approved'),
             'clinicServices' => fn ($q) => $q->with('service:id,name,slug,is_popular')
                 ->where('price_from', '>', 0)->orderBy('price_from'),
+            'cardPromos' => fn ($q) => $q->where('type', 'promo')->published()->active()
+                ->orderByDesc('is_pinned')->orderBy('sort')->orderByDesc('id')->limit(3),
         ]);
     }
 

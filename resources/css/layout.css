@@ -591,6 +591,8 @@
     border-radius: inherit;
 }
 .clinic-card--interactive .fav-btn,
+.clinic-card--interactive .clinic-card__aside,
+.clinic-card--interactive .clinic-card__promos,
 .clinic-card--interactive .clinic-card__media,
 .clinic-card--interactive .clinic-card__title a,
 .clinic-card--interactive .rating__count,
@@ -629,11 +631,53 @@
     --clinic-photo-h: 120px;
     --clinic-prices-body-h: 15rem;
 }
+.clinic-card__aside {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    align-self: start;
+}
+.clinic-card--tile .clinic-card__aside {
+    flex: none;
+}
 .clinic-card--tile .clinic-card__media {
     flex: none;
     overflow: hidden;
     height: var(--clinic-photo-h);
     transition: height var(--clinic-dur) var(--clinic-ease);
+}
+.clinic-card__promos {
+    flex: none;
+    padding: var(--space-2) var(--space-3);
+    background: linear-gradient(180deg, rgba(255, 237, 213, 0.95) 0%, rgba(255, 247, 237, 0.98) 100%);
+    border-bottom: 1px solid rgba(251, 146, 60, 0.22);
+}
+.clinic-card__promos-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 4px;
+}
+.clinic-card__promos-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    line-height: 1.35;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: #9a3412;
+}
+.clinic-card__promos-list li svg {
+    flex: none;
+    margin-top: 1px;
+    color: #ea580c;
+}
+.clinic-card:not(.clinic-card--tile) .clinic-card__promos {
+    border-bottom: none;
+    border-top: 1px solid rgba(251, 146, 60, 0.18);
 }
 .clinic-card--tile .clinic-card__body {
     flex: 1;

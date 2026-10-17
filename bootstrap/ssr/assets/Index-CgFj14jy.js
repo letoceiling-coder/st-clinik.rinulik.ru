@@ -1,6 +1,6 @@
 import { t as Icon } from "./Icon-DQahs-u2.js";
 import { f as SectionHead, l as EmptyState, n as useCity, r as SearchBox } from "../app.js";
-import { t as ClinicCard } from "./ClinicCard-ChPAtBVA.js";
+import { t as ClinicCard } from "./ClinicCard-CV_fiS2g.js";
 import { t as DoctorCard } from "./DoctorCard-DD2yuAuy.js";
 import { t as ConcernChips } from "./Tiles-_iQru-fi.js";
 import { Link } from "@inertiajs/react";
@@ -107,4 +107,4 @@ function SearchIndex({ q, results, concerns }) {
 //#endregion
 export { SearchIndex as default };
 
-//# sourceMappingURL=Index-DJE1k3eI.js.map
+//# sourceMappingURL=Index-CgFj14jy.js.map
