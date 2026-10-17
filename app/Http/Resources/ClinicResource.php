@@ -68,7 +68,7 @@ class ClinicResource extends JsonResource
                 'slug' => $d->slug, 'name' => $d->name, 'position' => $d->position, 'art_seed' => $d->art_seed, 'rating' => (float) $d->rating,
                 'photo_url' => $d->photo_path ? Storage::disk('public')->url($d->photo_path) : null,
             ])->values() : [],
-            'photos' => $c->relationLoaded('photos') ? $c->photos->take(3)->map(fn ($p) => [
+            'photos' => $c->relationLoaded('photos') ? $c->photos->take(8)->map(fn ($p) => [
                 'kind' => $p->kind, 'caption' => $p->caption, 'art_seed' => $p->art_seed, 'url' => $p->path ? Storage::disk('public')->url($p->path) : null,
             ])->values() : [],
             'promo_offers' => ClinicCardPromos::forClinic($c),

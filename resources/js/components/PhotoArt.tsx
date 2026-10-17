@@ -13,13 +13,16 @@ export function DemoImg({
     alt?: string;
     className?: string;
     loading?: 'lazy' | 'eager';
-    aspect?: string;
+    aspect?: string | 'unset';
 }) {
     const [ready, setReady] = useState(false);
     const [failed, setFailed] = useState(false);
 
     return (
-        <span className={cx('demo-photo', !ready && 'demo-photo--loading', className)} style={{ aspectRatio: aspect }}>
+        <span
+            className={cx('demo-photo', !ready && 'demo-photo--loading', className)}
+            style={aspect === 'unset' ? undefined : { aspectRatio: aspect }}
+        >
             {!ready && !failed ? <span className="demo-photo__skeleton skeleton" aria-hidden="true" /> : null}
             <img
                 src={src}

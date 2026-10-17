@@ -79,28 +79,31 @@
     "/build/assets/Catalog-DLf46ZEi.js"
   ],
   "resources/js/components/ClinicCard.tsx": [
-    "/build/assets/ClinicCard-_h4B3ECh.js"
+    "/build/assets/ClinicCard-CCQ9mzrw.js"
+  ],
+  "resources/js/components/ClinicCardGallery.tsx": [
+    "/build/assets/ClinicCard-CCQ9mzrw.js"
   ],
   "resources/js/components/ClinicParts.tsx": [
-    "/build/assets/ClinicParts-DWb9NADn.js"
+    "/build/assets/ClinicParts-rApFeqGH.js"
   ],
   "resources/js/components/CollectionButtons.tsx": [
     "/build/assets/CollectionButtons-BKdZIxph.js"
   ],
   "resources/js/components/CollectionViews.tsx": [
-    "/build/assets/CollectionViews-DgxFEOGJ.js"
+    "/build/assets/CollectionViews-DtfdcG9R.js"
   ],
   "resources/js/components/Dash.tsx": [
     "/build/assets/Dash-BbiOlhfn.js"
   ],
   "resources/js/components/DoctorCard.tsx": [
-    "/build/assets/DoctorCard-DD2yuAuy.js"
+    "/build/assets/DoctorCard-DSIUNBsF.js"
   ],
   "resources/js/components/FilterPanel.tsx": [
     "/build/assets/Catalog-DLf46ZEi.js"
   ],
   "resources/js/components/HeroServiceFinder.tsx": [
-    "/build/assets/Home-Bwjsd8Lx.js"
+    "/build/assets/Home-K6Ht-UPh.js"
   ],
   "resources/js/components/Icon.tsx": [
     "/build/assets/Icon-DQahs-u2.js"
@@ -202,13 +205,13 @@
     "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/components/PhotoArt.tsx": [
-    "/build/assets/PhotoArt-BefU5AAo.js"
+    "/build/assets/PhotoArt-PCnImkhZ.js"
   ],
   "resources/js/components/ReviewCard.tsx": [
     "/build/assets/ReviewCard-DMd-uulm.js"
   ],
   "resources/js/components/ReviewForm.tsx": [
-    "/build/assets/Show-CPl933Le.js"
+    "/build/assets/Show-VlxZJAPF.js"
   ],
   "resources/js/components/SearchBox.tsx": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -243,7 +246,7 @@
     "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/components/ServicePickerModal.tsx": [
-    "/build/assets/Home-Bwjsd8Lx.js"
+    "/build/assets/Home-K6Ht-UPh.js"
   ],
   "resources/js/components/Tiles.tsx": [
     "/build/assets/Tiles-_iQru-fi.js"
@@ -744,7 +747,7 @@
     "/build/assets/demo-images-CwyQSe03.js"
   ],
   "resources/js/lib/entities.ts": [
-    "/build/assets/CollectionViews-DgxFEOGJ.js"
+    "/build/assets/CollectionViews-DtfdcG9R.js"
   ],
   "resources/js/lib/format.ts": [
     "/build/assets/format-BPZIj7DQ.js"
@@ -846,10 +849,10 @@
     "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/pages/Account/Compare.tsx": [
-    "/build/assets/Compare-BzQph0ff.js"
+    "/build/assets/Compare-C0yAXuif.js"
   ],
   "resources/js/pages/Account/Favorites.tsx": [
-    "/build/assets/Favorites-BcPXKdTz.js"
+    "/build/assets/Favorites-h3rcEWfc.js"
   ],
   "resources/js/pages/Account/History.tsx": [
     "/build/assets/History-DpVlEqZE.js"
@@ -930,7 +933,7 @@
     "/build/assets/DoctorForm-D0-pALKI.js"
   ],
   "resources/js/pages/Cabinet/Doctors.tsx": [
-    "/build/assets/Doctors-DHbna--_.js"
+    "/build/assets/Doctors-DeL7vnFY.js"
   ],
   "resources/js/pages/Cabinet/Documents.tsx": [
     "/build/assets/Documents-fd4-ss5m.js"
@@ -939,7 +942,7 @@
     "/build/assets/Leads-JuXVYVdy.js"
   ],
   "resources/js/pages/Cabinet/Photos.tsx": [
-    "/build/assets/Photos-DEIS70mi.js"
+    "/build/assets/Photos-3HKh2ti8.js"
   ],
   "resources/js/pages/Cabinet/Posts.tsx": [
     "/build/assets/Posts-CTVSdaPS.js"
@@ -960,37 +963,37 @@
     "/build/assets/Stats-BdfiTKRb.js"
   ],
   "resources/js/pages/Clinics/Index.tsx": [
-    "/build/assets/Index-BsGLN2GO.js"
+    "/build/assets/Index-DsOiMXJa.js"
   ],
   "resources/js/pages/Clinics/Show.tsx": [
-    "/build/assets/Show-CPl933Le.js"
+    "/build/assets/Show-VlxZJAPF.js"
   ],
   "resources/js/pages/Collections/Compare.tsx": [
-    "/build/assets/Compare-DCddonad.js"
+    "/build/assets/Compare-CBF1JUAR.js"
   ],
   "resources/js/pages/Collections/Favorites.tsx": [
-    "/build/assets/Favorites-5MFpmKkQ.js"
+    "/build/assets/Favorites-C3ViQDW-.js"
   ],
   "resources/js/pages/Concerns/Show.tsx": [
-    "/build/assets/Show-BYo9vN9c.js"
+    "/build/assets/Show-DHEr-atg.js"
   ],
   "resources/js/pages/Directions/Index.tsx": [
     "/build/assets/Index-DJjM7N3E.js"
   ],
   "resources/js/pages/Directions/Show.tsx": [
-    "/build/assets/Show-DN0whLoq.js"
+    "/build/assets/Show-B1hVK0nZ.js"
   ],
   "resources/js/pages/Doctors/Index.tsx": [
-    "/build/assets/Index-CKAOH36p.js"
+    "/build/assets/Index-CAARWX5L.js"
   ],
   "resources/js/pages/Doctors/Show.tsx": [
-    "/build/assets/Show-QezKBWfT.js"
+    "/build/assets/Show-DUbAYcSN.js"
   ],
   "resources/js/pages/Error.tsx": [
     "/build/assets/Error-CLbF-qRl.js"
   ],
   "resources/js/pages/Home.tsx": [
-    "/build/assets/Home-Bwjsd8Lx.js"
+    "/build/assets/Home-K6Ht-UPh.js"
   ],
   "resources/js/pages/Page.tsx": [
     "/build/assets/Page-hGncEqSS.js"
@@ -1002,7 +1005,7 @@
     "/build/assets/Index-BM0zN3Pq.js"
   ],
   "resources/js/pages/Search/Index.tsx": [
-    "/build/assets/Index-DxOlkn1q.js"
+    "/build/assets/Index-CJiqJOwn.js"
   ],
   "resources/js/pages/Tz.tsx": [
     "/build/assets/Tz-Rs0ffHIw.js"

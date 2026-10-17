@@ -24,6 +24,7 @@ use App\Support\Text;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Демонстрационные данные: все клиники, врачи, цены и отзывы вымышленные.
@@ -441,16 +442,48 @@ class DemoSeeder extends Seeder
 
     private function makePhotos(Clinic $clinic): void
     {
-        $kinds = [
-            ['exterior', 'Фасад и вход'], ['reception', 'Зона ресепшн'], ['interior', 'Кабинет врача'],
-            ['equipment', 'Оборудование'], ['team', 'Команда клиники'], ['interior', 'Зона ожидания'],
+        $catalog = [
+            ['clinic-exterior-01.jpg', 'exterior', 'Фасад и вход'],
+            ['clinic-exterior-02.jpg', 'exterior', 'Входная группа'],
+            ['clinic-interior-01.jpg', 'reception', 'Зона ресепшн'],
+            ['clinic-interior-02.jpg', 'interior', 'Кабинет врача'],
+            ['clinic-interior-03.jpg', 'interior', 'Зона ожидания'],
+            ['clinic-equipment-01.jpg', 'equipment', 'Диагностическое оборудование'],
+            ['clinic-team-01.jpg', 'team', 'Команда клиники'],
         ];
-        foreach (array_slice($kinds, 0, mt_rand(3, 6)) as $i => [$kind, $caption]) {
+
+        foreach (array_slice($catalog, 0, mt_rand(4, count($catalog))) as $i => [$file, $kind, $caption]) {
             ClinicPhoto::create([
-                'clinic_id' => $clinic->id, 'kind' => $kind, 'caption' => $caption,
-                'art_seed' => mt_rand(1, 24), 'status' => 'approved', 'sort' => ($i + 1) * 10,
+                'clinic_id' => $clinic->id,
+                'kind' => $kind,
+                'caption' => $caption,
+                'path' => $this->copyDemoImage($clinic->id, $file),
+                'art_seed' => ($i + 1) * 3,
+                'status' => 'approved',
+                'sort' => ($i + 1) * 10,
             ]);
         }
+    }
+
+    private function copyDemoImage(int $clinicId, string $file): ?string
+    {
+        $source = public_path('images/demo/'.$file);
+        if (! is_file($source) || ! $this->isValidImageFile($source)) {
+            return null;
+        }
+
+        $path = "clinic-photos/{$clinicId}/{$file}";
+        Storage::disk('public')->makeDirectory("clinic-photos/{$clinicId}");
+        Storage::disk('public')->put($path, (string) file_get_contents($source));
+
+        return $path;
+    }
+
+    private function isValidImageFile(string $path): bool
+    {
+        $mime = (new \finfo(FILEINFO_MIME_TYPE))->file($path);
+
+        return in_array($mime, ['image/jpeg', 'image/png', 'image/webp'], true);
     }
 
     private function makeDocuments(Clinic $clinic): void

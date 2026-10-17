@@ -5,7 +5,8 @@ import type { ClinicCardData } from '@/lib/types';
 import { CompareButton, FavoriteButton } from './CollectionButtons';
 import Icon from './Icon';
 import { useLead } from './LeadContext';
-import { DemoImg, DoctorArt, PhotoArt } from './PhotoArt';
+import ClinicCardGallery from './ClinicCardGallery';
+import { DoctorArt } from './PhotoArt';
 import { Button, LinkButton } from './ui/Button';
 import { Badge } from './ui/Misc';
 
@@ -203,7 +204,6 @@ export default function ClinicCard({
     const lead = useLead();
     const isTile = layout === 'tile';
     const href = `/clinics/${clinic.slug}`;
-    const photo = clinic.photos[0];
     const [pricesOpen, setPricesOpen] = useState(false);
     const open = () =>
         lead.open({ slug: clinic.slug, name: clinic.name, phone: clinic.phone, source: 'catalog' });
@@ -220,17 +220,13 @@ export default function ClinicCard({
         >
             {interactive ? <Link href={href} className="clinic-card__hit" aria-label={`Открыть «${clinic.name}»`} tabIndex={-1} /> : null}
             <div className="clinic-card__aside">
-                <Link href={href} className="clinic-card__media" tabIndex={-1} aria-hidden="true">
-                    {photo?.url ? (
-                        <DemoImg src={photo.url} aspect="4/3" loading={priority ? 'eager' : 'lazy'} className="clinic-card__photo" />
-                    ) : (
-                        <PhotoArt seed={photo?.art_seed ?? clinic.art_seed} kind={photo?.kind ?? 'interior'} priority={priority} className="clinic-card__photo" />
-                    )}
+                <div className="clinic-card__media" aria-hidden="true">
+                    <ClinicCardGallery clinic={clinic} priority={priority} />
                     <div className="clinic-card__badges">
                         {clinic.is_24_7 ? <Badge tone="dark">24/7</Badge> : null}
                         {clinic.accepts_children ? <Badge tone="primary">{clinic.children_age_from ? `Дети с ${clinic.children_age_from}` : 'Дети'}</Badge> : null}
                     </div>
-                </Link>
+                </div>
                 {!isTile ? <ClinicCardPromoStrip offers={clinic.promo_offers ?? []} layout={layout} /> : null}
             </div>
             <FavoriteButton type="clinic" id={clinic.id} name={clinic.name} />

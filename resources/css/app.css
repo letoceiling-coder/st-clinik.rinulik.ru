@@ -2,6 +2,8 @@
 @import '@fontsource/geist/500.css';
 @import '@fontsource/geist/600.css';
 @import 'cropperjs/dist/cropper.css';
+@import 'swiper/css';
+@import 'swiper/css/pagination';
 @import './tokens.css';
 @import './base.css';
 @import './components.css';
