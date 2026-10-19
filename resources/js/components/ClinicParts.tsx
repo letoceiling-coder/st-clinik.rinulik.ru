@@ -16,7 +16,14 @@ export const PHOTO_KINDS: Record<string, string> = {
 
 function Photo({ photo, eager }: { photo: PhotoRef; eager?: boolean }) {
     return photo.url ? (
-        <img src={photo.url} alt={photo.caption ?? PHOTO_KINDS[photo.kind] ?? 'Фото клиники'} loading={eager ? 'eager' : 'lazy'} />
+        <img
+            src={photo.url}
+            alt={photo.caption ?? PHOTO_KINDS[photo.kind] ?? 'Фото клиники'}
+            width={960}
+            height={720}
+            loading={eager ? 'eager' : 'lazy'}
+            decoding="async"
+        />
     ) : (
         <PhotoArt seed={photo.art_seed} kind={photo.kind} />
     );

@@ -7,7 +7,7 @@
     --color-graphite: #171816;
 
     --color-text: #151613;
-    --color-muted: #6f716a;
+    --color-muted: #5f615a;
     --color-muted-2: #9a9d95;
 
     --color-line: rgb(21 22 19 / 0.08);
@@ -67,6 +67,7 @@
     /* Типографика — Geist 400/500/600 */
     --font-sans: 'Geist', system-ui, -apple-system, sans-serif;
     --fs-xs: 0.8125rem;
+    --fs-caption: 0.75rem;
     --fs-sm: 0.9375rem;
     --fs-md: 1rem;
     --fs-lg: 1.125rem;
@@ -105,5 +106,6 @@
     :root {
         --gutter: 12px;
         --fs-hero: clamp(1.625rem, 5vw + 1.1rem, 2rem);
+        --tabbar-h: 56px;
     }
 }

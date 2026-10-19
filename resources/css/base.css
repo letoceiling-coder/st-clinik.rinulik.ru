@@ -110,21 +110,25 @@ table {
     border: 0;
 }
 
+#app {
+    position: relative;
+}
+
 .skip-link {
-    position: fixed;
-    top: 8px;
+    position: absolute;
     left: 8px;
+    top: -100px;
     z-index: 1000;
     padding: 12px 20px;
     background: var(--color-text);
     color: #fff;
     border-radius: var(--radius-12);
     font-weight: 700;
-    transform: translateY(-200%);
-    transition: transform 0.15s var(--ease);
+    transition: top 0.15s var(--ease);
 }
-.skip-link:focus {
-    transform: translateY(0);
+.skip-link:focus,
+.skip-link:focus-visible {
+    top: 8px;
 }
 
 .container {

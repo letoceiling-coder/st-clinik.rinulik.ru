@@ -98,8 +98,25 @@ docker cp "${APP_DIR}/lang/." "${CONTAINER}:/var/www/html/lang/" 2>/dev/null || 
 docker cp "${APP_DIR}/deploy/entrypoint.sh" "${CONTAINER}:/entrypoint.sh"
 docker exec "$CONTAINER" chmod +x /entrypoint.sh
 
+if [ -f "${APP_DIR}/storage/app/parser-orgs-raw.json" ]; then
+    echo "==> Copying parser organizations dump"
+    docker exec "$CONTAINER" mkdir -p /var/www/html/storage/app
+    docker cp "${APP_DIR}/storage/app/parser-orgs-raw.json" "${CONTAINER}:/var/www/html/storage/app/parser-orgs-raw.json"
+fi
+
 echo "==> Running migrations and clearing caches"
 docker exec "$CONTAINER" php artisan migrate --force --no-interaction
+
+if [ "${IMPORT_PARSER_ORGS:-0}" = "1" ]; then
+    echo "==> Importing parser organizations (DB + Yandex photos + publish)"
+    docker exec "$CONTAINER" php artisan db:seed --class=FoundationSeeder --force --no-interaction
+    if [ -f "${APP_DIR}/storage/app/parser-orgs-raw.json" ]; then
+        docker exec "$CONTAINER" php artisan parser:sync-organizations --import --photos --publish
+    else
+        docker exec "$CONTAINER" php artisan parser:sync-organizations --fetch --import --photos --publish
+    fi
+fi
+
 docker exec "$CONTAINER" php artisan cache:clear
 docker exec "$CONTAINER" php artisan config:cache
 docker exec "$CONTAINER" php artisan route:clear

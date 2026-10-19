@@ -25,6 +25,8 @@ class FoundationSeeder extends Seeder
         'kazan' => 'в Казани',
         'nizhniy-novgorod' => 'в Нижнем Новгороде',
         'krasnodar' => 'в Краснодаре',
+        'anapa' => 'в Анапе',
+        'stavropol' => 'в Ставрополе',
         'samara' => 'в Самаре',
         'rostov-na-donu' => 'в Ростове-на-Дону',
         'ufa' => 'в Уфе',

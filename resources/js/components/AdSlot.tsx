@@ -70,7 +70,16 @@ export default function AdSlot({ banners, label = 'Реклама', slot = 'home
                     ? banners.map((b) => (
                           <a key={b.id} href={b.click_url} className="ad-slot__banner" target="_blank" rel="noopener sponsored">
                               <div className="ad-slot__media">
-                                  {b.image_url ? <img src={b.image_url} alt={b.title ?? b.clinic_name ?? 'Рекламный баннер'} loading="lazy" decoding="async" /> : null}
+                                  {b.image_url ? (
+                                      <img
+                                          src={b.image_url}
+                                          alt={b.title ?? b.clinic_name ?? 'Рекламный баннер'}
+                                          width={slot === 'home' ? 1680 : 1200}
+                                          height={slot === 'home' ? 720 : 480}
+                                          loading="lazy"
+                                          decoding="async"
+                                      />
+                                  ) : null}
                               </div>
                               <span className="ad-slot__meta">
                                   {b.title ?? b.clinic_name}

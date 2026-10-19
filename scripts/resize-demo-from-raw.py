@@ -49,12 +49,28 @@ def crop_resize(src: Path, dest: Path, aspect: tuple[int, int], size: tuple[int,
         im.save(dest, "JPEG", quality=86, optimize=True)
 
 
+def save_hero_webp(jpg: Path, width: int) -> None:
+    with Image.open(jpg) as im:
+        im = im.convert("RGB")
+        w, h = im.size
+        height = int(width * h / w)
+        resized = im.resize((width, height), Image.Resampling.LANCZOS)
+        out = ROOT / f"{jpg.stem}-{width}.webp"
+        resized.save(out, "WEBP", quality=82, method=6)
+        print(out.name, out.stat().st_size)
+
+
 def main() -> None:
     if not RAW:
         raise SystemExit("No raw-*.jpg files in public/images/demo")
     for i, (name, asp, size) in enumerate(TARGETS):
         crop_resize(RAW[i % len(RAW)], ROOT / name, asp, size)
         print(name, (ROOT / name).stat().st_size)
+    for stem, widths in (("hero-01", (480, 960)), ("hero-02", (256, 512)), ("hero-03", (256, 512))):
+        jpg = ROOT / f"{stem}.jpg"
+        if jpg.is_file():
+            for width in widths:
+                save_hero_webp(jpg, width)
     (ROOT / "ATTRIBUTION.txt").write_text(
         "Demo images sourced via Openverse API (CC0 / CC BY / CC BY-SA).\n"
         "Review licenses at https://openverse.org before production use.\n",

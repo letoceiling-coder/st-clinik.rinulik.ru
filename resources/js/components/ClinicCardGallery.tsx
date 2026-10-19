@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { A11y, Pagination } from 'swiper/modules';
+import { A11y, Keyboard, Pagination } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { clinicPhoto } from '@/lib/demo-images';
 import { cx } from '@/lib/format';
@@ -85,11 +85,17 @@ export default function ClinicCardGallery({
             onPointerDown={(event) => event.stopPropagation()}
         >
             <Swiper
-                modules={[Pagination, A11y]}
+                modules={[Pagination, A11y, Keyboard]}
                 slidesPerView={1}
                 spaceBetween={0}
-                pagination={{ clickable: true, dynamicBullets: true }}
-                a11y={{ enabled: true, prevSlideMessage: 'Предыдущее фото', nextSlideMessage: 'Следующее фото' }}
+                pagination={{ clickable: true, dynamicBullets: false, bulletElement: 'button' }}
+                keyboard={{ enabled: true }}
+                a11y={{
+                    enabled: true,
+                    paginationBulletMessage: 'Фото {{index}}',
+                    prevSlideMessage: 'Предыдущее фото',
+                    nextSlideMessage: 'Следующее фото',
+                }}
                 className="clinic-card__swiper"
             >
                 {slides.map((slide, index) => (

@@ -32,6 +32,17 @@
     @foreach (($seo['jsonld'] ?? []) as $schema)
         <script type="application/ld+json">{!! json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) !!}</script>
     @endforeach
+    @if (request()->routeIs('home'))
+        <link
+            rel="preload"
+            as="image"
+            type="image/webp"
+            href="/images/demo/hero-01-960.webp"
+            imagesrcset="/images/demo/hero-01-480.webp 480w, /images/demo/hero-01-960.webp 960w"
+            imagesizes="(min-width: 1280px) 456px, 90vw"
+            fetchpriority="high"
+        >
+    @endif
     @viteReactRefresh
     @vite('resources/js/app.tsx')
     <x-inertia::head />

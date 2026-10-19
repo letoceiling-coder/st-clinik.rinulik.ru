@@ -2,19 +2,34 @@ import { useState } from 'react';
 import { clinicPhoto, doctorPhoto, type PhotoKind } from '@/lib/demo-images';
 import { cx } from '@/lib/format';
 
+const ASPECT_DIMS: Record<string, { width: number; height: number }> = {
+    '4/3': { width: 960, height: 720 },
+    '1/1': { width: 640, height: 640 },
+    '16/10': { width: 960, height: 600 },
+};
+
 export function DemoImg({
     src,
     alt,
     className,
     loading,
     aspect = '4/3',
+    width,
+    height,
+    fetchPriority,
 }: {
     src: string;
     alt?: string;
     className?: string;
     loading?: 'lazy' | 'eager';
     aspect?: string | 'unset';
+    width?: number;
+    height?: number;
+    fetchPriority?: 'high' | 'low' | 'auto';
 }) {
+    const fallbackDims = aspect !== 'unset' ? ASPECT_DIMS[aspect] : ASPECT_DIMS['4/3'];
+    const imgWidth = width ?? fallbackDims?.width ?? 960;
+    const imgHeight = height ?? fallbackDims?.height ?? 720;
     const [ready, setReady] = useState(false);
     const [failed, setFailed] = useState(false);
 
@@ -27,8 +42,11 @@ export function DemoImg({
             <img
                 src={src}
                 alt={alt ?? ''}
+                width={imgWidth}
+                height={imgHeight}
                 loading={loading ?? 'lazy'}
                 decoding="async"
+                fetchPriority={fetchPriority}
                 onLoad={() => setReady(true)}
                 onError={() => setFailed(true)}
                 className={cx('demo-photo__img', ready && 'is-ready')}

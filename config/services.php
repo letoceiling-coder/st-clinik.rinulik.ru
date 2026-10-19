@@ -60,4 +60,10 @@ return [
         'enabled' => (bool) env('MAX_OAUTH_ENABLED', false),
     ],
 
+    'parser_ai' => [
+        'base_url' => env('PARSER_AI_BASE_URL', 'https://parser.rinulik.ru'),
+        'api_key' => env('PARSER_AI_KEY'),
+        'insecure_http' => (bool) env('PARSER_AI_INSECURE_HTTP', false),
+    ],
+
 ];

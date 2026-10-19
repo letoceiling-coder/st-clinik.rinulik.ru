@@ -11,7 +11,7 @@ import { ConcernChips, SpecialtyCircles, SpecialtyTile } from '@/components/Tile
 import { LinkButton } from '@/components/ui/Button';
 import { SectionHead } from '@/components/ui/Misc';
 import { useCity } from '@/lib/city';
-import { HERO_PHOTOS } from '@/lib/demo-images';
+import HeroPhoto from '@/components/HeroPhoto';
 import { clinicsWord, doctorsWord, priceFrom, reviewsWord } from '@/lib/format';
 import type { ClinicCardData, ConcernData, DoctorData, ReviewData, SpecialtyData } from '@/lib/types';
 
@@ -74,13 +74,13 @@ export default function Home({ stats, concerns, popular_services, catalog_servic
                     </div>
                     <div className="hero__visual" aria-hidden="true">
                         <div className="hero__photo hero__photo--main">
-                            <img src={HERO_PHOTOS[0]} alt="" width={640} height={400} loading="eager" decoding="async" />
+                            <HeroPhoto index={1} loading="eager" fetchPriority="high" />
                         </div>
                         <div className="hero__photo hero__photo--sub hero__photo--a">
-                            <img src={HERO_PHOTOS[1]} alt="" width={320} height={200} loading="lazy" decoding="async" />
+                            <HeroPhoto index={2} />
                         </div>
                         <div className="hero__photo hero__photo--sub hero__photo--b">
-                            <img src={HERO_PHOTOS[2]} alt="" width={320} height={200} loading="lazy" decoding="async" />
+                            <HeroPhoto index={3} />
                         </div>
                     </div>
                 </div>
