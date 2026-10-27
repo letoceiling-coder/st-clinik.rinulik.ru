@@ -7,6 +7,92 @@ import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 import { createPortal } from "react-dom";
 import createServer from "@inertiajs/react/server";
 import { renderToString } from "react-dom/server";
+//#region resources/js/lib/fast-navigation.ts
+/** Сколько держим предзагруженную страницу: успевает до клика и не показывает устаревшие данные. */
+var PREFETCH_CACHE = "30s";
+/** Пауза наведения перед предзагрузкой, чтобы не грузить всё, над чем просто провели мышью. */
+var HOVER_DELAY_MS = 65;
+/** Служебные и трекинговые GET-адреса: их запрос заранее засчитал бы клик, отписку или подтверждение. */
+var SKIP_PREFIXES = [
+	"/logout",
+	"/storage",
+	"/build",
+	"/api",
+	"/webhooks",
+	"/auth/",
+	"/payments",
+	"/go/",
+	"/o/",
+	"/offer/",
+	"/demo/",
+	"/promotions/",
+	"/broadcast/",
+	"/unsubscribe/",
+	"/email/verify/",
+	"/account/email/confirm",
+	"/invite/",
+	"/password/reset",
+	"/downloads",
+	"/admin-demo",
+	"/clinic-cabinet-demo"
+];
+/** Выгрузки, файлы и возвраты после оплаты внутри кабинетов. */
+var SKIP_PATTERN = /\/(export|download|file|template|return|estimate)(\/|$)/;
+/** Внутренняя GET-ссылка Inertia, которую безопасно запросить заранее. */
+function prefetchableHref(target) {
+	if (!(target instanceof Element)) return null;
+	const link = target.closest("a[href]");
+	if (!(link instanceof HTMLAnchorElement)) return null;
+	if (link.target && link.target !== "_self") return null;
+	if (link.hasAttribute("download") || link.dataset.noPrefetch !== void 0 || link.getAttribute("method")) return null;
+	const url = new URL(link.href, window.location.href);
+	if (url.origin !== window.location.origin || !/^https?:$/.test(url.protocol)) return null;
+	if (SKIP_PREFIXES.some((prefix) => url.pathname.startsWith(prefix)) || SKIP_PATTERN.test(url.pathname)) return null;
+	if (url.pathname === window.location.pathname && url.search === window.location.search) return null;
+	return url.pathname + url.search;
+}
+function prefetch(href) {
+	try {
+		router.prefetch(href, {}, { cacheFor: PREFETCH_CACHE });
+	} catch {}
+}
+/**
+* Делает переходы мгновенными: страница запрашивается при наведении, касании или фокусе на ссылке,
+* вместе с её JS-модулем; во время перехода показывается отклик, чтобы клик не казался «мёртвым».
+*/
+function setupFastNavigation() {
+	if (typeof window === "undefined") return;
+	let hoverTimer;
+	let hoverHref = null;
+	document.addEventListener("mouseover", (event) => {
+		const href = prefetchableHref(event.target);
+		if (href === hoverHref) return;
+		window.clearTimeout(hoverTimer);
+		hoverHref = href;
+		if (href) hoverTimer = window.setTimeout(() => prefetch(href), HOVER_DELAY_MS);
+	}, { passive: true });
+	const immediate = (event) => {
+		const href = prefetchableHref(event.target);
+		if (href) prefetch(href);
+	};
+	document.addEventListener("touchstart", immediate, { passive: true });
+	document.addEventListener("mousedown", immediate, { passive: true });
+	document.addEventListener("focusin", immediate);
+	router.on("prefetched", (event) => {
+		try {
+			const page = JSON.parse(event.detail.response.data);
+			if (page?.component) Promise.resolve(router.resolveComponent(page.component, page)).catch(() => void 0);
+		} catch {}
+	});
+	const root = document.documentElement;
+	router.on("start", (event) => {
+		if (!event.detail.visit.prefetch && !event.detail.visit.async) root.classList.add("is-navigating");
+	});
+	router.on("finish", (event) => {
+		if (!event.detail.visit.prefetch) root.classList.remove("is-navigating");
+	});
+}
+//#endregion
 //#region resources/js/lib/pwa-install.ts
 function isStandaloneMode() {
 	if (typeof window === "undefined") return false;
@@ -4207,6 +4293,7 @@ function MaxLayout({ children }) {
 //#endregion
 //#region resources/js/app.tsx
 registerServiceWorker();
+setupFastNavigation();
 if (typeof window !== "undefined") router.on("navigate", (event) => {
 	if (window.ym && window.ymCounterId) window.ym(window.ymCounterId, "hit", event.detail.page.url, { referer: document.referrer });
 	const url = event.detail.page.url;
@@ -4331,9 +4418,15 @@ var renderPromise = createInertiaApp({
 		return PublicLayout;
 	},
 	progress: {
-		color: "#CAF65A",
-		delay: 150
-	}
+		color: "#2F6BFF",
+		delay: 0,
+		includeCSS: true,
+		showSpinner: false
+	},
+	defaults: { prefetch: {
+		cacheFor: "30s",
+		hoverDelay: 65
+	} }
 });
 renderPromise.catch((error) => console.error(error));
 var renderPage = async (page) => {

@@ -4672,3 +4672,13 @@
 .dash-list li + li {
     margin-top: 8px;
 }
+
+/* Отклик на переход: заметная полоса загрузки и приглушённый контент, пока грузится следующая страница */
+#nprogress .bar { height: 3px !important; box-shadow: 0 0 10px rgba(47, 107, 255, 0.55); }
+.main, .max-app__main { transition: opacity 0.18s ease; }
+html.is-navigating .main,
+html.is-navigating .max-app__main { opacity: 0.55; transition-delay: 0.12s; }
+html.is-navigating, html.is-navigating a { cursor: progress; }
+@media (prefers-reduced-motion: reduce) {
+    .main, .max-app__main { transition: none; }
+}

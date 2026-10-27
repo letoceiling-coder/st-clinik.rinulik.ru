@@ -1078,6 +1078,38 @@
   "resources/js/lib/entities.ts": [
     "/build/assets/CollectionViews-pUQgrBy7.js"
   ],
+  "resources/js/lib/fast-navigation.ts": [
+    "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
+    "/build/assets/geist-cyrillic-ext-400-normal-ChfpGzr5.woff",
+    "/build/assets/geist-cyrillic-400-normal-DXusLSnH.woff2",
+    "/build/assets/geist-cyrillic-400-normal-DkrqoNl2.woff",
+    "/build/assets/geist-vietnamese-400-normal-C4gMWAkH.woff2",
+    "/build/assets/geist-vietnamese-400-normal-C8xY9-dI.woff",
+    "/build/assets/geist-latin-ext-400-normal-CND6cjiG.woff2",
+    "/build/assets/geist-latin-ext-400-normal-Bz1pQMyt.woff",
+    "/build/assets/geist-latin-400-normal-B40WzpMT.woff2",
+    "/build/assets/geist-latin-400-normal-akEymXtG.woff",
+    "/build/assets/geist-cyrillic-ext-500-normal-UpgxCE-h.woff2",
+    "/build/assets/geist-cyrillic-ext-500-normal-BXrH8YSv.woff",
+    "/build/assets/geist-cyrillic-500-normal-NWpm63d5.woff2",
+    "/build/assets/geist-cyrillic-500-normal-BboVsk8R.woff",
+    "/build/assets/geist-vietnamese-500-normal-DEhtl5QD.woff2",
+    "/build/assets/geist-vietnamese-500-normal-_b1ojCbH.woff",
+    "/build/assets/geist-latin-ext-500-normal-BovoTgeE.woff2",
+    "/build/assets/geist-latin-ext-500-normal-C9fx-R30.woff",
+    "/build/assets/geist-latin-500-normal-CTWBw9NS.woff2",
+    "/build/assets/geist-latin-500-normal-BDXIbFrL.woff",
+    "/build/assets/geist-cyrillic-ext-600-normal-Cr7e20Aw.woff2",
+    "/build/assets/geist-cyrillic-ext-600-normal-PR76dHFV.woff",
+    "/build/assets/geist-cyrillic-600-normal-BeW5VFD_.woff2",
+    "/build/assets/geist-cyrillic-600-normal-CnEeIcMC.woff",
+    "/build/assets/geist-vietnamese-600-normal-BFUgqsz8.woff2",
+    "/build/assets/geist-vietnamese-600-normal-B5MZcNo4.woff",
+    "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
+    "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
+    "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
+  ],
   "resources/js/lib/format.ts": [
     "/build/assets/format-BP5psl3Q.js"
   ],

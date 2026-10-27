@@ -1,9 +1,11 @@
 import '../css/app.css';
 import { createInertiaApp, router } from '@inertiajs/react';
+import { setupFastNavigation } from '@/lib/fast-navigation';
 import { registerServiceWorker } from '@/lib/pwa-install';
 import { AnalyticsEvents, trackAnalyticsEvent } from '@/lib/analytics';
 
 registerServiceWorker();
+setupFastNavigation();
 
 declare global {
     interface Window {
@@ -41,5 +43,6 @@ createInertiaApp({
         if (name === 'Error') return AuthLayout;
         return PublicLayout;
     },
-    progress: { color: '#CAF65A', delay: 150 },
+    progress: { color: '#2F6BFF', delay: 0, includeCSS: true, showSpinner: false },
+    defaults: { prefetch: { cacheFor: '30s', hoverDelay: 65 } },
 });
