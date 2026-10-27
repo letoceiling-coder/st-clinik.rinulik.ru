@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/Button';
 import { Drawer } from '@/components/ui/Overlay';
 import { usePwaInstall } from '@/lib/pwa-install';
 
-export default function InstallAppButton({ className }: { className?: string }) {
+/** variant="menu" — строка в мобильном меню вместо иконки в шапке. */
+export default function InstallAppButton({ className, variant = 'icon' }: { className?: string; variant?: 'icon' | 'menu' }) {
     const { canShow, ios, hasNativePrompt, install } = usePwaInstall();
     const [hintOpen, setHintOpen] = useState(false);
 
@@ -28,15 +29,28 @@ export default function InstallAppButton({ className }: { className?: string }) 
 
     return (
         <>
-            <button
-                type="button"
-                className={className ?? 'icon-link'}
-                aria-label="Установить приложение на рабочий стол"
-                title="Установить приложение"
-                onClick={onClick}
-            >
-                <Icon name="install" size={22} />
-            </button>
+            {variant === 'menu' ? (
+                <button type="button" className={className ?? 'mmenu-install'} onClick={onClick}>
+                    <span className="mmenu-install__icon" aria-hidden="true">
+                        <Icon name="install" size={22} />
+                    </span>
+                    <span className="mmenu-install__text">
+                        <b>Установить приложение</b>
+                        <span>Запуск в один тап с главного экрана</span>
+                    </span>
+                    <Icon name="chevron-right" size={18} />
+                </button>
+            ) : (
+                <button
+                    type="button"
+                    className={className ?? 'icon-link'}
+                    aria-label="Установить приложение на рабочий стол"
+                    title="Установить приложение"
+                    onClick={onClick}
+                >
+                    <Icon name="install" size={22} />
+                </button>
+            )}
 
             <Drawer open={hintOpen} onClose={() => setHintOpen(false)} title="Установить СтомКлиник">
                 <div className="stack install-hint">

@@ -18,6 +18,7 @@ import InstallAppButton from '@/components/InstallAppButton';
 import CityPrompt from '@/components/CityPrompt';
 import CityPicker from './CityPicker';
 import Logo from './Logo';
+import MobileMenu from './MobileMenu';
 
 function useActive() {
     const { url } = usePage();
@@ -227,10 +228,13 @@ export default function PublicLayout({ children, bare }: { children: ReactNode; 
                             <Icon name="scale" size={22} />
                             <Badge n={cmpCount} />
                         </Link>
-                        <InstallAppButton />
-                        <UserMenu />
-                        <button type="button" className="icon-link show-mobile" onClick={() => setMenu(true)} aria-label="Открыть меню">
+                        <InstallAppButton className="icon-link hide-mobile" />
+                        <div className="hide-mobile">
+                            <UserMenu />
+                        </div>
+                        <button type="button" className="icon-link header__burger show-mobile" onClick={() => setMenu(true)} aria-label="Открыть меню" aria-expanded={menu}>
                             <Icon name="menu" size={24} />
+                            <Badge n={auth?.user?.unread ?? 0} />
                         </button>
                     </nav>
                 </div>
@@ -281,26 +285,7 @@ export default function PublicLayout({ children, bare }: { children: ReactNode; 
             </nav>
 
             <Drawer open={menu} onClose={() => setMenu(false)} title="Меню">
-                <ul className="drawer-nav">
-                    {nav.map((n) => (
-                        <li key={n.href}>
-                            <Link href={n.href}>{n.label}</Link>
-                        </li>
-                    ))}
-                    <li>
-                        <Link href="/favorites">Избранное {favCount ? `(${favCount})` : ''}</Link>
-                    </li>
-                    <li>
-                        <Link href="/compare">Сравнение {cmpCount ? `(${cmpCount})` : ''}</Link>
-                    </li>
-                    <li>
-                        <Link href="/for-clinics">Для клиник</Link>
-                    </li>
-                    <li>
-                        <Link href="/about">О сервисе</Link>
-                    </li>
-                    <li>{auth?.user ? <Link href={accountHome(auth.user)}>{accountLabel(auth.user)}</Link> : <Link href="/login">Войти</Link>}</li>
-                </ul>
+                <MobileMenu isActive={active} favorites={favCount} compare={cmpCount} />
             </Drawer>
 
             <Drawer open={searchOpen} onClose={() => setSearchOpen(false)} title="Поиск" side="right">

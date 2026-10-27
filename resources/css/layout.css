@@ -4100,6 +4100,177 @@
 .drawer-nav { display: grid; gap: 4px; }
 .drawer-nav a { display: block; padding: 14px 4px; font-weight: 600; border-bottom: 1px solid var(--color-border); }
 
+/* Мобильное меню */
+.header__burger .count-badge { top: 6px; right: 4px; }
+.mmenu {
+    display: grid;
+    gap: var(--space-5);
+    padding-bottom: var(--space-2);
+}
+.mmenu__section { display: grid; gap: var(--space-2); }
+.mmenu__title {
+    margin: 0;
+    padding-inline: 4px;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+}
+.mmenu-user,
+.mmenu-install {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: var(--radius-20);
+    text-align: left;
+    color: var(--color-text);
+}
+.mmenu-user {
+    background: var(--color-surface-muted);
+    border: 1px solid var(--color-border);
+}
+.mmenu-user__avatar,
+.mmenu-install__icon {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    font-weight: 700;
+    font-size: var(--fs-sm);
+}
+.mmenu-user__text,
+.mmenu-install__text {
+    display: grid;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+.mmenu-user__text b {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.mmenu-user__text span,
+.mmenu-install__text span {
+    font-size: var(--fs-xs);
+    color: var(--color-muted);
+}
+.mmenu-user > svg,
+.mmenu-install > svg { flex: none; color: var(--color-muted); }
+.mmenu-install {
+    border: 1px solid color-mix(in srgb, var(--color-primary) 70%, transparent);
+    background: color-mix(in srgb, var(--color-primary) 14%, var(--color-surface));
+    cursor: pointer;
+}
+.mmenu-install__icon { border-radius: var(--radius-12); background: #fff; }
+.mmenu-auth {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border-radius: var(--radius-20);
+    background: var(--color-surface-muted);
+    border: 1px solid var(--color-border);
+}
+.mmenu-auth p { margin: 0; font-size: var(--fs-sm); line-height: 1.45; color: var(--color-muted); }
+.mmenu-auth__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+}
+.mmenu-tiles {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+/* 5 плиток: 3 сверху, 2 растянуты снизу — без пустой ячейки. */
+.mmenu-tiles > li { grid-column: span 2; }
+.mmenu-tiles > li:nth-child(4):nth-last-child(2),
+.mmenu-tiles > li:nth-child(5):last-child { grid-column: span 3; }
+.mmenu-tile {
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 6px;
+    min-height: 78px;
+    padding: 10px 6px;
+    border-radius: var(--radius-16);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    text-align: center;
+    transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
+}
+.mmenu-tile svg { color: var(--color-text); }
+.mmenu-tile:hover { background: var(--color-surface-muted); }
+.mmenu-tile.is-active {
+    background: var(--color-primary);
+    border-color: transparent;
+}
+.mmenu-list {
+    display: grid;
+    margin: 0;
+    padding: 4px;
+    list-style: none;
+    border-radius: var(--radius-20);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+}
+.mmenu-list li + li { border-top: 1px solid var(--color-border); }
+.mmenu-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 48px;
+    padding: 0 12px;
+    border-radius: var(--radius-12);
+    font-weight: 600;
+    text-align: left;
+    color: var(--color-text);
+}
+.mmenu-row svg { flex: none; color: var(--color-muted); }
+.mmenu-row > span:first-of-type { flex: 1; min-width: 0; }
+.mmenu-row:hover,
+.mmenu-row.is-active { background: var(--color-surface-muted); }
+.mmenu-row--muted { color: var(--color-muted); }
+.mmenu-count {
+    display: inline-grid;
+    place-items: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 7px;
+    border-radius: var(--radius-pill);
+    background: var(--color-primary);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+}
+@media (max-width: 339px) {
+    .mmenu-tile { min-height: 70px; padding: 8px 4px; font-size: 0.6875rem; }
+}
+
+/* Мини-приложение в MAX */
+.max-app {
+    min-height: 100dvh;
+    background: var(--color-page);
+    color: var(--color-text);
+}
+.max-app__header { padding-top: env(safe-area-inset-top); }
+.max-app__main { padding-bottom: var(--space-6); }
+@media (max-width: 768px) {
+    .max-app__header .header__row { min-height: 56px; }
+    .max-app__header .logo { max-width: 40vw; }
+}
+
 .cookie {
     position: fixed; z-index: 70; left: 16px; right: 16px; bottom: 16px;
     display: flex; gap: 16px; align-items: center;

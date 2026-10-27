@@ -1,5 +1,5 @@
 import { t as Icon } from "./assets/Icon-DQahs-u2.js";
-import { a as formatRuPhone, n as cx, o as initials } from "./assets/format-BP5psl3Q.js";
+import { a as formatRuPhone, n as cx, o as initials$1 } from "./assets/format-BP5psl3Q.js";
 import { i as LinkButton, n as Button, r as IconButton } from "./assets/Button-B5alqlNe.js";
 import { Head, Link, createInertiaApp, router, useForm, usePage } from "@inertiajs/react";
 import { createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
@@ -746,7 +746,7 @@ function Avatar({ name }) {
 	return /* @__PURE__ */ jsx("span", {
 		className: "avatar",
 		"aria-hidden": "true",
-		children: initials(name)
+		children: initials$1(name)
 	});
 }
 function Tabs({ value, items, onChange, label }) {
@@ -1517,7 +1517,8 @@ function useClientSeo() {
 }
 //#endregion
 //#region resources/js/components/InstallAppButton.tsx
-function InstallAppButton({ className }) {
+/** variant="menu" — строка в мобильном меню вместо иконки в шапке. */
+function InstallAppButton({ className, variant = "icon" }) {
 	const { canShow, ios, hasNativePrompt, install } = usePwaInstall();
 	const [hintOpen, setHintOpen] = useState(false);
 	if (!canShow) return null;
@@ -1529,7 +1530,29 @@ function InstallAppButton({ className }) {
 		}
 		openHint();
 	};
-	return /* @__PURE__ */ jsxs(Fragment, { children: [/* @__PURE__ */ jsx("button", {
+	return /* @__PURE__ */ jsxs(Fragment, { children: [variant === "menu" ? /* @__PURE__ */ jsxs("button", {
+		type: "button",
+		className: className ?? "mmenu-install",
+		onClick,
+		children: [
+			/* @__PURE__ */ jsx("span", {
+				className: "mmenu-install__icon",
+				"aria-hidden": "true",
+				children: /* @__PURE__ */ jsx(Icon, {
+					name: "install",
+					size: 22
+				})
+			}),
+			/* @__PURE__ */ jsxs("span", {
+				className: "mmenu-install__text",
+				children: [/* @__PURE__ */ jsx("b", { children: "Установить приложение" }), /* @__PURE__ */ jsx("span", { children: "Запуск в один тап с главного экрана" })]
+			}),
+			/* @__PURE__ */ jsx(Icon, {
+				name: "chevron-right",
+				size: 18
+			})
+		]
+	}) : /* @__PURE__ */ jsx("button", {
 		type: "button",
 		className: className ?? "icon-link",
 		"aria-label": "Установить приложение на рабочий стол",
@@ -1854,6 +1877,203 @@ function Logo({ to = "/", suffix, mobileSuffix }) {
 				className: "logo__suffix show-mobile",
 				children: shortSuffix
 			}) : null
+		]
+	});
+}
+//#endregion
+//#region resources/js/layouts/MobileMenu.tsx
+function initials(name) {
+	return name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase() ?? "").join("");
+}
+function Count({ n }) {
+	return n ? /* @__PURE__ */ jsx("span", {
+		className: "mmenu-count",
+		children: n > 99 ? "99+" : n
+	}) : null;
+}
+/** Мобильное меню: аккаунт, каталог плитками, «моё», установка приложения и служебные ссылки. */
+function MobileMenu({ isActive, favorites, compare }) {
+	const { auth } = usePage().props;
+	const city = useCity();
+	const user = auth?.user ?? null;
+	const catalog = [
+		{
+			href: city.path("clinics"),
+			label: "Клиники",
+			icon: "building"
+		},
+		{
+			href: city.path("doctors"),
+			label: "Врачи",
+			icon: "users"
+		},
+		{
+			href: city.path("directions"),
+			label: "Направления",
+			icon: "tooth"
+		},
+		{
+			href: city.path("prices"),
+			label: "Цены",
+			icon: "ruble"
+		},
+		{
+			href: city.path("reviews"),
+			label: "Отзывы",
+			icon: "star"
+		}
+	];
+	const mine = [
+		{
+			href: "/favorites",
+			label: "Избранное",
+			icon: "heart",
+			badge: favorites
+		},
+		{
+			href: "/compare",
+			label: "Сравнение",
+			icon: "scale",
+			badge: compare
+		},
+		...user ? [{
+			href: "/account/leads",
+			label: "Мои записи",
+			icon: "calendar"
+		}, {
+			href: "/account/notifications",
+			label: "Уведомления",
+			icon: "bell",
+			badge: user.unread
+		}] : []
+	];
+	return /* @__PURE__ */ jsxs("div", {
+		className: "mmenu",
+		children: [
+			user ? /* @__PURE__ */ jsxs(Link, {
+				href: accountHome(user),
+				className: "mmenu-user",
+				children: [
+					/* @__PURE__ */ jsx("span", {
+						className: "mmenu-user__avatar",
+						"aria-hidden": "true",
+						children: initials(user.name) || /* @__PURE__ */ jsx(Icon, {
+							name: "user",
+							size: 20
+						})
+					}),
+					/* @__PURE__ */ jsxs("span", {
+						className: "mmenu-user__text",
+						children: [/* @__PURE__ */ jsx("b", { children: user.name }), /* @__PURE__ */ jsx("span", { children: accountLabel(user) })]
+					}),
+					/* @__PURE__ */ jsx(Icon, {
+						name: "chevron-right",
+						size: 18
+					})
+				]
+			}) : /* @__PURE__ */ jsxs("div", {
+				className: "mmenu-auth",
+				children: [/* @__PURE__ */ jsx("p", { children: "Войдите, чтобы записываться онлайн, хранить избранное и получать напоминания." }), /* @__PURE__ */ jsxs("div", {
+					className: "mmenu-auth__actions",
+					children: [/* @__PURE__ */ jsx(LinkButton, {
+						href: "/login",
+						icon: "user",
+						children: "Войти"
+					}), /* @__PURE__ */ jsx(LinkButton, {
+						href: "/register",
+						variant: "outline",
+						children: "Регистрация"
+					})]
+				})]
+			}),
+			/* @__PURE__ */ jsxs("section", {
+				className: "mmenu__section",
+				"aria-labelledby": "mmenu-catalog",
+				children: [/* @__PURE__ */ jsxs("h3", {
+					id: "mmenu-catalog",
+					className: "mmenu__title",
+					children: ["Каталог ", city.nameIn]
+				}), /* @__PURE__ */ jsx("ul", {
+					className: "mmenu-tiles",
+					children: catalog.map((item) => /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsxs(Link, {
+						href: item.href,
+						className: cx("mmenu-tile", isActive(item.href) && "is-active"),
+						"aria-current": isActive(item.href) ? "page" : void 0,
+						children: [/* @__PURE__ */ jsx(Icon, {
+							name: item.icon,
+							size: 22
+						}), /* @__PURE__ */ jsx("span", { children: item.label })]
+					}) }, item.href))
+				})]
+			}),
+			/* @__PURE__ */ jsxs("section", {
+				className: "mmenu__section",
+				"aria-labelledby": "mmenu-mine",
+				children: [/* @__PURE__ */ jsx("h3", {
+					id: "mmenu-mine",
+					className: "mmenu__title",
+					children: "Моё"
+				}), /* @__PURE__ */ jsx("ul", {
+					className: "mmenu-list",
+					children: mine.map((item) => /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsxs(Link, {
+						href: item.href,
+						className: cx("mmenu-row", isActive(item.href) && "is-active"),
+						children: [
+							/* @__PURE__ */ jsx(Icon, {
+								name: item.icon,
+								size: 20
+							}),
+							/* @__PURE__ */ jsx("span", { children: item.label }),
+							/* @__PURE__ */ jsx(Count, { n: item.badge })
+						]
+					}) }, item.href))
+				})]
+			}),
+			/* @__PURE__ */ jsx(InstallAppButton, { variant: "menu" }),
+			/* @__PURE__ */ jsxs("section", {
+				className: "mmenu__section",
+				"aria-labelledby": "mmenu-service",
+				children: [/* @__PURE__ */ jsx("h3", {
+					id: "mmenu-service",
+					className: "mmenu__title",
+					children: "Сервис"
+				}), /* @__PURE__ */ jsxs("ul", {
+					className: "mmenu-list",
+					children: [[
+						{
+							href: "/for-clinics",
+							label: "Для клиник",
+							icon: "award"
+						},
+						{
+							href: "/about",
+							label: "О сервисе",
+							icon: "info"
+						},
+						{
+							href: "/review-rules",
+							label: "Правила отзывов",
+							icon: "shield"
+						}
+					].map((item) => /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsxs(Link, {
+						href: item.href,
+						className: cx("mmenu-row", isActive(item.href) && "is-active"),
+						children: [/* @__PURE__ */ jsx(Icon, {
+							name: item.icon,
+							size: 20
+						}), /* @__PURE__ */ jsx("span", { children: item.label })]
+					}) }, item.href)), user ? /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsxs(Link, {
+						href: "/logout",
+						method: "post",
+						as: "button",
+						className: "mmenu-row mmenu-row--muted",
+						children: [/* @__PURE__ */ jsx(Icon, {
+							name: "logout",
+							size: 20
+						}), /* @__PURE__ */ jsx("span", { children: "Выйти" })]
+					}) }) : null]
+				})]
+			})
 		]
 	});
 }
@@ -2222,17 +2442,21 @@ function PublicLayout({ children, bare }) {
 									size: 22
 								}), /* @__PURE__ */ jsx(Badge, { n: cmpCount })]
 							}),
-							/* @__PURE__ */ jsx(InstallAppButton, {}),
-							/* @__PURE__ */ jsx(UserMenu, {}),
-							/* @__PURE__ */ jsx("button", {
+							/* @__PURE__ */ jsx(InstallAppButton, { className: "icon-link hide-mobile" }),
+							/* @__PURE__ */ jsx("div", {
+								className: "hide-mobile",
+								children: /* @__PURE__ */ jsx(UserMenu, {})
+							}),
+							/* @__PURE__ */ jsxs("button", {
 								type: "button",
-								className: "icon-link show-mobile",
+								className: "icon-link header__burger show-mobile",
 								onClick: () => setMenu(true),
 								"aria-label": "Открыть меню",
-								children: /* @__PURE__ */ jsx(Icon, {
+								"aria-expanded": menu,
+								children: [/* @__PURE__ */ jsx(Icon, {
 									name: "menu",
 									size: 24
-								})
+								}), /* @__PURE__ */ jsx(Badge, { n: auth?.user?.unread ?? 0 })]
 							})
 						]
 					})
@@ -2294,37 +2518,10 @@ function PublicLayout({ children, bare }) {
 			open: menu,
 			onClose: () => setMenu(false),
 			title: "Меню",
-			children: /* @__PURE__ */ jsxs("ul", {
-				className: "drawer-nav",
-				children: [
-					nav.map((n) => /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsx(Link, {
-						href: n.href,
-						children: n.label
-					}) }, n.href)),
-					/* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsxs(Link, {
-						href: "/favorites",
-						children: ["Избранное ", favCount ? `(${favCount})` : ""]
-					}) }),
-					/* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsxs(Link, {
-						href: "/compare",
-						children: ["Сравнение ", cmpCount ? `(${cmpCount})` : ""]
-					}) }),
-					/* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsx(Link, {
-						href: "/for-clinics",
-						children: "Для клиник"
-					}) }),
-					/* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsx(Link, {
-						href: "/about",
-						children: "О сервисе"
-					}) }),
-					/* @__PURE__ */ jsx("li", { children: auth?.user ? /* @__PURE__ */ jsx(Link, {
-						href: accountHome(auth.user),
-						children: accountLabel(auth.user)
-					}) : /* @__PURE__ */ jsx(Link, {
-						href: "/login",
-						children: "Войти"
-					}) })
-				]
+			children: /* @__PURE__ */ jsx(MobileMenu, {
+				isActive: active,
+				favorites: favCount,
+				compare: cmpCount
 			})
 		}),
 		/* @__PURE__ */ jsxs(Drawer, {
@@ -3854,16 +4051,26 @@ function useActive() {
 		return href !== "/max" && path.startsWith(`${href}/`);
 	};
 }
+/** Мини-приложение в MAX: компактная шапка (город и поиск), нижняя навигация, без подвала сайта. */
 function MaxLayout({ children }) {
 	const { auth, maxBridgeScript } = usePage().props;
+	const { url } = usePage();
 	const city = useCity();
 	const active = useActive();
 	const user = auth?.user;
+	const [searchOpen, setSearchOpen] = useState(false);
+	useEffect(() => setSearchOpen(false), [url]);
 	const tabs = [
 		{
 			href: "/max",
 			label: "Главная",
 			icon: "home"
+		},
+		{
+			href: "#search",
+			label: "Поиск",
+			icon: "search",
+			action: () => setSearchOpen(true)
 		},
 		{
 			href: "/max/clinics",
@@ -3878,37 +4085,36 @@ function MaxLayout({ children }) {
 		{
 			href: user ? accountHome(user) : "/login",
 			label: user ? "Профиль" : "Вход",
-			icon: "user"
+			icon: "user",
+			badge: user?.unread
 		}
 	];
 	return /* @__PURE__ */ jsx(LeadProvider, { children: /* @__PURE__ */ jsxs("div", {
-		className: "min-h-dvh bg-[var(--surface-page)] text-[var(--text-primary)] pb-[calc(4.5rem+env(safe-area-inset-bottom))]",
+		className: "max-app",
 		children: [
 			/* @__PURE__ */ jsx(Head, { children: maxBridgeScript ? /* @__PURE__ */ jsx("script", {
 				src: maxBridgeScript,
 				defer: true
 			}) : null }),
 			/* @__PURE__ */ jsxs("header", {
-				className: "header",
+				className: "header max-app__header",
 				children: [/* @__PURE__ */ jsxs("div", {
 					className: "container header__row",
 					children: [
-						/* @__PURE__ */ jsx(Logo, {}),
+						/* @__PURE__ */ jsx(Logo, { to: "/max" }),
 						/* @__PURE__ */ jsx(CityPicker, {}),
-						/* @__PURE__ */ jsx("div", {
-							className: "header__search hide-mobile",
-							children: /* @__PURE__ */ jsx(SearchBox, {})
-						}),
 						/* @__PURE__ */ jsx("nav", {
 							className: "header__actions",
-							"aria-label": "MAX",
-							children: user ? /* @__PURE__ */ jsx(Link, {
-								href: accountHome(user),
-								className: "text-sm font-semibold",
-								children: accountLabel(user)
-							}) : /* @__PURE__ */ jsx("span", {
-								className: "text-xs text-muted",
-								children: "MAX"
+							"aria-label": "Действия",
+							children: /* @__PURE__ */ jsx("button", {
+								type: "button",
+								className: "icon-link",
+								onClick: () => setSearchOpen(true),
+								"aria-label": "Поиск",
+								children: /* @__PURE__ */ jsx(Icon, {
+									name: "search",
+									size: 22
+								})
 							})
 						})
 					]
@@ -3916,7 +4122,7 @@ function MaxLayout({ children }) {
 					className: "header__nav hide-mobile",
 					children: /* @__PURE__ */ jsx("nav", {
 						className: "container",
-						"aria-label": "MAX навигация",
+						"aria-label": "Навигация мини-приложения",
 						children: /* @__PURE__ */ jsxs("ul", { children: [
 							/* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsx(Link, {
 								href: "/max",
@@ -3928,6 +4134,11 @@ function MaxLayout({ children }) {
 								className: cx(active("/max/clinics") && "is-active"),
 								children: ["Клиники ", city.nameIn]
 							}) }),
+							user ? /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsx(Link, {
+								href: "/max/appointments",
+								className: cx(active("/max/appointments") && "is-active"),
+								children: "Мои записи"
+							}) }) : null,
 							/* @__PURE__ */ jsx("li", { className: "grow" }),
 							/* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsx(Link, {
 								href: "/privacy",
@@ -3940,20 +4151,52 @@ function MaxLayout({ children }) {
 			}),
 			/* @__PURE__ */ jsx("main", {
 				id: "main",
-				className: "main",
+				className: "main max-app__main",
 				children
 			}),
 			/* @__PURE__ */ jsx("nav", {
-				className: "tabbar",
-				"aria-label": "MAX навигация",
-				children: tabs.map((t) => /* @__PURE__ */ jsxs(Link, {
+				className: "tabbar max-app__tabbar",
+				"aria-label": "Навигация мини-приложения",
+				children: tabs.map((t) => t.action ? /* @__PURE__ */ jsxs("button", {
+					type: "button",
+					onClick: t.action,
+					className: cx("tabbar__item", searchOpen && "is-active"),
+					children: [/* @__PURE__ */ jsx("span", {
+						className: "tabbar__icon",
+						children: /* @__PURE__ */ jsx(Icon, {
+							name: t.icon,
+							size: 24
+						})
+					}), /* @__PURE__ */ jsx("span", { children: t.label })]
+				}, t.label) : /* @__PURE__ */ jsxs(Link, {
 					href: t.href,
 					className: cx("tabbar__item", active(t.href) && "is-active"),
-					children: [/* @__PURE__ */ jsx(Icon, {
-						name: t.icon,
-						size: 24
+					"aria-current": active(t.href) ? "page" : void 0,
+					children: [/* @__PURE__ */ jsxs("span", {
+						className: "tabbar__icon",
+						children: [/* @__PURE__ */ jsx(Icon, {
+							name: t.icon,
+							size: 24
+						}), t.badge ? /* @__PURE__ */ jsx("span", {
+							className: "count-badge",
+							children: t.badge > 9 ? "9+" : t.badge
+						}) : null]
 					}), /* @__PURE__ */ jsx("span", { children: t.label })]
-				}, t.href))
+				}, t.label))
+			}),
+			/* @__PURE__ */ jsxs(Drawer, {
+				open: searchOpen,
+				onClose: () => setSearchOpen(false),
+				title: "Поиск",
+				children: [/* @__PURE__ */ jsx(SearchBox, {
+					variant: "hero",
+					autoFocus: true,
+					onDone: () => setSearchOpen(false)
+				}), /* @__PURE__ */ jsx("p", {
+					className: "text-sm text-muted",
+					style: { marginTop: 16 },
+					children: "Например: «болит зуб», «имплантация», «детский стоматолог», название клиники или фамилия врача."
+				})]
 			}),
 			/* @__PURE__ */ jsx(AssistantWidget, {}),
 			/* @__PURE__ */ jsx(ToastHost, {})
