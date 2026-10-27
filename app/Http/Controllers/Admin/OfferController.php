@@ -14,6 +14,7 @@ use App\Models\OfferTemplate;
 use App\Models\OfferTemplateVersion;
 use App\Models\ParsedOrganization;
 use App\Models\StopListEntry;
+use App\Rules\RussianPhone;
 use App\Services\Audit;
 use App\Services\Offers\OfferRenderer;
 use App\Services\Offers\OfferService;
@@ -233,7 +234,7 @@ class OfferController extends AdminController
             'rules.send_from_hour' => ['required', 'integer', 'min:0', 'max:23'],
             'rules.send_to_hour' => ['required', 'integer', 'min:1', 'max:24', 'gt:rules.send_from_hour'],
             'manager.name' => ['nullable', 'string', 'max:120'],
-            'manager.phone' => ['nullable', 'string', 'max:32'],
+            'manager.phone' => ['nullable', 'string', 'max:32', new RussianPhone],
             'manager.email' => ['nullable', 'email', 'max:190'],
         ], ['rules.send_to_hour.gt' => 'Окончание рабочего окна должно быть позже начала.']);
 

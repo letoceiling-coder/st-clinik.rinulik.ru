@@ -184,6 +184,14 @@
     font-size: var(--fs-xs);
     color: var(--color-muted);
 }
+.field__counter {
+    align-self: flex-end;
+    margin-top: -2px;
+    font-size: var(--fs-xs);
+    color: var(--color-muted);
+    font-variant-numeric: tabular-nums;
+}
+.field__counter.is-near { color: var(--color-warning, #b45309); }
 .field__error {
     font-size: var(--fs-xs);
     color: var(--color-danger);

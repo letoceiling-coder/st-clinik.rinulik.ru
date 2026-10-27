@@ -15,6 +15,7 @@ use App\Models\UserCollection;
 use App\Models\UserNotification;
 use App\Notifications\PendingEmailNotification;
 use App\Repositories\Contracts\CatalogRepository;
+use App\Rules\RussianPhone;
 use App\Services\Audit;
 use App\Services\Auth\SocialAuthService;
 use App\Services\Broadcasts\ClinicFollowerService;
@@ -201,7 +202,7 @@ class AccountController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|min:2|max:80',
-            'phone' => ['nullable', 'string', 'regex:/^\+?[0-9\s\-\(\)]{10,18}$/'],
+            'phone' => ['nullable', 'string', 'max:32', new RussianPhone],
             'city_id' => 'nullable|exists:cities,id',
             'notify_email' => 'boolean',
             'notify_leads' => 'boolean',

@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import type { FormEvent } from 'react';
 import type { SharedProps } from '@/lib/types';
 import { Button } from './ui/Button';
-import { Check, SelectField, TextArea, TextField } from './ui/Fields';
+import { Check, PhoneField, SelectField, TextArea, TextField } from './ui/Fields';
 import { Modal } from './ui/Overlay';
 import { Alert } from './ui/Misc';
 
@@ -90,14 +90,10 @@ export default function LeadModal({ target, onClose }: { target: LeadTarget | nu
                 </p>
 
                 <div className="form-grid">
-                    <TextField label="Ваше имя" required autoComplete="given-name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} error={form.errors.name} data-autofocus />
-                    <TextField
+                    <TextField label="Ваше имя" required autoComplete="name" maxLength={60} value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} error={form.errors.name} data-autofocus />
+                    <PhoneField
                         label="Телефон"
                         required
-                        type="tel"
-                        inputMode="tel"
-                        autoComplete="tel"
-                        placeholder="+7 (900) 000-00-00"
                         value={form.data.phone}
                         onChange={(e) => form.setData('phone', e.target.value)}
                         error={form.errors.phone}
@@ -146,7 +142,7 @@ export default function LeadModal({ target, onClose }: { target: LeadTarget | nu
                     value={form.data.comment}
                     onChange={(e) => form.setData('comment', e.target.value)}
                     error={form.errors.comment}
-                    hint={`${form.data.comment.length}/300. Не указывайте диагнозы, номера документов и результаты анализов.`}
+                    hint="Не указывайте диагнозы, номера документов и результаты анализов."
                 />
 
                 <Check label="Запись нужна ребёнку" checked={form.data.is_child} onChange={(e) => form.setData('is_child', e.target.checked)} />

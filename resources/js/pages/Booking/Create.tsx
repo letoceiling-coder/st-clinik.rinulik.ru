@@ -1,10 +1,11 @@
 import { Link, router, useForm } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Check, TextArea, TextField } from '@/components/ui/Fields';
+import { Check, PhoneField, TextArea, TextField } from '@/components/ui/Fields';
 import { Alert } from '@/components/ui/Misc';
 import { AnalyticsEvents, trackAnalyticsEvent } from '@/lib/analytics';
-import { money, priceFrom } from '@/lib/format';
+import { DoctorArt } from '@/components/PhotoArt';
+import { formatRuPhone, money, priceFrom, yearsWord } from '@/lib/format';
 
 interface Clinic {
     id: number;
@@ -29,6 +30,7 @@ interface Doctor {
     position: string | null;
     experience_years: number;
     photo_url: string | null;
+    art_seed?: number;
 }
 
 interface DayCount {
@@ -42,6 +44,11 @@ interface Slot {
 }
 
 const WEEKDAYS = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
+
+/** «сб, 31 октября» из даты YYYY-MM-DD. */
+function humanDate(isoDate: string): string {
+    return new Date(`${isoDate}T12:00:00`).toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'long' });
+}
 
 function iso(d: Date): string {
     return d.toISOString().slice(0, 10);
@@ -98,7 +105,7 @@ export default function BookingCreate({
         doctor_id: anyDoctor || !doctorId ? '' : doctorId,
         starts_at: '',
         patient_name: patient?.name ?? '',
-        patient_phone: patient?.phone ?? '',
+        patient_phone: formatRuPhone(patient?.phone ?? ''),
         is_child: false,
         notes: '',
         consent: false,
@@ -199,7 +206,7 @@ export default function BookingCreate({
                 {[
                     ['Услуга', service?.name ?? 'Не выбрана'],
                     ['Врач', uses_doctors ? (anyDoctor ? 'Любой свободный' : doctor?.name ?? 'Выберите') : 'Клиника'],
-                    ['Дата', date ?? 'Выберите'],
+                    ['Дата', date ? humanDate(date) : 'Выберите'],
                     ['Время', time ?? 'Выберите'],
                     ['Контакты', 'Имя и телефон'],
                 ].map(([t, v], i) => (
@@ -252,11 +259,11 @@ export default function BookingCreate({
                         {doctors.map((d) => (
                             <button key={d.id} type="button" className={`book-card ${!anyDoctor && doctorId === d.id ? 'is-on' : ''}`} onClick={() => pickDoctor(d.id)}>
                                 <span className="book-card__photo">
-                                    {d.photo_url ? <img src={d.photo_url} alt="" /> : null}
+                                    <DoctorArt seed={d.art_seed} photoUrl={d.photo_url} name={d.name} />
                                 </span>
                                 <span>
                                     <b>{d.name}</b>
-                                    <span className="text-sm text-muted">{d.position}{d.experience_years ? ` · стаж ${d.experience_years} лет` : ''}</span>
+                                    <span className="text-sm text-muted">{d.position}{d.experience_years ? ` · стаж ${yearsWord(d.experience_years)}` : ''}</span>
                                 </span>
                             </button>
                         ))}
@@ -314,15 +321,15 @@ export default function BookingCreate({
                 <section className="card stack">
                     <h2>Контакты</h2>
                     <dl className="book-sum">
-                        <div><dt>Когда</dt><dd>{date} в {time}</dd></div>
+                        <div><dt>Когда</dt><dd>{date ? humanDate(date) : ''} в {time}</dd></div>
                         <div><dt>Где</dt><dd>{clinic.name}, {clinic.address}</dd></div>
                         {doctor ? <div><dt>Врач</dt><dd>{doctor.name}</dd></div> : <div><dt>Врач</dt><dd>Любой свободный</dd></div>}
                         {service ? <div><dt>Услуга</dt><dd>{service.name}, {service.duration} мин</dd></div> : null}
                     </dl>
-                    <form className="form-grid" onSubmit={(e) => { e.preventDefault(); submit(); }}>
-                        <TextField label="Ваше имя" required value={form.data.patient_name} onChange={(e) => form.setData('patient_name', e.target.value)} error={form.errors.patient_name} />
-                        <TextField label="Телефон" required type="tel" value={form.data.patient_phone} onChange={(e) => form.setData('patient_phone', e.target.value)} error={form.errors.patient_phone} />
-                        <TextArea className="span-2" label="Комментарий" value={form.data.notes} onChange={(e) => form.setData('notes', e.target.value)} error={form.errors.notes} />
+                    <form className="form-grid" autoComplete="on" onSubmit={(e) => { e.preventDefault(); submit(); }}>
+                        <TextField label="Ваше имя" required autoComplete="name" maxLength={60} value={form.data.patient_name} onChange={(e) => form.setData('patient_name', e.target.value)} error={form.errors.patient_name} />
+                        <PhoneField label="Телефон" required value={form.data.patient_phone} onChange={(e) => form.setData('patient_phone', e.target.value)} error={form.errors.patient_phone} />
+                        <TextArea className="span-2" label="Комментарий" maxLength={300} rows={3} placeholder="Например: удобнее после 18:00. Не указывайте диагнозы и данные документов." value={form.data.notes} onChange={(e) => form.setData('notes', e.target.value)} error={form.errors.notes} />
                         <Check label="Запись для ребёнка" checked={form.data.is_child} onChange={(e) => form.setData('is_child', e.target.checked)} />
                         <Check label="Согласен на обработку персональных данных" checked={form.data.consent} onChange={(e) => form.setData('consent', e.target.checked)} error={form.errors.consent} />
                         <input type="text" name="website" value={form.data.website} onChange={(e) => form.setData('website', e.target.value)} className="visually-hidden" tabIndex={-1} autoComplete="off" />

@@ -1,7 +1,7 @@
 import { usePage } from '@inertiajs/react';
 import { useMemo, useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Check, SelectField, TextArea, TextField } from '@/components/ui/Fields';
+import { Check, PhoneField, SelectField, TextArea, TextField } from '@/components/ui/Fields';
 import type { SharedProps } from '@/lib/types';
 
 export type ClinicChoice = { slug: string; label: string };
@@ -126,7 +126,7 @@ export default function AssistantLeadPanel({
                 />
             ) : null}
             <TextField label="Имя" value={name} onChange={(e) => setName(e.target.value)} required autoComplete="name" />
-            <TextField label="Телефон" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required autoComplete="tel" />
+            <PhoneField label="Телефон" value={phone} onChange={(e) => setPhone(e.target.value)} required />
             <TextArea label="Комментарий" value={comment} onChange={(e) => setComment(e.target.value)} rows={2} maxLength={300} />
             <Check
                 label={

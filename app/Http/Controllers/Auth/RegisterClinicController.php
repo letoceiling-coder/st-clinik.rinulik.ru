@@ -7,6 +7,7 @@ use App\Models\Offer;
 use App\Models\Organization;
 use App\Models\OrganizationStaff;
 use App\Models\User;
+use App\Rules\RussianPhone;
 use App\Services\Audit;
 use App\Services\Organization\OrganizationClaimService;
 use App\Services\Seo;
@@ -49,7 +50,7 @@ class RegisterClinicController extends Controller
         $rules = [
             'name' => ['required', 'string', 'min:2', 'max:80'],
             'email' => ['required', 'email', 'max:120', 'unique:users,email'],
-            'phone' => ['nullable', 'string', 'regex:/^\+?[0-9\s\-\(\)]{10,18}$/'],
+            'phone' => ['nullable', 'string', 'max:32', new RussianPhone],
             'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
             'consent' => ['accepted'],
             'offer_token' => ['nullable', 'string', 'min:40', 'max:64'],

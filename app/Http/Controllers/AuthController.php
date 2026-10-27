@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AnalyticsEvent;
 use App\Models\User;
+use App\Rules\RussianPhone;
 use App\Services\Analytics\AnalyticsTracker;
 use App\Services\Audit;
 use App\Services\Seo;
@@ -56,7 +57,7 @@ class AuthController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'min:2', 'max:80'],
             'email' => ['required', 'email', 'max:120', 'unique:users,email'],
-            'phone' => ['nullable', 'string', 'regex:/^\+?[0-9\s\-\(\)]{10,18}$/'],
+            'phone' => ['nullable', 'string', 'max:32', new RussianPhone],
             'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
             'consent' => ['accepted'],
         ], [

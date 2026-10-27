@@ -2,7 +2,7 @@ import { router, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { PageHead } from '@/components/Dash';
 import { Button } from '@/components/ui/Button';
-import { SelectField, TextField } from '@/components/ui/Fields';
+import { PhoneField, SelectField, TextField } from '@/components/ui/Fields';
 
 export default function Staff({
     members,
@@ -49,7 +49,7 @@ export default function Staff({
                     <form className="card stack" onSubmit={submit}>
                         <h2 className="card-title">Пригласить</h2>
                         <TextField label="E-mail" type="email" value={form.data.email} onChange={(e) => form.setData('email', e.target.value)} error={form.errors.email} />
-                        <TextField label="Телефон" type="tel" placeholder="+7…" value={form.data.phone} onChange={(e) => form.setData('phone', e.target.value)} error={form.errors.phone} />
+                        <PhoneField label="Телефон" value={form.data.phone} onChange={(e) => form.setData('phone', e.target.value)} error={form.errors.phone} />
                         {!sms_invites_enabled ? (
                             <p className="text-xs text-muted">SMS не настроен — по телефону ссылку нужно будет передать вручную.</p>
                         ) : null}

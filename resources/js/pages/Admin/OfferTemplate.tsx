@@ -2,7 +2,7 @@ import { useForm, useHttp } from '@inertiajs/react';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { PageHead, Panel } from '@/components/Dash';
 import { Button, LinkButton } from '@/components/ui/Button';
-import { Check, SelectField, TextArea, TextField } from '@/components/ui/Fields';
+import { Check, PhoneField, SelectField, TextArea, TextField } from '@/components/ui/Fields';
 import { Alert, Tabs } from '@/components/ui/Misc';
 
 type Field = 'web_title' | 'web_body' | 'email_subject' | 'email_body' | 'sms_text' | 'messenger_text' | 'call_script';
@@ -249,7 +249,7 @@ export default function AdminOfferTemplate({ template, defaults, variables, samp
                                 <option value="sms">SMS на номер</option>
                             </SelectField>
                             {test.data.channel === 'sms' ? (
-                                <TextField label="Телефон" type="tel" value={test.data.phone} onChange={(e) => test.setData('phone', e.target.value)} error={test.errors.phone} placeholder="+7 900 000-00-00" />
+                                <PhoneField label="Телефон" value={test.data.phone} onChange={(e) => test.setData('phone', e.target.value)} error={test.errors.phone} />
                             ) : null}
                             <Alert tone="muted">Отправляется текущий текст из редактора, даже несохранённый. Письмо уходит через почту для КП из раздела «Интеграции».</Alert>
                             <div>

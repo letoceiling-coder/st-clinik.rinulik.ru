@@ -10,6 +10,7 @@ use App\Models\ParsedOrganization;
 use App\Models\StopListEntry;
 use App\Models\User;
 use App\Models\UserNotification;
+use App\Rules\RussianPhone;
 use App\Services\Audit;
 use App\Services\Offers\DemoSession;
 use App\Services\Offers\OfferRenderer;
@@ -89,7 +90,7 @@ class OfferController extends Controller
         $offer = $this->offer($token);
         $data = $request->validate([
             'name' => ['required', 'string', 'max:120'],
-            'phone' => ['required', 'string', 'max:32', 'regex:/^[\d\s()+-]{6,32}$/'],
+            'phone' => ['required', 'string', 'max:32', new RussianPhone],
             'email' => ['nullable', 'email', 'max:190'],
             'position' => ['nullable', 'string', 'max:120'],
             'comment' => ['nullable', 'string', 'max:2000'],

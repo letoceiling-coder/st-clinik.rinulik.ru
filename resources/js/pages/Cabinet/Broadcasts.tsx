@@ -66,7 +66,7 @@ export default function CabinetBroadcasts({ broadcasts, followers_count, may_bro
                 <Panel title="Черновик">
                     <form className="stack" onSubmit={submit}>
                         <TextField label="Тема" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} error={form.errors.name} required />
-                        <TextArea label="Текст" value={form.data.body} onChange={(e) => form.setData('body', e.target.value)} error={form.errors.body} rows={5} required />
+                        <TextArea label="Текст" value={form.data.body} maxLength={8000} onChange={(e) => form.setData('body', e.target.value)} error={form.errors.body} rows={5} required />
                         <TextField label="Кнопка" value={form.data.button_label} onChange={(e) => form.setData('button_label', e.target.value)} />
                         <TextField label="Ссылка" value={form.data.button_url} onChange={(e) => form.setData('button_url', e.target.value)} placeholder="https://" />
                         <div className="row row--wrap">

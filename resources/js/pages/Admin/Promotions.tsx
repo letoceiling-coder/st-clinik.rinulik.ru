@@ -200,7 +200,7 @@ export default function AdminPromotions({ products, packages, prices, settings, 
                         <h2>Новая доп. опция</h2>
                         <TextField label="Код" required value={productForm.data.code} onChange={(e) => productForm.setData('code', e.target.value)} hint="boost, banner_home, banner_catalog" />
                         <TextField label="Название" required value={productForm.data.name} onChange={(e) => productForm.setData('name', e.target.value)} />
-                        <TextArea label="Описание" value={productForm.data.description} onChange={(e) => productForm.setData('description', e.target.value)} />
+                        <TextArea label="Описание" value={productForm.data.description} maxLength={2000} onChange={(e) => productForm.setData('description', e.target.value)} />
                         <TextField label="Срок действия, дней" type="number" value={String(productForm.data.duration_days)} onChange={(e) => productForm.setData('duration_days', Number(e.target.value))} hint="Например: 30 — один месяц" />
                         <Check label="Требует модерации (баннер)" checked={productForm.data.requires_moderation} onChange={(e) => productForm.setData('requires_moderation', e.target.checked)} />
                         <Button type="submit">Добавить</Button>
@@ -226,7 +226,7 @@ export default function AdminPromotions({ products, packages, prices, settings, 
                         <h2>Новый пакет публикации</h2>
                         <TextField label="Код" required value={packageForm.data.code} onChange={(e) => packageForm.setData('code', e.target.value)} hint="publish_1m, publish_6m, publish_12m" />
                         <TextField label="Название" required value={packageForm.data.name} onChange={(e) => packageForm.setData('name', e.target.value)} />
-                        <TextArea label="Описание" value={packageForm.data.description} onChange={(e) => packageForm.setData('description', e.target.value)} />
+                        <TextArea label="Описание" value={packageForm.data.description} maxLength={2000} onChange={(e) => packageForm.setData('description', e.target.value)} />
                         <TextField label="Срок публикации, дней" type="number" required value={String(packageForm.data.duration_days)} onChange={(e) => packageForm.setData('duration_days', Number(e.target.value))} hint="30 = 1 мес., 180 = 6 мес., 365 = 12 мес." />
                         <Button type="submit">Добавить пакет</Button>
                     </form>

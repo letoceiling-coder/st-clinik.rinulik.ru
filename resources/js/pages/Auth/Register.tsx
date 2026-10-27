@@ -3,7 +3,7 @@ import type { FormEvent } from 'react';
 import { SocialOAuthButtons } from '@/components/auth/SocialOAuthButtons';
 import { AnalyticsEvents, trackAnalyticsEvent } from '@/lib/analytics';
 import { Button } from '@/components/ui/Button';
-import { Check, TextField } from '@/components/ui/Fields';
+import { Check, PhoneField, TextField } from '@/components/ui/Fields';
 
 export default function Register() {
     const form = useForm({ name: '', email: '', phone: '', password: '', password_confirmation: '', consent: false });
@@ -24,7 +24,7 @@ export default function Register() {
             </div>
             <TextField label="Имя" autoComplete="name" required value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} error={form.errors.name} />
             <TextField label="E-mail" type="email" autoComplete="email" required value={form.data.email} onChange={(e) => form.setData('email', e.target.value)} error={form.errors.email} />
-            <TextField label="Телефон" type="tel" autoComplete="tel" placeholder="+7 (900) 000-00-00" value={form.data.phone} onChange={(e) => form.setData('phone', e.target.value)} error={form.errors.phone} hint="Необязательно. Нужен, чтобы клиника могла связаться по заявке." />
+            <PhoneField label="Телефон" value={form.data.phone} onChange={(e) => form.setData('phone', e.target.value)} error={form.errors.phone} hint="Необязательно. Нужен, чтобы клиника могла связаться по заявке." />
             <TextField label="Пароль" type="password" autoComplete="new-password" required value={form.data.password} onChange={(e) => form.setData('password', e.target.value)} error={form.errors.password} hint="Не менее 8 символов, буквы и цифры." />
             <TextField label="Повторите пароль" type="password" autoComplete="new-password" required value={form.data.password_confirmation} onChange={(e) => form.setData('password_confirmation', e.target.value)} error={form.errors.password_confirmation} />
             <Check

@@ -53,7 +53,7 @@ export default function Reviews({ reviews, reasons, filters }: { reviews: Pagina
                     ) : null}
                     {canReply ? (
                         <form className="stack" onSubmit={(e) => { e.preventDefault(); reply.post(`/clinic-cabinet/reviews/${r.id}/reply`, { onSuccess: () => reply.reset() }); }}>
-                            <TextArea label="Ответ клиники" value={reply.data.reply_text} onChange={(e) => reply.setData('reply_text', e.target.value)} error={reply.errors.reply_text} />
+                            <TextArea label="Ответ клиники" value={reply.data.reply_text} maxLength={1000} onChange={(e) => reply.setData('reply_text', e.target.value)} error={reply.errors.reply_text} />
                             <Button type="submit" size="sm" loading={reply.processing}>{r.reply_status === 'rejected' ? 'Отправить снова' : 'Опубликовать ответ'}</Button>
                         </form>
                     ) : null}
@@ -65,7 +65,7 @@ export default function Reviews({ reviews, reasons, filters }: { reviews: Pagina
                             <SelectField label="Причина" value={complain.data.reason} onChange={(e) => complain.setData('reason', e.target.value)}>
                                 {Object.entries(reasons).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                             </SelectField>
-                            <TextArea label="Комментарий" value={complain.data.comment} onChange={(e) => complain.setData('comment', e.target.value)} error={complain.errors.comment} />
+                            <TextArea label="Комментарий" value={complain.data.comment} maxLength={500} onChange={(e) => complain.setData('comment', e.target.value)} error={complain.errors.comment} />
                             <Button type="submit" size="sm" variant="dark" loading={complain.processing}>Отправить жалобу</Button>
                         </form>
                     ) : null}

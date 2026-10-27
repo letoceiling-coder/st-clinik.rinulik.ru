@@ -267,12 +267,12 @@ function CustomizeForm({ offer, content, onDone }: { offer: Props['offer']; cont
                 Правка касается только этой клиники и пересобирает текст с переменными. Шаблон не меняется.
             </Alert>
             <TextField label="Заголовок страницы" value={form.data.web_title} onChange={(e) => form.setData('web_title', e.target.value)} error={form.errors.web_title} />
-            <TextArea label="Текст страницы" rows={8} value={form.data.web_body} onChange={(e) => form.setData('web_body', e.target.value)} error={form.errors.web_body} />
+            <TextArea label="Текст страницы" rows={8} maxLength={20000} value={form.data.web_body} onChange={(e) => form.setData('web_body', e.target.value)} error={form.errors.web_body} />
             <TextField label="Тема письма" value={form.data.email_subject} onChange={(e) => form.setData('email_subject', e.target.value)} error={form.errors.email_subject} />
             <TextArea label="Текст письма" rows={6} value={form.data.email_body} onChange={(e) => form.setData('email_body', e.target.value)} error={form.errors.email_body} />
             <TextArea label="SMS" rows={2} value={form.data.sms_text} onChange={(e) => form.setData('sms_text', e.target.value)} error={form.errors.sms_text} />
             <TextArea label="Мессенджеры" rows={4} value={form.data.messenger_text} onChange={(e) => form.setData('messenger_text', e.target.value)} error={form.errors.messenger_text} />
-            <TextArea label="Скрипт звонка" rows={4} value={form.data.call_script ?? ''} onChange={(e) => form.setData('call_script', e.target.value)} error={form.errors.call_script} />
+            <TextArea label="Скрипт звонка" rows={4} maxLength={4000} value={form.data.call_script ?? ''} onChange={(e) => form.setData('call_script', e.target.value)} error={form.errors.call_script} />
             <div className="row offers-save">
                 <Button type="submit" loading={form.processing}>
                     Сохранить для этой клиники

@@ -3,7 +3,7 @@ import type { FormEvent } from 'react';
 import { useMemo } from 'react';
 import { PageHead } from '@/components/Dash';
 import { Button } from '@/components/ui/Button';
-import { Check, SelectField, TextArea, TextField } from '@/components/ui/Fields';
+import { Check, PhoneField, SelectField, TextArea, TextField } from '@/components/ui/Fields';
 import { Alert } from '@/components/ui/Misc';
 
 type PropertyType = { slug: string; name: string; group: string; column: string };
@@ -99,7 +99,7 @@ export default function BranchForm({
             <section className="card form-grid">
                 <TextField className="span-2" label="Название" required value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} error={form.errors.name} />
                 <TextField className="span-2" label="Короткий слоган" value={form.data.tagline} onChange={(e) => form.setData('tagline', e.target.value)} />
-                <TextArea className="span-2" label="Описание" value={form.data.description} onChange={(e) => form.setData('description', e.target.value)} />
+                <TextArea className="span-2" label="Описание" value={form.data.description} maxLength={3000} onChange={(e) => form.setData('description', e.target.value)} />
                 <SelectField label="Город" required value={form.data.city_id} onChange={(e) => form.setData('city_id', e.target.value)} error={form.errors.city_id}>
                     <option value="">Выберите</option>
                     {cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -110,7 +110,7 @@ export default function BranchForm({
                 </SelectField>
                 <TextField className="span-2" label="Адрес" required value={form.data.address} onChange={(e) => form.setData('address', e.target.value)} error={form.errors.address} />
                 <TextField label="Метро" value={form.data.metro} onChange={(e) => form.setData('metro', e.target.value)} />
-                <TextField label="Телефон" required value={form.data.phone} onChange={(e) => form.setData('phone', e.target.value)} error={form.errors.phone} />
+                <PhoneField label="Телефон" required value={form.data.phone} onChange={(e) => form.setData('phone', e.target.value)} error={form.errors.phone} />
                 <TextField label="E-mail" type="email" value={form.data.email} onChange={(e) => form.setData('email', e.target.value)} />
                 <TextField label="Сайт" value={form.data.website} onChange={(e) => form.setData('website', e.target.value)} />
                 <TextField label="Год основания" type="number" value={form.data.founded_year} onChange={(e) => form.setData('founded_year', e.target.value)} />

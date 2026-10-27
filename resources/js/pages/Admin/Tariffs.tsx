@@ -118,7 +118,7 @@ function TariffEditor({ tariff, feature_labels }: { tariff: TariffRow; feature_l
             </div>
             <p className="text-sm text-muted">Клиник на тарифе: {tariff.clinics_count}</p>
             <TextField label="Название" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} required />
-            <TextArea label="Описание" value={form.data.description} onChange={(e) => form.setData('description', e.target.value)} />
+            <TextArea label="Описание" value={form.data.description} maxLength={5000} onChange={(e) => form.setData('description', e.target.value)} />
             <div className="form-grid">
                 <TextField label="Цена (коп.)" type="number" value={String(form.data.price)} onChange={(e) => form.setData('price', Number(e.target.value))} />
                 <TextField label="Срок (дней)" type="number" value={String(form.data.duration_days)} onChange={(e) => form.setData('duration_days', Number(e.target.value))} />

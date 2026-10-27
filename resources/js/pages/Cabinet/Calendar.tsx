@@ -3,7 +3,7 @@ import { type CSSProperties, useMemo, useState } from 'react';
 import { PageHead, StatusBadge } from '@/components/Dash';
 import Icon from '@/components/Icon';
 import { Button } from '@/components/ui/Button';
-import { SelectField, TextArea, TextField } from '@/components/ui/Fields';
+import { PhoneField, SelectField, TextArea, TextField } from '@/components/ui/Fields';
 import { Badge, EmptyState } from '@/components/ui/Misc';
 import { Modal } from '@/components/ui/Overlay';
 import { cx } from '@/lib/format';
@@ -677,7 +677,7 @@ function AppointmentForm({
             }}
         >
             <TextField label="Имя пациента" value={String(form.data.patient_name)} onChange={(e) => form.setData('patient_name', e.target.value)} required />
-            <TextField label="Телефон" value={String(form.data.patient_phone)} onChange={(e) => form.setData('patient_phone', e.target.value)} required />
+            <PhoneField label="Телефон" value={String(form.data.patient_phone)} onChange={(e) => form.setData('patient_phone', e.target.value)} required />
             <TextField label="Дата и время" type="datetime-local" value={String(form.data.starts_at)} onChange={(e) => form.setData('starts_at', e.target.value)} required />
             <SelectField label="Длительность" value={String(form.data.duration_minutes)} onChange={(e) => form.setData('duration_minutes', Number(e.target.value))}>
                 {durations.map((m) => (
@@ -701,7 +701,7 @@ function AppointmentForm({
                     <option key={k} value={k}>{v}</option>
                 ))}
             </SelectField>
-            <TextArea className="span-2" label="Заметка" value={String(form.data.notes)} onChange={(e) => form.setData('notes', e.target.value)} />
+            <TextArea className="span-2" label="Заметка" value={String(form.data.notes)} maxLength={500} onChange={(e) => form.setData('notes', e.target.value)} />
             {appointment?.history?.length ? (
                 <ul className="span-2 text-sm text-muted">
                     {appointment.history.map((h) => (

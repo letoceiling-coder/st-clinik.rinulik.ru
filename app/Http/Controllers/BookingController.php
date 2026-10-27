@@ -6,6 +6,7 @@ use App\Models\Appointment;
 use App\Models\AppointmentStatusChange;
 use App\Models\Clinic;
 use App\Models\Doctor;
+use App\Rules\RussianPhone;
 use App\Services\AppointmentBookingService;
 use App\Services\SensitiveTextGuard;
 use App\Services\Seo;
@@ -86,7 +87,7 @@ class BookingController extends Controller
             'doctor_id' => ['nullable', 'integer'],
             'starts_at' => ['required', 'date_format:Y-m-d H:i', 'after:now'],
             'patient_name' => ['required', 'string', 'min:2', 'max:60', "regex:/^[\p{L}\s'\-\.]+$/u"],
-            'patient_phone' => ['required', 'string', 'regex:/^\+?[0-9\s\-\(\)]{10,18}$/'],
+            'patient_phone' => ['required', 'string', 'max:32', new RussianPhone],
             'is_child' => ['boolean'],
             'notes' => ['nullable', 'string', 'max:300'],
             'consent' => ['accepted'],

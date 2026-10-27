@@ -68,7 +68,7 @@ function Card({ item, label }: { item: Item; label: string }) {
             {item.body ? <p>{item.body}</p> : null}
             {item.image ? <img src={item.image} alt="" style={{ maxWidth: 280, borderRadius: 12 }} /> : null}
             {item.has_file ? <a className="link" href={`/admin/moderation/documents/${item.id}`}>Открыть файл</a> : null}
-            <TextArea label="Комментарий при отклонении" value={form.data.note} onChange={(e) => form.setData('note', e.target.value)} error={form.errors.note} />
+            <TextArea label="Комментарий при отклонении" value={form.data.note} maxLength={500} onChange={(e) => form.setData('note', e.target.value)} error={form.errors.note} />
             <div className="row">
                 <Button size="sm" loading={form.processing} onClick={() => send('approve')}>Одобрить</Button>
                 <Button size="sm" variant="danger" loading={form.processing} onClick={() => send('reject')}>Отклонить</Button>

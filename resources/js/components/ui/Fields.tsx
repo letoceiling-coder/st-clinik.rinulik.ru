@@ -1,7 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import type { InputHTMLAttributes, ReactNode, Ref, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react';
+import type { ChangeEvent, InputHTMLAttributes, ReactNode, Ref, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react';
 import { useDismiss } from '@/components/ui/Overlay';
-import { cx } from '@/lib/format';
+import { cx, formatRuPhone } from '@/lib/format';
 import Icon from '../Icon';
 
 interface FieldWrap {
@@ -67,8 +67,76 @@ export function TextField({
     );
 }
 
+/**
+ * Поле телефона с маской «+7 (900) 000-00-00». Подходит для автозаполнения браузера
+ * (autocomplete="tel") и вставки номера в любом виде.
+ */
+export function PhoneField({ onChange, onFocus, onBlur, placeholder, ...rest }: FieldWrap & { inputClassName?: string; ref?: Ref<HTMLInputElement> } & InputHTMLAttributes<HTMLInputElement>) {
+    const lastValue = useRef(String(rest.value ?? ''));
+    const external = String(rest.value ?? '');
+    useEffect(() => {
+        lastValue.current = external;
+    }, [external]);
+    const emit = (e: ChangeEvent<HTMLInputElement>, value: string) => {
+        e.target.value = value;
+        lastValue.current = value;
+        onChange?.(e);
+    };
+
+    return (
+        <TextField
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            placeholder={placeholder ?? '+7 (900) 000-00-00'}
+            {...rest}
+            onFocus={(e) => {
+                if (e.target.value === '' && !rest.readOnly) {
+                    emit(e as unknown as ChangeEvent<HTMLInputElement>, '+7 (');
+                }
+                onFocus?.(e);
+            }}
+            onBlur={(e) => {
+                if (e.target.value.replace(/\D/g, '') === '7') {
+                    emit(e as unknown as ChangeEvent<HTMLInputElement>, '');
+                }
+                onBlur?.(e);
+            }}
+            onChange={(e) => {
+                const raw = e.target.value;
+                // Берём последнее значение, которое поле выдало само: при быстром наборе проп value
+                // может отставать на символ.
+                const prevDigits = lastValue.current.replace(/\D/g, '');
+                let digits = raw.replace(/\D/g, '');
+                if (digits.length > 11) {
+                    if (prevDigits.length <= 2) {
+                        // Вставка или автозаполнение поверх «+7 (»: номер — это вставленная часть,
+                        // её код страны (7/8) отбрасываем, лишний хвост обрезаем.
+                        const pasted = digits.slice(prevDigits.length);
+                        digits = '7' + (/^[78]/.test(pasted) && pasted.length >= 11 ? pasted.slice(1, 11) : pasted.slice(0, 10));
+                    } else {
+                        // Лишние цифры при наборе в заполненное поле игнорируем.
+                        digits = prevDigits;
+                    }
+                } else if (prevDigits === '7' && digits === '77') {
+                    // Набрали «+7» после автоподставленного префикса.
+                    digits = '7';
+                } else if (prevDigits === '78' && digits === '789') {
+                    // Привычное «8 9xx…»: восьмёрка — это код страны, а не начало кода оператора.
+                    digits = '79';
+                }
+                // Префикс можно стереть целиком, иначе поле нельзя очистить.
+                emit(e, digits === '7' || digits === '' ? (raw.length < 4 ? '' : '+7 (') : formatRuPhone(digits));
+            }}
+        />
+    );
+}
+
 export function TextArea({ label, hint, error, className, ...rest }: FieldWrap & { ref?: Ref<HTMLTextAreaElement> } & TextareaHTMLAttributes<HTMLTextAreaElement>) {
     const id = useId();
+    const max = typeof rest.maxLength === 'number' ? rest.maxLength : null;
+    const length = typeof rest.value === 'string' ? rest.value.length : 0;
+
     return (
         <Wrap id={id} label={label} hint={hint} error={error} required={rest.required} className={className}>
             <textarea
@@ -78,6 +146,11 @@ export function TextArea({ label, hint, error, className, ...rest }: FieldWrap &
                 aria-describedby={describe(id, error, hint)}
                 {...rest}
             />
+            {max ? (
+                <span className={cx('field__counter', length >= max * 0.9 && 'is-near')} aria-live="polite">
+                    {length} / {max}
+                </span>
+            ) : null}
         </Wrap>
     );
 }

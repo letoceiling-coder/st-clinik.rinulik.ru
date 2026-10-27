@@ -98,7 +98,7 @@ function RescheduleModal({ appointment, onClose }: { appointment: Appointment; o
                     ))}
                 </div>
                 {form.errors.starts_at ? <Alert tone="danger">{form.errors.starts_at}</Alert> : null}
-                <TextArea label="Комментарий" value={form.data.comment} onChange={(e) => form.setData('comment', e.target.value)} />
+                <TextArea label="Комментарий" value={form.data.comment} maxLength={300} onChange={(e) => form.setData('comment', e.target.value)} />
                 <div className="row">
                     <Button type="submit" loading={form.processing}>Отправить запрос</Button>
                     <Button type="button" variant="ghost" onClick={onClose}>Закрыть</Button>

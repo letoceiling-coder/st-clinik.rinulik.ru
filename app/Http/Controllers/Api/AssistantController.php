@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\AssistantConversation;
+use App\Rules\RussianPhone;
 use App\Services\Assistant\AssistantChatService;
 use App\Services\Assistant\AssistantLeadService;
 use App\Services\Assistant\AssistantSettings;
@@ -90,7 +91,7 @@ class AssistantController extends Controller
             'clinic' => ['required_without:broadcast', 'nullable', 'string', 'max:120'],
             'broadcast' => ['sometimes', 'boolean'],
             'name' => ['required', 'string', 'min:2', 'max:60'],
-            'phone' => ['required', 'string', 'max:32'],
+            'phone' => ['required', 'string', 'max:32', new RussianPhone],
             'comment' => ['nullable', 'string', 'max:300'],
             'preferred_date' => ['nullable', 'date'],
             'preferred_time' => ['nullable', 'string', 'max:16'],

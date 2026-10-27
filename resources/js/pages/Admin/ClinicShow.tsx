@@ -90,7 +90,7 @@ export default function ClinicShow({ clinic, statuses }: { clinic: Clinic; statu
                     <Check label="Проверена" checked={form.data.is_verified} onChange={(e) => form.setData('is_verified', e.target.checked)} />
                     <TextField className="span-2" label="SEO title" value={form.data.seo_title} onChange={(e) => form.setData('seo_title', e.target.value)} />
                     <TextArea className="span-2" label="SEO description" value={form.data.seo_description} onChange={(e) => form.setData('seo_description', e.target.value)} />
-                    <TextArea className="span-2" label="Заметка модерации" value={form.data.moderation_note} onChange={(e) => form.setData('moderation_note', e.target.value)} />
+                    <TextArea className="span-2" label="Заметка модерации" value={form.data.moderation_note} maxLength={500} onChange={(e) => form.setData('moderation_note', e.target.value)} />
                 </div>
                 <div className="row row--wrap" style={{ gap: 8 }}>
                     <Button type="submit" loading={form.processing}>

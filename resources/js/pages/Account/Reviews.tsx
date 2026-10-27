@@ -42,7 +42,7 @@ export default function Reviews({ reviews }: { reviews: Row[] }) {
                     {edit === r.id ? (
                         <form className="stack" onSubmit={(e) => { e.preventDefault(); form.put(`/account/reviews/${r.id}`, { onSuccess: () => setEdit(null) }); }}>
                             <TextField label="Заголовок" value={form.data.title} onChange={(e) => form.setData('title', e.target.value)} />
-                            <TextArea label="Текст" required minLength={40} value={form.data.body} onChange={(e) => form.setData('body', e.target.value)} error={form.errors.body} />
+                            <TextArea label="Текст" required minLength={40} value={form.data.body} maxLength={3000} onChange={(e) => form.setData('body', e.target.value)} error={form.errors.body} />
                             <Button type="submit" size="sm" loading={form.processing}>Отправить на проверку</Button>
                         </form>
                     ) : null}

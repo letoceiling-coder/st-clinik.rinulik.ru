@@ -61,6 +61,35 @@ export function phoneHref(phone: string | null | undefined): string {
     return 'tel:' + (phone ?? '').replace(/[^\d+]/g, '');
 }
 
+/**
+ * Маска российского номера: «+7 (900) 123-45-67». Принимает любой ввод и вставку
+ * (8…, 9…, +7…, с пробелами и скобками) и форматирует по мере набора.
+ */
+export function formatRuPhone(input: string): string {
+    let digits = input.replace(/\D/g, '');
+    if (digits === '') {
+        return '';
+    }
+    if (digits[0] === '8') {
+        digits = '7' + digits.slice(1);
+    } else if (digits[0] !== '7') {
+        digits = '7' + digits;
+    }
+    const d = digits.slice(1, 11);
+    let out = '+7';
+    if (d.length > 0) out += ' (' + d.slice(0, 3);
+    if (d.length >= 3) out += ')';
+    if (d.length > 3) out += ' ' + d.slice(3, 6);
+    if (d.length > 6) out += '-' + d.slice(6, 8);
+    if (d.length > 8) out += '-' + d.slice(8, 10);
+
+    return out;
+}
+
+export function isCompleteRuPhone(value: string): boolean {
+    return value.replace(/\D/g, '').length === 11;
+}
+
 export function toQuery(params: Record<string, unknown>): string {
     const q = new URLSearchParams();
     Object.entries(params).forEach(([k, v]) => {

@@ -3,7 +3,7 @@ import { useState, type FormEvent } from 'react';
 import { PageHead } from '@/components/Dash';
 import { SocialOAuthButtons } from '@/components/auth/SocialOAuthButtons';
 import { Button } from '@/components/ui/Button';
-import { Check, SelectField, TextField } from '@/components/ui/Fields';
+import { Check, PhoneField, SelectField, TextField } from '@/components/ui/Fields';
 import { Alert } from '@/components/ui/Misc';
 import { subscribeToWebPush, unsubscribeFromWebPush } from '@/lib/web-push';
 
@@ -122,14 +122,14 @@ export default function Profile({
             <PageHead title="Профиль" text={`Согласие на обработку данных: ${profile.consent_at ?? 'не получено'} (${profile.consent_version ?? '—'}).`} />
             <form className="card stack" onSubmit={save}>
                 <h2 className="card-title">Контакты</h2>
-                <TextField label="Имя" required value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} error={form.errors.name} />
+                <TextField label="Имя" required autoComplete="name" maxLength={60} value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} error={form.errors.name} />
                 <TextField
                     label="E-mail"
                     value={profile.placeholder_email ? 'Не указан (вход через соцсеть)' : profile.email}
                     disabled
                     hint={profile.pending_email ? `Ожидает подтверждения: ${profile.pending_email}` : profile.placeholder_email ? 'Добавьте e-mail в блоке ниже.' : 'Смена e-mail — в блоке ниже.'}
                 />
-                <TextField label="Телефон" value={form.data.phone} onChange={(e) => form.setData('phone', e.target.value)} error={form.errors.phone} />
+                <PhoneField label="Телефон" value={form.data.phone} onChange={(e) => form.setData('phone', e.target.value)} error={form.errors.phone} />
                 <SelectField label="Город" value={form.data.city_id} onChange={(e) => form.setData('city_id', e.target.value)}>
                     <option value="">Не выбран</option>
                     {cities.map((c) => (
@@ -267,10 +267,10 @@ export default function Profile({
                 <h2 className="card-title">Пароль</h2>
                 {!profile.has_password && <Alert tone="info">У вас вход только через соцсеть. Задайте пароль, чтобы отвязать провайдеры при необходимости.</Alert>}
                 {profile.has_password && (
-                    <TextField label="Текущий пароль" type="password" value={pwd.data.current_password} onChange={(e) => pwd.setData('current_password', e.target.value)} error={pwd.errors.current_password} />
+                    <TextField label="Текущий пароль" type="password" autoComplete="current-password" value={pwd.data.current_password} onChange={(e) => pwd.setData('current_password', e.target.value)} error={pwd.errors.current_password} />
                 )}
-                <TextField label="Новый пароль" type="password" value={pwd.data.password} onChange={(e) => pwd.setData('password', e.target.value)} error={pwd.errors.password} />
-                <TextField label="Повторите пароль" type="password" value={pwd.data.password_confirmation} onChange={(e) => pwd.setData('password_confirmation', e.target.value)} />
+                <TextField label="Новый пароль" type="password" autoComplete="new-password" value={pwd.data.password} onChange={(e) => pwd.setData('password', e.target.value)} error={pwd.errors.password} />
+                <TextField label="Повторите пароль" type="password" autoComplete="new-password" value={pwd.data.password_confirmation} onChange={(e) => pwd.setData('password_confirmation', e.target.value)} />
                 <Button type="submit" variant="dark" loading={pwd.processing}>
                     Обновить пароль
                 </Button>

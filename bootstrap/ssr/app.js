@@ -1,6 +1,6 @@
 import { t as Icon } from "./assets/Icon-DQahs-u2.js";
-import { a as initials, n as cx } from "./assets/format-BPZIj7DQ.js";
-import { i as LinkButton, n as Button, r as IconButton } from "./assets/Button-D8Mzgn6o.js";
+import { a as formatRuPhone, n as cx, o as initials } from "./assets/format-BP5psl3Q.js";
+import { i as LinkButton, n as Button, r as IconButton } from "./assets/Button-B5alqlNe.js";
 import { Head, Link, createInertiaApp, router, useForm, usePage } from "@inertiajs/react";
 import { createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
@@ -344,22 +344,76 @@ function TextField({ label, hint, error, className, inputClassName, ...rest }) {
 		})
 	});
 }
+/**
+* Поле телефона с маской «+7 (900) 000-00-00». Подходит для автозаполнения браузера
+* (autocomplete="tel") и вставки номера в любом виде.
+*/
+function PhoneField({ onChange, onFocus, onBlur, placeholder, ...rest }) {
+	const lastValue = useRef(String(rest.value ?? ""));
+	const external = String(rest.value ?? "");
+	useEffect(() => {
+		lastValue.current = external;
+	}, [external]);
+	const emit = (e, value) => {
+		e.target.value = value;
+		lastValue.current = value;
+		onChange?.(e);
+	};
+	return /* @__PURE__ */ jsx(TextField, {
+		type: "tel",
+		inputMode: "tel",
+		autoComplete: "tel",
+		placeholder: placeholder ?? "+7 (900) 000-00-00",
+		...rest,
+		onFocus: (e) => {
+			if (e.target.value === "" && !rest.readOnly) emit(e, "+7 (");
+			onFocus?.(e);
+		},
+		onBlur: (e) => {
+			if (e.target.value.replace(/\D/g, "") === "7") emit(e, "");
+			onBlur?.(e);
+		},
+		onChange: (e) => {
+			const raw = e.target.value;
+			const prevDigits = lastValue.current.replace(/\D/g, "");
+			let digits = raw.replace(/\D/g, "");
+			if (digits.length > 11) {
+				if (prevDigits.length <= 2) {
+					const pasted = digits.slice(prevDigits.length);
+					digits = "7" + (/^[78]/.test(pasted) && pasted.length >= 11 ? pasted.slice(1, 11) : pasted.slice(0, 10));
+				} else digits = prevDigits;
+			} else if (prevDigits === "7" && digits === "77") digits = "7";
+			else if (prevDigits === "78" && digits === "789") digits = "79";
+			emit(e, digits === "7" || digits === "" ? raw.length < 4 ? "" : "+7 (" : formatRuPhone(digits));
+		}
+	});
+}
 function TextArea({ label, hint, error, className, ...rest }) {
 	const id = useId();
-	return /* @__PURE__ */ jsx(Wrap, {
+	const max = typeof rest.maxLength === "number" ? rest.maxLength : null;
+	const length = typeof rest.value === "string" ? rest.value.length : 0;
+	return /* @__PURE__ */ jsxs(Wrap, {
 		id,
 		label,
 		hint,
 		error,
 		required: rest.required,
 		className,
-		children: /* @__PURE__ */ jsx("textarea", {
+		children: [/* @__PURE__ */ jsx("textarea", {
 			id,
 			className: "textarea",
 			"aria-invalid": error ? true : void 0,
 			"aria-describedby": describe(id, error, hint),
 			...rest
-		})
+		}), max ? /* @__PURE__ */ jsxs("span", {
+			className: cx("field__counter", length >= max * .9 && "is-near"),
+			"aria-live": "polite",
+			children: [
+				length,
+				" / ",
+				max
+			]
+		}) : null]
 	});
 }
 function SelectField({ label, hint, error, className, children, ...rest }) {
@@ -800,19 +854,16 @@ function LeadModal({ target, onClose }) {
 						/* @__PURE__ */ jsx(TextField, {
 							label: "Ваше имя",
 							required: true,
-							autoComplete: "given-name",
+							autoComplete: "name",
+							maxLength: 60,
 							value: form.data.name,
 							onChange: (e) => form.setData("name", e.target.value),
 							error: form.errors.name,
 							"data-autofocus": true
 						}),
-						/* @__PURE__ */ jsx(TextField, {
+						/* @__PURE__ */ jsx(PhoneField, {
 							label: "Телефон",
 							required: true,
-							type: "tel",
-							inputMode: "tel",
-							autoComplete: "tel",
-							placeholder: "+7 (900) 000-00-00",
 							value: form.data.phone,
 							onChange: (e) => form.setData("phone", e.target.value),
 							error: form.errors.phone
@@ -885,7 +936,7 @@ function LeadModal({ target, onClose }) {
 					value: form.data.comment,
 					onChange: (e) => form.setData("comment", e.target.value),
 					error: form.errors.comment,
-					hint: `${form.data.comment.length}/300. Не указывайте диагнозы, номера документов и результаты анализов.`
+					hint: "Не указывайте диагнозы, номера документов и результаты анализов."
 				}),
 				/* @__PURE__ */ jsx(Check, {
 					label: "Запись нужна ребёнку",
@@ -3469,13 +3520,11 @@ function AssistantLeadPanel({ conversationId, clinics, onClose, onSuccess }) {
 				required: true,
 				autoComplete: "name"
 			}),
-			/* @__PURE__ */ jsx(TextField, {
+			/* @__PURE__ */ jsx(PhoneField, {
 				label: "Телефон",
-				type: "tel",
 				value: phone,
 				onChange: (e) => setPhone(e.target.value),
-				required: true,
-				autoComplete: "tel"
+				required: true
 			}),
 			/* @__PURE__ */ jsx(TextArea, {
 				label: "Комментарий",
@@ -3922,107 +3971,107 @@ if (typeof window !== "undefined") router.on("navigate", (event) => {
 var renderPromise = createInertiaApp({
 	resolve: async (name, page) => {
 		const pages = /* #__PURE__ */ Object.assign({
-			"./pages/Account/Appointments.tsx": () => import("./assets/Appointments-BI16fjmq.js"),
-			"./pages/Account/Compare.tsx": () => import("./assets/Compare-1gzu06eo.js"),
-			"./pages/Account/Favorites.tsx": () => import("./assets/Favorites-l9yyYWVy.js"),
-			"./pages/Account/History.tsx": () => import("./assets/History-BSV3OVEx.js"),
-			"./pages/Account/Leads.tsx": () => import("./assets/Leads-DudA4aS-.js"),
-			"./pages/Account/Notifications.tsx": () => import("./assets/Notifications-B8nHYWUY.js"),
-			"./pages/Account/Overview.tsx": () => import("./assets/Overview-Gp53wnj8.js"),
-			"./pages/Account/Profile.tsx": () => import("./assets/Profile-DjTZYGSz.js"),
-			"./pages/Account/Reviews.tsx": () => import("./assets/Reviews-BHf1E3NV.js"),
-			"./pages/Admin/Analytics.tsx": () => import("./assets/Analytics-Crr0dH2U.js"),
-			"./pages/Admin/Appointments.tsx": () => import("./assets/Appointments-B7Xk_MnA.js"),
-			"./pages/Admin/Assistant.tsx": () => import("./assets/Assistant-BpNQSGhA.js"),
-			"./pages/Admin/AssistantConversation.tsx": () => import("./assets/AssistantConversation-C9SHna7f.js"),
-			"./pages/Admin/Audit.tsx": () => import("./assets/Audit-6n2tg36j.js"),
-			"./pages/Admin/BroadcastShow.tsx": () => import("./assets/BroadcastShow-CDBRcYXg.js"),
-			"./pages/Admin/Broadcasts.tsx": () => import("./assets/Broadcasts-D62z-kJ5.js"),
-			"./pages/Admin/Campaign.tsx": () => import("./assets/Campaign-BBb_Zudd.js"),
-			"./pages/Admin/Campaigns.tsx": () => import("./assets/Campaigns-BKrNu1vu.js"),
-			"./pages/Admin/CardBonuses.tsx": () => import("./assets/CardBonuses-BoptNEUU.js"),
-			"./pages/Admin/ClinicCardAppearance.tsx": () => import("./assets/ClinicCardAppearance-BXP1qnT5.js"),
-			"./pages/Admin/ClinicShow.tsx": () => import("./assets/ClinicShow-6lKi_0lx.js"),
-			"./pages/Admin/Clinics.tsx": () => import("./assets/Clinics-CdxwHwvo.js"),
-			"./pages/Admin/Complaints.tsx": () => import("./assets/Complaints-CDt5gjWj.js"),
-			"./pages/Admin/Dashboard.tsx": () => import("./assets/Dashboard-1Wc87vqN.js"),
-			"./pages/Admin/Dictionary.tsx": () => import("./assets/Dictionary-B_vHlUfG.js"),
-			"./pages/Admin/Doctors.tsx": () => import("./assets/Doctors-BR_7GrBP.js"),
-			"./pages/Admin/Duplicates.tsx": () => import("./assets/Duplicates-BCvCa0gR.js"),
-			"./pages/Admin/Finance.tsx": () => import("./assets/Finance-0Gs0y162.js"),
-			"./pages/Admin/Geography.tsx": () => import("./assets/Geography-CxLPc6bI.js"),
-			"./pages/Admin/Integrations.tsx": () => import("./assets/Integrations-Cr73UyiB.js"),
-			"./pages/Admin/MaxPublish.tsx": () => import("./assets/MaxPublish-CYM8Lz5h.js"),
-			"./pages/Admin/Moderation.tsx": () => import("./assets/Moderation-CDzZxe_A.js"),
-			"./pages/Admin/Offer.tsx": () => import("./assets/Offer-DebZefMC.js"),
-			"./pages/Admin/OfferTemplate.tsx": () => import("./assets/OfferTemplate-D0fjamRf.js"),
-			"./pages/Admin/Offers.tsx": () => import("./assets/Offers-BjjHD3CQ.js"),
-			"./pages/Admin/ParsedOrganization.tsx": () => import("./assets/ParsedOrganization-ZQWVnvYJ.js"),
-			"./pages/Admin/Parser.tsx": () => import("./assets/Parser-DJv3Mc6y.js"),
-			"./pages/Admin/Promotions.tsx": () => import("./assets/Promotions-DXv-Q9Zr.js"),
-			"./pages/Admin/Reports.tsx": () => import("./assets/Reports-Bc1guLxW.js"),
-			"./pages/Admin/Reviews.tsx": () => import("./assets/Reviews-CnGHPljU.js"),
-			"./pages/Admin/Roles.tsx": () => import("./assets/Roles-iRR7XGCe.js"),
-			"./pages/Admin/SiteDisplay.tsx": () => import("./assets/SiteDisplay-Cu3Fp2KU.js"),
-			"./pages/Admin/Tariffs.tsx": () => import("./assets/Tariffs-D8BwhZL6.js"),
-			"./pages/Admin/UserShow.tsx": () => import("./assets/UserShow-0YDOJ9lG.js"),
-			"./pages/Admin/Users.tsx": () => import("./assets/Users-DnNHdEL8.js"),
-			"./pages/Auth/AcceptStaffInvite.tsx": () => import("./assets/AcceptStaffInvite-CbzclQjm.js"),
-			"./pages/Auth/ForgotPassword.tsx": () => import("./assets/ForgotPassword-Etk7LBgz.js"),
-			"./pages/Auth/LinkSocial.tsx": () => import("./assets/LinkSocial-CfzinSse.js"),
-			"./pages/Auth/Login.tsx": () => import("./assets/Login-CMgoqEdX.js"),
-			"./pages/Auth/MaxLogin.tsx": () => import("./assets/MaxLogin-CuUvp9yu.js"),
-			"./pages/Auth/Register.tsx": () => import("./assets/Register-BkbRwMjD.js"),
-			"./pages/Auth/RegisterClinic.tsx": () => import("./assets/RegisterClinic-DBQfe-By.js"),
-			"./pages/Auth/ResetPassword.tsx": () => import("./assets/ResetPassword-Df1CP1n3.js"),
-			"./pages/Auth/VerifyEmail.tsx": () => import("./assets/VerifyEmail-D6X1OyGK.js"),
-			"./pages/Booking/Create.tsx": () => import("./assets/Create-QvMi5o5F.js"),
-			"./pages/Booking/Show.tsx": () => import("./assets/Show-DrURsMxX.js"),
-			"./pages/Cabinet/BranchForm.tsx": () => import("./assets/BranchForm-D_3vZ-R4.js"),
-			"./pages/Cabinet/Branches.tsx": () => import("./assets/Branches-VbWgwuL0.js"),
-			"./pages/Cabinet/Broadcasts.tsx": () => import("./assets/Broadcasts-C_gLxe24.js"),
-			"./pages/Cabinet/Calendar.tsx": () => import("./assets/Calendar-Ca1_VhgG.js"),
-			"./pages/Cabinet/CardBonuses.tsx": () => import("./assets/CardBonuses-BgPAr5NS.js"),
-			"./pages/Cabinet/Dashboard.tsx": () => import("./assets/Dashboard-DOZw4TpQ.js"),
-			"./pages/Cabinet/DoctorForm.tsx": () => import("./assets/DoctorForm-NW9Ptd4m.js"),
-			"./pages/Cabinet/DoctorSchedules.tsx": () => import("./assets/DoctorSchedules-Bnc44Uv_.js"),
-			"./pages/Cabinet/Doctors.tsx": () => import("./assets/Doctors-Cchacse-.js"),
-			"./pages/Cabinet/Documents.tsx": () => import("./assets/Documents-MqOdlPyg.js"),
-			"./pages/Cabinet/Leads.tsx": () => import("./assets/Leads-DQaRnCBs.js"),
-			"./pages/Cabinet/Organization.tsx": () => import("./assets/Organization-N20_-Wzy.js"),
-			"./pages/Cabinet/Payments.tsx": () => import("./assets/Payments-DLbV002u.js"),
-			"./pages/Cabinet/Photos.tsx": () => import("./assets/Photos-CvEaO2IZ.js"),
-			"./pages/Cabinet/Posts.tsx": () => import("./assets/Posts-cG8KTT_c.js"),
-			"./pages/Cabinet/Prices.tsx": () => import("./assets/Prices-apByHchg.js"),
-			"./pages/Cabinet/Promotions.tsx": () => import("./assets/Promotions-hvo3uRm6.js"),
-			"./pages/Cabinet/Reviews.tsx": () => import("./assets/Reviews-CT49vdSm.js"),
-			"./pages/Cabinet/Schedule.tsx": () => import("./assets/Schedule-7meQxLRE.js"),
-			"./pages/Cabinet/Settings.tsx": () => import("./assets/Settings-B4P14iAv.js"),
-			"./pages/Cabinet/Staff.tsx": () => import("./assets/Staff-CLWY0E52.js"),
-			"./pages/Cabinet/Stats.tsx": () => import("./assets/Stats-DAkoD3_f.js"),
-			"./pages/Clinics/Index.tsx": () => import("./assets/Index-BZR9ydMG.js"),
-			"./pages/Clinics/Show.tsx": () => import("./assets/Show-CS-uZLlG.js"),
-			"./pages/Collections/Compare.tsx": () => import("./assets/Compare-n1cMMFD8.js"),
-			"./pages/Collections/Favorites.tsx": () => import("./assets/Favorites-CrB7rfQW.js"),
-			"./pages/Concerns/Show.tsx": () => import("./assets/Show-CUPlB1Uu.js"),
-			"./pages/Directions/Index.tsx": () => import("./assets/Index-DBCP5Gdl.js"),
-			"./pages/Directions/Show.tsx": () => import("./assets/Show-dvYm55KL.js"),
-			"./pages/Doctors/Index.tsx": () => import("./assets/Index-Ce7e1Ftu.js"),
-			"./pages/Doctors/Show.tsx": () => import("./assets/Show-Bp3ypQfK.js"),
-			"./pages/Error.tsx": () => import("./assets/Error-DWqlU8Jf.js"),
-			"./pages/Home.tsx": () => import("./assets/Home-cChAUU1b.js"),
-			"./pages/Max/Appointments.tsx": () => import("./assets/Appointments-BcNihhNY.js"),
-			"./pages/Max/ClinicShow.tsx": () => import("./assets/ClinicShow-C30zjIjV.js"),
-			"./pages/Max/Clinics.tsx": () => import("./assets/Clinics-BQpDJP_y.js"),
-			"./pages/Max/Home.tsx": () => import("./assets/Home-VeBYrZ3m.js"),
-			"./pages/Offer/Claim.tsx": () => import("./assets/Claim-Bgm_TckJ.js"),
-			"./pages/Offer/Show.tsx": () => import("./assets/Show-R8MasmVK.js"),
-			"./pages/Offer/Unsubscribe.tsx": () => import("./assets/Unsubscribe-BDAmvDpr.js"),
-			"./pages/Page.tsx": () => import("./assets/Page-hGncEqSS.js"),
-			"./pages/Prices/Index.tsx": () => import("./assets/Index-BVG4FvnU.js"),
-			"./pages/Reviews/Index.tsx": () => import("./assets/Index-Y-UpGuuN.js"),
-			"./pages/Search/Index.tsx": () => import("./assets/Index-BtYVn8zF.js"),
-			"./pages/Tz.tsx": () => import("./assets/Tz-Rs0ffHIw.js")
+			"./pages/Account/Appointments.tsx": () => import("./assets/Appointments-BrooluRr.js"),
+			"./pages/Account/Compare.tsx": () => import("./assets/Compare-D2MvqDMZ.js"),
+			"./pages/Account/Favorites.tsx": () => import("./assets/Favorites-DftZ9CqI.js"),
+			"./pages/Account/History.tsx": () => import("./assets/History-BNtDZphO.js"),
+			"./pages/Account/Leads.tsx": () => import("./assets/Leads-CMgdNEbn.js"),
+			"./pages/Account/Notifications.tsx": () => import("./assets/Notifications-DMtVWWx_.js"),
+			"./pages/Account/Overview.tsx": () => import("./assets/Overview-jqNLeUQV.js"),
+			"./pages/Account/Profile.tsx": () => import("./assets/Profile-DXITGei9.js"),
+			"./pages/Account/Reviews.tsx": () => import("./assets/Reviews-DafdNwdP.js"),
+			"./pages/Admin/Analytics.tsx": () => import("./assets/Analytics-3VeXfaCX.js"),
+			"./pages/Admin/Appointments.tsx": () => import("./assets/Appointments-CMsVz-BQ.js"),
+			"./pages/Admin/Assistant.tsx": () => import("./assets/Assistant-jV6egOmE.js"),
+			"./pages/Admin/AssistantConversation.tsx": () => import("./assets/AssistantConversation-DO9VuviK.js"),
+			"./pages/Admin/Audit.tsx": () => import("./assets/Audit-BhB5YjIl.js"),
+			"./pages/Admin/BroadcastShow.tsx": () => import("./assets/BroadcastShow-CW-1OwaX.js"),
+			"./pages/Admin/Broadcasts.tsx": () => import("./assets/Broadcasts-CUL-HLes.js"),
+			"./pages/Admin/Campaign.tsx": () => import("./assets/Campaign-CA3PLLW9.js"),
+			"./pages/Admin/Campaigns.tsx": () => import("./assets/Campaigns-L-zq9FOc.js"),
+			"./pages/Admin/CardBonuses.tsx": () => import("./assets/CardBonuses-DlhLY6bZ.js"),
+			"./pages/Admin/ClinicCardAppearance.tsx": () => import("./assets/ClinicCardAppearance-CRQ26B0T.js"),
+			"./pages/Admin/ClinicShow.tsx": () => import("./assets/ClinicShow-CeXYBNE3.js"),
+			"./pages/Admin/Clinics.tsx": () => import("./assets/Clinics-B8ryJEsV.js"),
+			"./pages/Admin/Complaints.tsx": () => import("./assets/Complaints-CnhCwVcw.js"),
+			"./pages/Admin/Dashboard.tsx": () => import("./assets/Dashboard-BEn-UeI9.js"),
+			"./pages/Admin/Dictionary.tsx": () => import("./assets/Dictionary-9Q8ffKx2.js"),
+			"./pages/Admin/Doctors.tsx": () => import("./assets/Doctors-BwGBLbs2.js"),
+			"./pages/Admin/Duplicates.tsx": () => import("./assets/Duplicates-DEaR0LRY.js"),
+			"./pages/Admin/Finance.tsx": () => import("./assets/Finance-BXJDI_v7.js"),
+			"./pages/Admin/Geography.tsx": () => import("./assets/Geography-9Jhv-xRM.js"),
+			"./pages/Admin/Integrations.tsx": () => import("./assets/Integrations-t4_UHzlF.js"),
+			"./pages/Admin/MaxPublish.tsx": () => import("./assets/MaxPublish-cMcDZWsG.js"),
+			"./pages/Admin/Moderation.tsx": () => import("./assets/Moderation-DAWwN4FM.js"),
+			"./pages/Admin/Offer.tsx": () => import("./assets/Offer-BZtHmMUU.js"),
+			"./pages/Admin/OfferTemplate.tsx": () => import("./assets/OfferTemplate-D2vqsYqb.js"),
+			"./pages/Admin/Offers.tsx": () => import("./assets/Offers-LTddIOmf.js"),
+			"./pages/Admin/ParsedOrganization.tsx": () => import("./assets/ParsedOrganization-DKGc3XAs.js"),
+			"./pages/Admin/Parser.tsx": () => import("./assets/Parser-B8U-XMtK.js"),
+			"./pages/Admin/Promotions.tsx": () => import("./assets/Promotions-CLTbnott.js"),
+			"./pages/Admin/Reports.tsx": () => import("./assets/Reports-qdI7KQwp.js"),
+			"./pages/Admin/Reviews.tsx": () => import("./assets/Reviews-BzyQ9fty.js"),
+			"./pages/Admin/Roles.tsx": () => import("./assets/Roles-f66HY7XD.js"),
+			"./pages/Admin/SiteDisplay.tsx": () => import("./assets/SiteDisplay-DnDHnzzO.js"),
+			"./pages/Admin/Tariffs.tsx": () => import("./assets/Tariffs-CIsIdMpZ.js"),
+			"./pages/Admin/UserShow.tsx": () => import("./assets/UserShow-4J5Wmsza.js"),
+			"./pages/Admin/Users.tsx": () => import("./assets/Users-DCukcjyF.js"),
+			"./pages/Auth/AcceptStaffInvite.tsx": () => import("./assets/AcceptStaffInvite-ad0d1jH1.js"),
+			"./pages/Auth/ForgotPassword.tsx": () => import("./assets/ForgotPassword-B0BmQw4Z.js"),
+			"./pages/Auth/LinkSocial.tsx": () => import("./assets/LinkSocial-WZTZE9ZE.js"),
+			"./pages/Auth/Login.tsx": () => import("./assets/Login-DLYN7lNW.js"),
+			"./pages/Auth/MaxLogin.tsx": () => import("./assets/MaxLogin-CQwX4_KG.js"),
+			"./pages/Auth/Register.tsx": () => import("./assets/Register-C2GhEipN.js"),
+			"./pages/Auth/RegisterClinic.tsx": () => import("./assets/RegisterClinic-BBAmzf_A.js"),
+			"./pages/Auth/ResetPassword.tsx": () => import("./assets/ResetPassword-D8Ov4eLS.js"),
+			"./pages/Auth/VerifyEmail.tsx": () => import("./assets/VerifyEmail-DEdTbeLU.js"),
+			"./pages/Booking/Create.tsx": () => import("./assets/Create-30vdD_6X.js"),
+			"./pages/Booking/Show.tsx": () => import("./assets/Show-ZezWOj9X.js"),
+			"./pages/Cabinet/BranchForm.tsx": () => import("./assets/BranchForm-ChWazWqx.js"),
+			"./pages/Cabinet/Branches.tsx": () => import("./assets/Branches-B4ctfjCt.js"),
+			"./pages/Cabinet/Broadcasts.tsx": () => import("./assets/Broadcasts-R0GLHDgF.js"),
+			"./pages/Cabinet/Calendar.tsx": () => import("./assets/Calendar-DB6hb7lA.js"),
+			"./pages/Cabinet/CardBonuses.tsx": () => import("./assets/CardBonuses-B0YvcGPe.js"),
+			"./pages/Cabinet/Dashboard.tsx": () => import("./assets/Dashboard-BjxCaE3M.js"),
+			"./pages/Cabinet/DoctorForm.tsx": () => import("./assets/DoctorForm-CE9XXxqs.js"),
+			"./pages/Cabinet/DoctorSchedules.tsx": () => import("./assets/DoctorSchedules-DET3yhDq.js"),
+			"./pages/Cabinet/Doctors.tsx": () => import("./assets/Doctors-F3YLWlgi.js"),
+			"./pages/Cabinet/Documents.tsx": () => import("./assets/Documents-BeanxkNd.js"),
+			"./pages/Cabinet/Leads.tsx": () => import("./assets/Leads-CctkDML4.js"),
+			"./pages/Cabinet/Organization.tsx": () => import("./assets/Organization-D5bsAEun.js"),
+			"./pages/Cabinet/Payments.tsx": () => import("./assets/Payments-CYeqHMwV.js"),
+			"./pages/Cabinet/Photos.tsx": () => import("./assets/Photos-B5XXOd_K.js"),
+			"./pages/Cabinet/Posts.tsx": () => import("./assets/Posts-IWi538lH.js"),
+			"./pages/Cabinet/Prices.tsx": () => import("./assets/Prices-BoiOrynP.js"),
+			"./pages/Cabinet/Promotions.tsx": () => import("./assets/Promotions-CTwsr3Rz.js"),
+			"./pages/Cabinet/Reviews.tsx": () => import("./assets/Reviews-B55VEyRN.js"),
+			"./pages/Cabinet/Schedule.tsx": () => import("./assets/Schedule-CLwbQBEX.js"),
+			"./pages/Cabinet/Settings.tsx": () => import("./assets/Settings-D41ZNso_.js"),
+			"./pages/Cabinet/Staff.tsx": () => import("./assets/Staff-BeI7giNm.js"),
+			"./pages/Cabinet/Stats.tsx": () => import("./assets/Stats-CCUNBmTr.js"),
+			"./pages/Clinics/Index.tsx": () => import("./assets/Index-U-MGzMYr.js"),
+			"./pages/Clinics/Show.tsx": () => import("./assets/Show-CcC-lDLR.js"),
+			"./pages/Collections/Compare.tsx": () => import("./assets/Compare-CgEBXJup.js"),
+			"./pages/Collections/Favorites.tsx": () => import("./assets/Favorites-C1JWKTJr.js"),
+			"./pages/Concerns/Show.tsx": () => import("./assets/Show-BvNPHBA4.js"),
+			"./pages/Directions/Index.tsx": () => import("./assets/Index-D9y5Mkx3.js"),
+			"./pages/Directions/Show.tsx": () => import("./assets/Show-DTEY0Cur.js"),
+			"./pages/Doctors/Index.tsx": () => import("./assets/Index-C4_w1uDh.js"),
+			"./pages/Doctors/Show.tsx": () => import("./assets/Show-yJQYkyin.js"),
+			"./pages/Error.tsx": () => import("./assets/Error-C19RiLUQ.js"),
+			"./pages/Home.tsx": () => import("./assets/Home-eTqYBo2-.js"),
+			"./pages/Max/Appointments.tsx": () => import("./assets/Appointments-C9ExK5Ov.js"),
+			"./pages/Max/ClinicShow.tsx": () => import("./assets/ClinicShow--351fGAZ.js"),
+			"./pages/Max/Clinics.tsx": () => import("./assets/Clinics-CVyLsVAf.js"),
+			"./pages/Max/Home.tsx": () => import("./assets/Home-BGK9aqox.js"),
+			"./pages/Offer/Claim.tsx": () => import("./assets/Claim-AdfU0oYT.js"),
+			"./pages/Offer/Show.tsx": () => import("./assets/Show-BZirUfAW.js"),
+			"./pages/Offer/Unsubscribe.tsx": () => import("./assets/Unsubscribe-DcJQ2KHf.js"),
+			"./pages/Page.tsx": () => import("./assets/Page-BskXDT8U.js"),
+			"./pages/Prices/Index.tsx": () => import("./assets/Index-BybvzJG4.js"),
+			"./pages/Reviews/Index.tsx": () => import("./assets/Index-Bshvt-xk.js"),
+			"./pages/Search/Index.tsx": () => import("./assets/Index-P58DP2yU.js"),
+			"./pages/Tz.tsx": () => import("./assets/Tz-wdu_6i2X.js")
 		});
 		const module = await (pages[`./pages/${name}.tsx`] || pages[`./pages/${name}.jsx`] || pages[`./Pages/${name}.tsx`] || pages[`./Pages/${name}.jsx`])?.();
 		if (!module) throw new Error(`Page not found: ${name}`);
@@ -4048,6 +4097,6 @@ var renderPage = async (page) => {
 };
 createServer(renderPage);
 //#endregion
-export { TextField as C, AnalyticsEvents as D, Modal as E, trackAnalyticsEvent as O, TextArea as S, Lightbox as T, Tabs as _, SearchBox as a, SearchInput as b, Avatar as c, EmptyState as d, renderPage as default, ErrorState as f, Stars as g, Skeleton as h, useCity as i, Badge$1 as l, SectionHead as m, formatEta as n, useLead as o, Pagination as p, useCollections as r, Alert as s, ParserTaskProgress as t, Breadcrumbs as u, Check as v, Drawer as w, SelectField as x, CitySearchField as y };
+export { TextArea as C, Modal as D, Lightbox as E, AnalyticsEvents as O, SelectField as S, Drawer as T, Tabs as _, SearchBox as a, PhoneField as b, Avatar as c, EmptyState as d, renderPage as default, ErrorState as f, Stars as g, Skeleton as h, useCity as i, trackAnalyticsEvent as k, Badge$1 as l, SectionHead as m, formatEta as n, useLead as o, Pagination as p, useCollections as r, Alert as s, ParserTaskProgress as t, Breadcrumbs as u, Check as v, TextField as w, SearchInput as x, CitySearchField as y };
 
 //# sourceMappingURL=app.js.map

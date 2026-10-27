@@ -6,6 +6,7 @@ use App\Mail\OfferMail;
 use App\Models\Clinic;
 use App\Models\OfferTemplate;
 use App\Models\OfferTemplateVersion;
+use App\Rules\RussianPhone;
 use App\Services\Audit;
 use App\Services\Offers\OfferRenderer;
 use App\Services\Offers\SmsSender;
@@ -81,7 +82,7 @@ class OfferTemplateController extends AdminController
         $data = $request->validate([
             'clinic_id' => ['required', 'integer', 'exists:clinics,id'],
             'channel' => ['required', 'in:email,sms'],
-            'phone' => ['required_if:channel,sms', 'nullable', 'string', 'max:32'],
+            'phone' => ['required_if:channel,sms', 'nullable', 'string', 'max:32', new RussianPhone],
         ] + $this->previewRules());
         $rendered = $renderer->render($this->content($data), Clinic::query()->findOrFail($data['clinic_id']), $this->sampleLinks());
 

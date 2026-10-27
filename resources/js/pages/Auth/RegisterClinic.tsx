@@ -1,7 +1,7 @@
 import { Link, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Check, TextField } from '@/components/ui/Fields';
+import { Check, PhoneField, TextField } from '@/components/ui/Fields';
 import { Alert } from '@/components/ui/Misc';
 
 interface OfferPreview {
@@ -45,7 +45,7 @@ export default function RegisterClinic({ offer = null }: Props) {
                 </p>
             </div>
             {offer && !offer.claimable && offer.reason ? <Alert tone="warning">{offer.reason}</Alert> : null}
-            <TextField label="Ваше имя" required value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} error={form.errors.name} />
+            <TextField label="Ваше имя" required autoComplete="name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} error={form.errors.name} />
             {!claimMode ? (
                 <TextField
                     label="Название организации"
@@ -57,9 +57,9 @@ export default function RegisterClinic({ offer = null }: Props) {
             ) : (
                 <TextField label="Организация" value={offer?.organization_name ?? ''} readOnly disabled />
             )}
-            <TextField label="E-mail" type="email" required value={form.data.email} onChange={(e) => form.setData('email', e.target.value)} error={form.errors.email} />
-            <TextField label="Телефон" value={form.data.phone} onChange={(e) => form.setData('phone', e.target.value)} error={form.errors.phone} />
-            <TextField label="Пароль" type="password" required value={form.data.password} onChange={(e) => form.setData('password', e.target.value)} error={form.errors.password} />
+            <TextField label="E-mail" type="email" autoComplete="email" required value={form.data.email} onChange={(e) => form.setData('email', e.target.value)} error={form.errors.email} />
+            <PhoneField label="Телефон" value={form.data.phone} onChange={(e) => form.setData('phone', e.target.value)} error={form.errors.phone} />
+            <TextField label="Пароль" type="password" autoComplete="new-password" required value={form.data.password} onChange={(e) => form.setData('password', e.target.value)} error={form.errors.password} />
             <TextField
                 label="Повторите пароль"
                 type="password"

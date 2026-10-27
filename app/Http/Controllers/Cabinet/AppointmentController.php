@@ -8,6 +8,7 @@ use App\Models\AppointmentStatusChange;
 use App\Models\Clinic;
 use App\Models\ClinicService;
 use App\Models\Doctor;
+use App\Rules\RussianPhone;
 use App\Services\AppointmentBookingService;
 use App\Services\SlotAvailabilityService;
 use App\Support\Schedule;
@@ -377,7 +378,7 @@ class AppointmentController extends CabinetController
     {
         return $request->validate([
             'patient_name' => [$appointment ? 'sometimes' : 'required', 'string', 'min:2', 'max:80'],
-            'patient_phone' => [$appointment ? 'sometimes' : 'required', 'string', 'regex:/^\+?[0-9\s\-\(\)]{10,18}$/'],
+            'patient_phone' => [$appointment ? 'sometimes' : 'required', 'string', 'max:32', new RussianPhone],
             'starts_at' => array_merge(
                 [$appointment ? 'sometimes' : 'required', 'date'],
                 $appointment ? [] : ['after_or_equal:today'],

@@ -6,6 +6,7 @@ use App\Models\Clinic;
 use App\Models\Lead;
 use App\Models\User;
 use App\Models\UserNotification;
+use App\Rules\RussianPhone;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -27,7 +28,7 @@ class LeadService
             'service_id' => ['nullable', 'integer', 'exists:services,id'],
             'concern_id' => ['nullable', 'integer', 'exists:concerns,id'],
             'name' => ['required', 'string', 'min:2', 'max:60', "regex:/^[\p{L}\s'\-\.]+$/u"],
-            'phone' => ['required', 'string', 'regex:/^\+?[0-9\s\-\(\)]{10,18}$/'],
+            'phone' => ['required', 'string', 'max:32', new RussianPhone],
             'preferred_date' => ['nullable', 'date', 'after_or_equal:today', 'before:+60 days'],
             'preferred_time' => ['nullable', Rule::in(['утро', 'день', 'вечер'])],
             'comment' => ['nullable', 'string', 'max:300'],

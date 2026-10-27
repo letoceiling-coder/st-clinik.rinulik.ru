@@ -2,7 +2,7 @@ import { Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
 import { FilterBar, PageHead, PagerSafe, Panel, Table } from '@/components/Dash';
 import { Button, LinkButton } from '@/components/ui/Button';
-import { Check, SearchInput, SelectField, TextArea, TextField } from '@/components/ui/Fields';
+import { Check, PhoneField, SearchInput, SelectField, TextArea, TextField } from '@/components/ui/Fields';
 import { Alert, Badge, Tabs } from '@/components/ui/Misc';
 import type { Paginated } from '@/lib/types';
 
@@ -266,7 +266,7 @@ function ApplicationItem({ application: a, statuses }: { application: Applicatio
                         </option>
                     ))}
                 </SelectField>
-                <TextArea label="Заметка" rows={2} value={form.data.admin_note} onChange={(e) => form.setData('admin_note', e.target.value)} error={form.errors.admin_note} />
+                <TextArea label="Заметка" rows={2} value={form.data.admin_note} maxLength={2000} onChange={(e) => form.setData('admin_note', e.target.value)} error={form.errors.admin_note} />
                 <Button type="submit" size="sm" variant="outline" loading={form.processing} disabled={!form.isDirty}>
                     Сохранить
                 </Button>
@@ -438,7 +438,7 @@ function SettingsTab({ settings, sections }: { settings: Settings; sections: Rec
             <Panel title="Менеджер в текстах КП">
                 <div className="offers-form-grid">
                     <TextField label="Имя" value={form.data.manager.name} onChange={(e) => form.setData('manager', { ...form.data.manager, name: e.target.value })} error={err['manager.name']} />
-                    <TextField label="Телефон" value={form.data.manager.phone} onChange={(e) => form.setData('manager', { ...form.data.manager, phone: e.target.value })} error={err['manager.phone']} />
+                    <PhoneField label="Телефон" value={form.data.manager.phone} onChange={(e) => form.setData('manager', { ...form.data.manager, phone: e.target.value })} error={err['manager.phone']} />
                     <TextField
                         label="Email для уведомлений"
                         type="email"

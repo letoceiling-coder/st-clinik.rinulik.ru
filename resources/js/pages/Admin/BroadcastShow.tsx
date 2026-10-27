@@ -192,7 +192,7 @@ export default function BroadcastShow(props: Props) {
                 <Panel title="Содержание и аудитория">
                     <form className="stack" onSubmit={save}>
                         <TextField label="Название" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} error={form.errors.name} />
-                        <TextArea label="Текст" value={form.data.body} onChange={(e) => form.setData('body', e.target.value)} error={form.errors.body} rows={6} />
+                        <TextArea label="Текст" value={form.data.body} maxLength={8000} onChange={(e) => form.setData('body', e.target.value)} error={form.errors.body} rows={6} />
                         <div className="row row--wrap">
                             <TextField label="Подпись кнопки" value={form.data.button_label} onChange={(e) => form.setData('button_label', e.target.value)} />
                             <TextField label="Ссылка" value={form.data.button_url} onChange={(e) => form.setData('button_url', e.target.value)} />

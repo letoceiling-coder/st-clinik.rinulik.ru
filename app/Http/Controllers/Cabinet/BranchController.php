@@ -7,6 +7,7 @@ use App\Models\Clinic;
 use App\Models\ClinicPropertyType;
 use App\Models\District;
 use App\Models\Specialty;
+use App\Rules\RussianPhone;
 use App\Services\Audit;
 use App\Services\Monetization\ClinicSubscriptionService;
 use App\Services\ProfileMetrics;
@@ -206,7 +207,7 @@ class BranchController extends CabinetController
             'metro' => 'nullable|string|max:80',
             'lat' => 'nullable|numeric|between:-90,90',
             'lng' => 'nullable|numeric|between:-180,180',
-            'phone' => ['required', 'string', 'regex:/^\+?[0-9\s\-\(\)]{10,18}$/'],
+            'phone' => ['required', 'string', 'max:32', new RussianPhone],
             'email' => 'nullable|email|max:120',
             'website' => 'nullable|url|max:160',
             'founded_year' => 'nullable|integer|between:1900,'.date('Y'),

@@ -78,7 +78,7 @@ function PostCard({ post, types }: { post: Post; types: Record<string, string> }
                     </SelectField>
                     <TextField label="Заголовок" required value={form.data.title} onChange={(e) => form.setData('title', e.target.value)} error={form.errors.title} />
                     <TextField label="Краткое описание" value={form.data.excerpt} maxLength={400} onChange={(e) => form.setData('excerpt', e.target.value)} error={form.errors.excerpt} hint={`${form.data.excerpt.length}/400`} />
-                    <TextArea label="Текст" required rows={6} value={form.data.body} onChange={(e) => form.setData('body', e.target.value)} error={form.errors.body} />
+                    <TextArea label="Текст" required rows={6} maxLength={5000} value={form.data.body} onChange={(e) => form.setData('body', e.target.value)} error={form.errors.body} />
                     <div className="form-grid">
                         <TextField label="Публикация с" type="date" value={form.data.starts_at} onChange={(e) => form.setData('starts_at', e.target.value)} error={form.errors.starts_at} />
                         <TextField label="Действует до" type="date" value={form.data.ends_at} onChange={(e) => form.setData('ends_at', e.target.value)} error={form.errors.ends_at} hint="Для акций — дата окончания" />
@@ -151,7 +151,7 @@ export default function Posts({ posts, types }: { posts: Post[]; types: Record<s
                     <TextField label="Заголовок" required value={form.data.title} onChange={(e) => form.setData('title', e.target.value)} error={form.errors.title} />
                     <TextField className="span-2" label="Краткое описание" value={form.data.excerpt} maxLength={400} onChange={(e) => form.setData('excerpt', e.target.value)} error={form.errors.excerpt} hint={`${form.data.excerpt.length}/400 · показывается в карточке на сайте`} />
                     <div className="span-2">
-                        <TextArea label="Текст" required rows={6} value={form.data.body} onChange={(e) => form.setData('body', e.target.value)} error={form.errors.body} />
+                        <TextArea label="Текст" required rows={6} maxLength={5000} value={form.data.body} onChange={(e) => form.setData('body', e.target.value)} error={form.errors.body} />
                     </div>
                     <TextField label="Публикация с" type="date" value={form.data.starts_at} onChange={(e) => form.setData('starts_at', e.target.value)} error={form.errors.starts_at} />
                     <TextField label="Действует до" type="date" value={form.data.ends_at} onChange={(e) => form.setData('ends_at', e.target.value)} error={form.errors.ends_at} />

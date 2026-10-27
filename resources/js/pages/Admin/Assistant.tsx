@@ -209,18 +209,21 @@ export default function AdminAssistant({
                             value={form.data.greeting}
                             onChange={(e) => form.setData('greeting', e.target.value)}
                             rows={4}
+                            maxLength={2000}
                         />
                         <TextArea
                             label="Дисклеймер (медицина, 103/112)"
                             value={form.data.disclaimer}
                             onChange={(e) => form.setData('disclaimer', e.target.value)}
                             rows={3}
+                            maxLength={2000}
                         />
                         <TextArea
                             label="System prompt (пусто — шаблон по умолчанию)"
                             value={form.data.system_prompt}
                             onChange={(e) => form.setData('system_prompt', e.target.value)}
                             rows={6}
+                            maxLength={8000}
                         />
                     </div>
                     <div className="form-actions">
@@ -237,6 +240,7 @@ export default function AdminAssistant({
                         label="Вопрос"
                         value={kbForm.data.question}
                         onChange={(e) => kbForm.setData('question', e.target.value)}
+                        maxLength={500}
                         required
                     />
                     <TextArea
@@ -244,6 +248,7 @@ export default function AdminAssistant({
                         value={kbForm.data.answer}
                         onChange={(e) => kbForm.setData('answer', e.target.value)}
                         rows={4}
+                        maxLength={5000}
                         required
                     />
                     <SelectField

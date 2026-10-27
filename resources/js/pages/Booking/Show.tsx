@@ -90,7 +90,7 @@ export default function BookingShow({
                                 ))}
                             </div>
                             {move.errors.starts_at ? <Alert tone="danger">{move.errors.starts_at}</Alert> : null}
-                            <TextArea label="Комментарий" value={move.data.comment} onChange={(e) => move.setData('comment', e.target.value)} />
+                            <TextArea label="Комментарий" value={move.data.comment} maxLength={300} onChange={(e) => move.setData('comment', e.target.value)} />
                             <div className="row">
                                 <Button type="submit" loading={move.processing}>Отправить запрос</Button>
                                 <Button type="button" variant="ghost" onClick={() => setOpenMove(false)}>Отмена</Button>
@@ -103,7 +103,7 @@ export default function BookingShow({
 
                 {appointment.can_cancel ? (
                     <form className="stack" onSubmit={(e) => { e.preventDefault(); cancel.post(cancel_url); }}>
-                        <TextArea label="Причина отмены" value={cancel.data.reason} onChange={(e) => cancel.setData('reason', e.target.value)} />
+                        <TextArea label="Причина отмены" value={cancel.data.reason} maxLength={300} onChange={(e) => cancel.setData('reason', e.target.value)} />
                         <Button type="submit" variant="danger" loading={cancel.processing}>Отменить запись</Button>
                     </form>
                 ) : null}

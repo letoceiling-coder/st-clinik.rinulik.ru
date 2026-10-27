@@ -2,7 +2,7 @@ import { Link, useForm, usePage } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import ClinicCard from '@/components/ClinicCard';
 import { AnchorButton, Button } from '@/components/ui/Button';
-import { Check, TextArea, TextField } from '@/components/ui/Fields';
+import { Check, PhoneField, TextArea, TextField } from '@/components/ui/Fields';
 import { Alert } from '@/components/ui/Misc';
 import { money } from '@/lib/format';
 import type { ClinicCardData, SharedProps } from '@/lib/types';
@@ -122,10 +122,10 @@ export default function OfferShow({ offer, clinic, stats, tariffs, demo_url, cla
                 ) : (
                     <form className="offer-connect__form" onSubmit={submit} noValidate>
                         <TextField label="Имя" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} error={form.errors.name} required autoComplete="name" />
-                        <TextField label="Телефон" type="tel" value={form.data.phone} onChange={(e) => form.setData('phone', e.target.value)} error={form.errors.phone} required autoComplete="tel" />
+                        <PhoneField label="Телефон" value={form.data.phone} onChange={(e) => form.setData('phone', e.target.value)} error={form.errors.phone} required />
                         <TextField label="Email" type="email" value={form.data.email} onChange={(e) => form.setData('email', e.target.value)} error={form.errors.email} autoComplete="email" />
-                        <TextField label="Должность" value={form.data.position} onChange={(e) => form.setData('position', e.target.value)} error={form.errors.position} placeholder="Главный врач, администратор…" />
-                        <TextArea label="Комментарий" className="offer-connect__wide" rows={3} value={form.data.comment} onChange={(e) => form.setData('comment', e.target.value)} error={form.errors.comment} />
+                        <TextField label="Должность" autoComplete="organization-title" value={form.data.position} onChange={(e) => form.setData('position', e.target.value)} error={form.errors.position} placeholder="Главный врач, администратор…" />
+                        <TextArea label="Комментарий" className="offer-connect__wide" rows={3} maxLength={2000} value={form.data.comment} onChange={(e) => form.setData('comment', e.target.value)} error={form.errors.comment} />
                         <Check
                             className="offer-connect__wide"
                             checked={form.data.consent}
