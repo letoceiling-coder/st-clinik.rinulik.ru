@@ -7,9 +7,11 @@ use App\Models\City;
 use App\Models\Clinic;
 use App\Models\LeadDispatch;
 use App\Models\Organization;
+use App\Models\Tariff;
 use App\Models\User;
 use App\Repositories\Contracts\CatalogRepository;
 use App\Services\Assistant\AssistantSettings;
+use App\Services\Monetization\ClinicSubscriptionService;
 use Database\Seeders\FoundationSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
@@ -58,7 +60,7 @@ class AssistantLeadBroadcastTest extends TestCase
         $owner->forceFill(['role' => 'clinic_owner', 'status' => 'active'])->save();
         $org = Organization::create(['owner_id' => $owner->id, 'name' => 'Org Broadcast '.uniqid()]);
 
-        return Clinic::create([
+        $clinic = Clinic::create([
             'organization_id' => $org->id,
             'city_id' => $city->id,
             'name' => 'Клиника '.uniqid(),
@@ -69,5 +71,14 @@ class AssistantLeadBroadcastTest extends TestCase
             'rating' => 4.5,
             'reviews_count' => 10,
         ]);
+
+        // Рассылку лидов ассистента получают только клиники с тарифом, где включена эта возможность.
+        $tariff = Tariff::query()->firstOrCreate(
+            ['slug' => 'assistant-leads-test'],
+            ['name' => 'С лидами ассистента', 'price' => 100000, 'duration_days' => 30, 'features' => [Tariff::FEATURE_ASSISTANT_LEADS], 'is_active' => true],
+        );
+        app(ClinicSubscriptionService::class)->activate($clinic, $tariff, null, now(), now()->addDays(30));
+
+        return $clinic;
     }
 }

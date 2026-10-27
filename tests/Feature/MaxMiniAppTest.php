@@ -91,16 +91,13 @@ class MaxMiniAppTest extends TestCase
             ->assertRedirect(route('max.clinic', ['slug' => $clinic->slug]));
         $this->assertDatabaseHas('social_accounts', [
             'provider' => 'max',
-            'provider_user_id' => '4242',
+            'provider_user_id' => '5252',
         ]);
     }
 
     public function test_init_data_with_bad_signature_is_rejected(): void
     {
-        IntegrationSetting::query()->updateOrCreate(
-            ['group' => 'max_bot', 'field' => 'bot_token'],
-            ['value' => encrypt('test-bot-token-secret')],
-        );
+        app(IntegrationSettings::class)->put('max_bot', 'bot_token', 'test-bot-token-secret');
         app(IntegrationSettings::class)->applyToConfig();
 
         $this->post('/max/session', ['init_data' => 'auth_date=1&hash=deadbeef'])

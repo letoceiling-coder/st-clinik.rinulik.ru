@@ -98,6 +98,24 @@ class User extends Authenticatable implements MustVerifyEmail
         return str_ends_with(strtolower((string) $this->email), '.local');
     }
 
+    /**
+     * Аккаунт из соцсети без почты (технический адрес *.local) подтверждается привязанной соцсетью:
+     * письмо на такой адрес не дойдёт, а личность уже подтвердил провайдер входа.
+     */
+    public function hasVerifiedEmail(): bool
+    {
+        if ($this->email_verified_at !== null) {
+            return true;
+        }
+        if ($this->exists && $this->usesPlaceholderEmail() && $this->socialAccounts()->exists()) {
+            $this->markEmailAsVerified();
+
+            return true;
+        }
+
+        return false;
+    }
+
     public function sendEmailVerificationNotification(): void
     {
         if ($this->usesPlaceholderEmail()) {

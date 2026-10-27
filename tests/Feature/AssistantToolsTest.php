@@ -3,7 +3,12 @@
 namespace Tests\Feature;
 
 use App\Models\AssistantConversation;
+use App\Models\City;
+use App\Models\Clinic;
 use App\Models\Lead;
+use App\Models\Organization;
+use App\Models\User;
+use App\Repositories\Contracts\CatalogRepository;
 use App\Services\Assistant\AssistantSettings;
 use App\Services\Assistant\AssistantToolExecutor;
 use Database\Seeders\FoundationSeeder;
@@ -165,5 +170,35 @@ class AssistantToolsTest extends TestCase
             'phone' => '+79009998877',
             'consent' => true,
         ])->assertUnprocessable();
+    }
+
+    private function defaultCity(): City
+    {
+        return app(CatalogRepository::class)->defaultCity();
+    }
+
+    private function city(): City
+    {
+        return $this->defaultCity();
+    }
+
+    private function createPublishedClinic(City $city): Clinic
+    {
+        $owner = User::factory()->create();
+        $owner->forceFill(['role' => 'clinic_owner', 'status' => 'active'])->save();
+        $org = Organization::create(['owner_id' => $owner->id, 'name' => 'Org Tools '.uniqid()]);
+
+        return Clinic::create([
+            'organization_id' => $org->id,
+            'city_id' => $city->id,
+            'name' => 'Ассистент Клиника '.uniqid(),
+            'slug' => 'tools-'.uniqid(),
+            'address' => 'Тестовая 1',
+            'status' => 'published',
+            'accepts_assistant_leads' => true,
+            'schedule' => array_fill_keys(['mon', 'tue', 'wed', 'thu', 'fri'], ['open' => '09:00', 'close' => '18:00']),
+            'rating' => 4.5,
+            'reviews_count' => 10,
+        ]);
     }
 }

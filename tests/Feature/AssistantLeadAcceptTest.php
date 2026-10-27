@@ -6,8 +6,10 @@ use App\Models\AssistantConversation;
 use App\Models\City;
 use App\Models\Clinic;
 use App\Models\Organization;
+use App\Models\Tariff;
 use App\Models\User;
 use App\Services\Assistant\AssistantLeadService;
+use App\Services\Monetization\ClinicSubscriptionService;
 use Database\Seeders\FoundationSeeder;
 use Database\Seeders\TariffSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -76,7 +78,7 @@ class AssistantLeadAcceptTest extends TestCase
         $owner->forceFill(['role' => 'clinic_owner', 'status' => 'active'])->save();
         $org = Organization::create(['owner_id' => $owner->id, 'name' => 'Org '.$slug]);
 
-        return Clinic::create([
+        $clinic = Clinic::create([
             'organization_id' => $org->id,
             'city_id' => $city->id,
             'name' => 'Clinic '.$slug,
@@ -87,5 +89,11 @@ class AssistantLeadAcceptTest extends TestCase
             'rating' => 4,
             'reviews_count' => 1,
         ]);
+
+        // Лиды ассистента получают только клиники на тарифе с этой возможностью.
+        $tariff = Tariff::query()->get()->first(fn (Tariff $t) => $t->hasFeature(Tariff::FEATURE_ASSISTANT_LEADS));
+        app(ClinicSubscriptionService::class)->activate($clinic, $tariff, null, now(), now()->addDays(30));
+
+        return $clinic;
     }
 }

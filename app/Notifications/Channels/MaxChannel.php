@@ -4,6 +4,7 @@ namespace App\Notifications\Channels;
 
 use App\Models\NotificationDelivery;
 use App\Models\NotificationSubscription;
+use App\Services\Max\MaxBotClient;
 use App\Services\Notifications\NotificationSubscriptionService;
 use Illuminate\Notifications\Notification;
 
