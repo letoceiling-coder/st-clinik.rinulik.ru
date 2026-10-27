@@ -38,10 +38,27 @@ export interface MapClinicPoint {
 }
 
 export interface SharedProps {
+    max_app?: boolean;
     app: { name: string; noindex: boolean; consent_version: string; yandex_maps_key?: string | null };
-    demo?: { mode: string; label: string } | null;
+    display?: {
+        premium_clinic_card_variant: string;
+        premium_clinic_card_class: string;
+    };
+    demo?: {
+        mode: string;
+        label: string;
+        readonly?: boolean;
+        sections?: string[];
+        connect_url?: string | null;
+        exit_url?: string;
+        expires_at?: string | null;
+    } | null;
     auth: { user: SharedUser | null };
     city: City | null;
+    city_prompt?: {
+        suggested: { slug: string; name: string; name_in: string | null };
+        source: string;
+    } | null;
     cities: { slug: string; name: string; region: string | null }[];
     collections: CollectionState | null;
     flash: {
@@ -104,6 +121,7 @@ export interface ClinicCardData {
     accepts_children: boolean;
     children_age_from: number | null;
     same_day: boolean;
+    same_day_offer?: { code: string; title: string; description: string } | null;
     has_installment: boolean;
     installment_months: number | null;
     accepts_dms: boolean;
@@ -121,7 +139,15 @@ export interface ClinicCardData {
     services_count?: number;
     doctors_preview: { slug: string; name: string; position: string; art_seed: number; rating: number; photo_url?: string | null }[];
     photos: PhotoRef[];
-    promo_offers: { id: string; title: string; slug: string | null }[];
+    promo_offers: {
+        id: string;
+        code?: string;
+        title: string;
+        description?: string;
+        slug: string | null;
+        icon?: string;
+    }[];
+    card_premium?: boolean;
 }
 
 export interface ClinicPostData {
@@ -226,6 +252,7 @@ export interface SpecialtyData {
     name: string;
     short?: string | null;
     icon?: string | null;
+    cover_url?: string | null;
     clinics?: number;
     price_from?: number | null;
 }
@@ -234,7 +261,7 @@ export interface FilterOptions {
     districts: { slug: string; name: string }[];
     specialties: { slug: string; name: string }[];
     services: { slug: string; name: string; group: string | null }[];
-    properties?: { slug: string; name: string; group: string; kind: string }[];
+    properties?: { slug: string; name: string; group: string; kind: string; hint?: string | null }[];
 }
 
 export type Flat = Record<string, string | number | boolean | null | undefined>;

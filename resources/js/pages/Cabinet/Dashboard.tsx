@@ -8,11 +8,23 @@ export default function Dashboard({
     kpi,
     moderation,
     recent_leads,
+    subscription,
 }: {
     completeness: { percent: number; items?: { label: string; done: boolean }[] };
-    kpi: { leads_30d: number; leads_new: number; views: number; rating: number; reviews: number; unanswered: number };
+    kpi: {
+        leads_30d: number;
+        leads_new: number;
+        views: number;
+        rating: number;
+        reviews: number;
+        unanswered: number;
+        appointments_upcoming: number;
+        appointments_today: number;
+        active_promotions: number;
+    };
     moderation: { clinic: string; clinic_note: string | null; doctors_pending: number; photos_pending: number; documents_pending: number; documents_rejected: number };
     recent_leads: { id: number; name: string; phone: string; status: string; status_label: string; service: string | null; created_at: string | null }[];
+    subscription: { tariff: string; ends_at: string; days_left: number } | null;
 }) {
     const percent = completeness.percent ?? 0;
     return (
@@ -20,6 +32,14 @@ export default function Dashboard({
             <PageHead title="Обзор филиала" text="Полнота профиля влияет на выдачу в каталоге и скорость модерации." />
             {moderation.clinic === 'rejected' ? <Alert tone="danger">Отклонено: {moderation.clinic_note}</Alert> : null}
             {moderation.clinic === 'pending' ? <Alert tone="warning">Филиал на модерации.</Alert> : null}
+            {subscription ? (
+                <Alert tone="info">
+                    Тариф «{subscription.tariff}» до {subscription.ends_at} ({subscription.days_left} дн.).{' '}
+                    <Link href="/clinic-cabinet/payments" className="link">
+                        Платежи
+                    </Link>
+                </Alert>
+            ) : null}
             <Kpis
                 items={[
                     { label: 'Заявки за 30 дней', value: kpi.leads_30d },

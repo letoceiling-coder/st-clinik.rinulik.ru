@@ -4,15 +4,18 @@ namespace Tests\Feature;
 
 use App\Models\City;
 use App\Models\Clinic;
+use App\Models\ClinicPromotion;
 use App\Models\Organization;
 use App\Models\PromotionOrder;
 use App\Models\PromotionPackage;
 use App\Models\PromotionProduct;
 use App\Models\User;
+use App\Services\Payments\TBankAcquiringService;
 use App\Services\PromotionService;
 use Database\Seeders\FoundationSeeder;
 use Database\Seeders\PromotionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class PromotionTest extends TestCase
@@ -138,6 +141,96 @@ class PromotionTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->has('recommended_clinics', 1)
                 ->where('recommended_clinics.0.id', $clinic->id));
+    }
+
+    public function test_forged_webhook_does_not_mark_order_paid_when_api_reports_pending(): void
+    {
+        $order = $this->pendingPackageOrder();
+        $this->fakeTBankPayment($order, 'pending');
+
+        $this->postJson('/payments/tbank/webhook', $this->webhookPayload($order))->assertOk()->assertSee('OK');
+
+        $this->assertSame('pending', $order->fresh()->status);
+        $this->assertDatabaseMissing('clinic_promotions', ['order_id' => $order->id]);
+    }
+
+    public function test_webhook_ignores_payment_with_mismatched_amount(): void
+    {
+        $order = $this->pendingPackageOrder();
+        $this->fakeTBankPayment($order, 'succeeded', amount: 1);
+
+        $this->postJson('/payments/tbank/webhook', $this->webhookPayload($order))->assertOk()->assertSee('OK');
+
+        $this->assertSame('pending', $order->fresh()->status);
+    }
+
+    public function test_webhook_marks_order_paid_when_api_confirms_payment(): void
+    {
+        $order = $this->pendingPackageOrder();
+        $this->fakeTBankPayment($order, 'succeeded');
+
+        $this->postJson('/payments/tbank/webhook', $this->webhookPayload($order))->assertOk()->assertSee('OK');
+
+        $this->assertSame('paid', $order->fresh()->status);
+        $this->assertDatabaseHas('clinic_promotions', [
+            'order_id' => $order->id,
+            'product_code' => 'publication',
+            'status' => 'active',
+        ]);
+    }
+
+    public function test_repeated_promotion_click_is_counted_once(): void
+    {
+        [$owner, $clinic] = $this->clinicOwner();
+        $this->activatePublication($clinic, $owner);
+        $promotion = ClinicPromotion::query()->where('clinic_id', $clinic->id)->firstOrFail();
+
+        $this->get(route('promotions.click', $promotion->id))->assertRedirect();
+        $this->get(route('promotions.click', $promotion->id))->assertRedirect();
+
+        $this->assertSame(1, (int) $promotion->fresh()->clicks);
+    }
+
+    private function pendingPackageOrder(): PromotionOrder
+    {
+        config(['tbank.terminal_key' => 'TBankTest', 'tbank.password' => 'test-secret']);
+
+        [$owner, $clinic] = $this->clinicOwner();
+        $package = PromotionPackage::query()->where('code', 'publish_1m')->firstOrFail();
+        $order = app(PromotionService::class)->createOrder($clinic, $owner, 'package', $package->id);
+        $order->update(['payment_id' => (string) (100000 + $order->id), 'status' => 'pending']);
+
+        return $order->fresh();
+    }
+
+    private function fakeTBankPayment(PromotionOrder $order, string $status, ?int $amount = null): void
+    {
+        $remoteStatus = $status === 'succeeded' ? 'CONFIRMED' : 'NEW';
+        Http::fake([
+            'securepay.tinkoff.ru/*' => Http::response([
+                'Success' => $remoteStatus === 'CONFIRMED',
+                'Status' => $remoteStatus,
+                'PaymentId' => (int) $order->payment_id,
+                'Amount' => $amount ?? (int) $order->amount,
+                'DATA' => ['order_id' => (string) $order->id],
+            ]),
+        ]);
+    }
+
+    /** @return array<string, mixed> */
+    private function webhookPayload(PromotionOrder $order): array
+    {
+        $payload = [
+            'TerminalKey' => 'TBankTest',
+            'OrderId' => 'promo-'.$order->id,
+            'Success' => true,
+            'Status' => 'CONFIRMED',
+            'PaymentId' => (int) $order->payment_id,
+            'Amount' => (int) $order->amount,
+        ];
+        $payload['Token'] = app(TBankAcquiringService::class)->sign($payload);
+
+        return $payload;
     }
 
     /** @return array{0: User, 1: Clinic} */

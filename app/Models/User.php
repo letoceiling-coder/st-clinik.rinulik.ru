@@ -2,15 +2,20 @@
 
 namespace App\Models;
 
+use App\Notifications\ResetPasswordNotification;
+use App\Notifications\VerifyEmailNotification;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory;
+    use Notifiable;
 
     protected $guarded = ['id', 'role', 'status'];
 
@@ -41,6 +46,11 @@ class User extends Authenticatable
     public function city(): BelongsTo
     {
         return $this->belongsTo(City::class);
+    }
+
+    public function socialAccounts(): HasMany
+    {
+        return $this->hasMany(SocialAccount::class);
     }
 
     public function leads(): HasMany
@@ -81,6 +91,25 @@ class User extends Authenticatable
     public function hasAnyAdminPermission(): bool
     {
         return count($this->permissions()) > 0;
+    }
+
+    public function usesPlaceholderEmail(): bool
+    {
+        return str_ends_with(strtolower((string) $this->email), '.local');
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        if ($this->usesPlaceholderEmail()) {
+            return;
+        }
+
+        $this->notify(new VerifyEmailNotification);
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
     }
 
     public function isSuperadmin(): bool

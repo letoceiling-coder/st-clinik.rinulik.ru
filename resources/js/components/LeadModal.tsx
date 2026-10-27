@@ -72,7 +72,7 @@ export default function LeadModal({ target, onClose }: { target: LeadTarget | nu
         <Modal
             open
             onClose={onClose}
-            title={`Запись в «${target.name}»`}
+            title={`Перезвоните мне · «${target.name}»`}
             footer={
                 <>
                     <Button variant="ghost" onClick={onClose}>

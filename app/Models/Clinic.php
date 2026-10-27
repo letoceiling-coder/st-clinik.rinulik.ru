@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Traits\HasSearchText;
+use App\Services\SlotAvailabilityService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,9 +14,21 @@ class Clinic extends Model
 {
     use HasSearchText;
 
-    public const STATUSES = ['draft', 'pending', 'published', 'rejected', 'hidden'];
+    public const STATUSES = ['draft', 'pending', 'approved', 'published', 'rejected', 'hidden', 'blocked'];
+
+    /** @var list<string> */
+    public const VISIBLE_STATUSES = ['published'];
 
     protected $guarded = [];
+
+    protected static function booted(): void
+    {
+        static::saved(function (self $clinic) {
+            if ($clinic->wasChanged(['schedule', 'is_24_7'])) {
+                app(SlotAvailabilityService::class)->invalidate($clinic);
+            }
+        });
+    }
 
     protected function casts(): array
     {
@@ -53,6 +66,23 @@ class Clinic extends Model
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('clinics.status', 'published');
+    }
+
+    /** Премиум-карточка: включённый бонус с triggers_premium и заполненными текстами в ЛК. */
+    public function scopeOrderByCardPremiumFirst(Builder $query): Builder
+    {
+        $exists = 'EXISTS (
+            SELECT 1 FROM clinic_card_bonuses
+            INNER JOIN card_bonus_types ON card_bonus_types.id = clinic_card_bonuses.card_bonus_type_id
+            WHERE clinic_card_bonuses.clinic_id = clinics.id
+            AND clinic_card_bonuses.enabled = ?
+            AND LENGTH(TRIM(COALESCE(clinic_card_bonuses.short_label, \'\'))) > 0
+            AND LENGTH(TRIM(COALESCE(clinic_card_bonuses.description, \'\'))) > 0
+            AND card_bonus_types.is_active = ?
+            AND card_bonus_types.triggers_premium = ?
+        )';
+
+        return $query->orderByRaw("({$exists}) DESC", [true, true, true]);
     }
 
     public function getRouteKeyName(): string
@@ -125,5 +155,15 @@ class Clinic extends Model
     public function leads(): HasMany
     {
         return $this->hasMany(Lead::class);
+    }
+
+    public function cardBonuses(): HasMany
+    {
+        return $this->hasMany(ClinicCardBonus::class);
+    }
+
+    public function appointments(): HasMany
+    {
+        return $this->hasMany(Appointment::class);
     }
 }

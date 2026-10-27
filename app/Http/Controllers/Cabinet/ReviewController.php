@@ -6,6 +6,7 @@ use App\Models\Review;
 use App\Models\ReviewComplaint;
 use App\Models\UserNotification;
 use App\Services\Audit;
+use App\Services\ContentModerationSettings;
 use App\Services\ReviewService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,7 +21,7 @@ class ReviewController extends CabinetController
 
         $page = Review::where('clinic_id', $branch->id)->whereIn('status', ['published', 'pending'])
             ->with(['doctor:id,name', 'service:id,name', 'complaints'])
-            ->when($filter === 'unanswered', fn ($q) => $q->where('status', 'published')->whereNull('reply_text'))
+            ->when($filter === 'unanswered', fn ($q) => $q->where('status', 'published')->withoutPublishedReply())
             ->latest()->paginate(10)->withQueryString();
 
         return $this->render($request, 'Cabinet/Reviews', 'Отзывы', [
@@ -29,7 +30,10 @@ class ReviewController extends CabinetController
                 'author_name' => $r->author_name, 'status' => $r->status, 'is_verified_visit' => $r->is_verified_visit,
                 'visit_date' => $r->visit_date?->toDateString(), 'created_at' => $r->created_at?->toDateString(),
                 'doctor' => $r->doctor?->name, 'service' => $r->service?->name,
-                'reply' => $r->reply_text, 'reply_at' => $r->reply_at?->toDateString(),
+                'reply' => $r->reply_text,
+                'reply_status' => $r->reply_status,
+                'reply_moderation_note' => $r->reply_moderation_note,
+                'reply_at' => $r->reply_at?->toDateString(),
                 'complaint' => $r->complaints->where('reporter_role', 'clinic')->sortByDesc('id')->first()?->only(['status', 'reason', 'resolution']),
             ])->toArray(),
             'reasons' => ReviewComplaint::REASONS,
@@ -46,17 +50,25 @@ class ReviewController extends CabinetController
             'reply_text.required' => 'Напишите ответ.', 'reply_text.min' => 'Ответ слишком короткий.',
         ]);
 
-        $review->update(['reply_text' => $data['reply_text'], 'reply_at' => now(), 'reply_by' => $request->user()->id]);
+        $moderate = app(ContentModerationSettings::class)->moderateReviewReplies();
+
+        $review->update([
+            'reply_text' => $data['reply_text'],
+            'reply_by' => $request->user()->id,
+            'reply_status' => $moderate ? 'pending' : 'published',
+            'reply_at' => $moderate ? null : now(),
+            'reply_moderation_note' => null,
+        ]);
         Audit::log('review.reply', $review);
 
-        if ($review->user_id) {
+        if (! $moderate && $review->user_id) {
             UserNotification::create([
                 'user_id' => $review->user_id, 'type' => 'review_reply', 'title' => 'Клиника ответила на ваш отзыв',
                 'body' => 'Клиника «'.$review->clinic->name.'» опубликовала ответ.', 'url' => route('clinics.show', $review->clinic->slug),
             ]);
         }
 
-        return back()->with('success', 'Ответ опубликован.');
+        return back()->with('success', $moderate ? 'Ответ отправлен на модерацию.' : 'Ответ опубликован.');
     }
 
     public function complain(Request $request, Review $review, ReviewService $reviews): RedirectResponse

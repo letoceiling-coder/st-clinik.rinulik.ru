@@ -1,7 +1,10 @@
 <?php
 
 use App\Http\Middleware\EnsureActiveUser;
+use App\Http\Middleware\FinalizeMaxMiniAppResponse;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\PrepareMaxMiniAppSession;
+use App\Http\Middleware\RequireCabinetAbility;
 use App\Http\Middleware\RequireClinicOwner;
 use App\Http\Middleware\RequirePermission;
 use App\Http\Middleware\SeoHeaders;
@@ -11,6 +14,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Sentry\Laravel\Integration;
 use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -22,28 +26,35 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
-        $middleware->encryptCookies(except: ['city']);
+        $middleware->prependToGroup('web', PrepareMaxMiniAppSession::class);
+        $middleware->encryptCookies(except: ['city', 'city_confirmed']);
 
         $middleware->validateCsrfTokens(except: [
-            'payments/yookassa/webhook',
+            'payments/tbank/webhook',
+            'unsubscribe/*',
+            'webhooks/max',
         ]);
 
         $middleware->web(append: [
             SetCurrentCity::class,
             HandleInertiaRequests::class,
             EnsureActiveUser::class,
+            FinalizeMaxMiniAppResponse::class,
         ]);
         $middleware->append(SeoHeaders::class);
 
         $middleware->alias([
             'perm' => RequirePermission::class,
             'clinic.owner' => RequireClinicOwner::class,
+            'cabinet.ability' => RequireCabinetAbility::class,
         ]);
 
         $middleware->redirectGuestsTo(fn () => route('login'));
         $middleware->redirectUsersTo(fn () => route('account.overview'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        Integration::handles($exceptions);
+
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );

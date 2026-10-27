@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Cabinet;
 use App\Models\Doctor;
 use App\Models\Specialty;
 use App\Services\Audit;
+use App\Services\Monetization\ClinicSubscriptionService;
 use App\Services\ProfileMetrics;
 use App\Support\Schedule;
 use App\Support\Text;
@@ -59,6 +60,11 @@ class DoctorController extends CabinetController
     public function store(Request $request): RedirectResponse
     {
         $branch = $this->branch($request);
+        $limitCheck = app(ClinicSubscriptionService::class)->canAddDoctor($branch);
+        if (! $limitCheck['ok']) {
+            return back()->with('error', $limitCheck['message']);
+        }
+
         $data = $this->validated($request);
 
         $doctor = new Doctor($this->fields($data));

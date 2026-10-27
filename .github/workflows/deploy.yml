@@ -3,15 +3,60 @@ name: Deploy production
 on:
   push:
     branches: [master, main]
+  pull_request:
 
 concurrency:
-  group: production-deploy
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_DB: st_clinik_test
+          POSTGRES_USER: st_clinik
+          POSTGRES_PASSWORD: secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U st_clinik -d st_clinik_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: st_clinik_test
+      DB_USERNAME: st_clinik
+      DB_PASSWORD: secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_pgsql, pdo_sqlite, intl, zip, redis
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: npm ci && npm run build
+      - run: cp .env.example .env && php artisan key:generate
+      - run: php artisan test --compact
+
   deploy:
+    needs: tests
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     environment: production
+    concurrency:
+      group: production-deploy
+      cancel-in-progress: false
     steps:
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.2.0

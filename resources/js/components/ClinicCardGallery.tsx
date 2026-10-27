@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { A11y, Keyboard, Pagination } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { clinicPhoto } from '@/lib/demo-images';
+import { CLINIC_CARD_DEMO_KINDS, clinicPhoto, type PhotoKind } from '@/lib/demo-images';
 import { cx } from '@/lib/format';
 import type { ClinicCardData } from '@/lib/types';
 import { DemoImg, PhotoArt } from './PhotoArt';
@@ -51,11 +51,22 @@ export default function ClinicCardGallery({
     priority?: boolean;
 }) {
     const slides = useMemo(() => {
-        if (clinic.photos.length > 0) {
+        if (clinic.photos.length >= 2) {
             return clinic.photos;
         }
 
-        return [{ kind: 'interior', caption: null, art_seed: clinic.art_seed, url: null }];
+        const demo = CLINIC_CARD_DEMO_KINDS.map((kind, index) => ({
+            kind: kind as PhotoKind,
+            caption: null,
+            art_seed: clinic.art_seed + index,
+            url: null as string | null,
+        }));
+
+        if (clinic.photos.length === 1) {
+            return [clinic.photos[0]!, ...demo.slice(0, 3)];
+        }
+
+        return demo;
     }, [clinic.art_seed, clinic.photos]);
 
     const multi = slides.length > 1;

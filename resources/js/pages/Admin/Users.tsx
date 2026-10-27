@@ -1,4 +1,4 @@
-import { useForm } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
 import { FilterBar, PageHead, PagerSafe, StatusBadge, Table } from '@/components/Dash';
 import { Button } from '@/components/ui/Button';
 import { SearchInput, SelectField } from '@/components/ui/Fields';
@@ -36,7 +36,12 @@ function UserRow({ user, roles }: { user: User; roles: { slug: string; name: str
     const form = useForm({ role: user.role, status: user.status });
     return (
         <tr>
-            <td><b>{user.name}</b><div className="text-xs text-muted">{user.email}</div></td>
+            <td>
+                <Link href={`/admin/users/${user.id}`} className="link">
+                    <b>{user.name}</b>
+                </Link>
+                <div className="text-xs text-muted">{user.email}</div>
+            </td>
             <td>
                 <form className="row row--wrap" onSubmit={(e) => { e.preventDefault(); form.put(`/admin/users/${user.id}`); }}>
                     <select className="select select--sm" value={form.data.role} onChange={(e) => form.setData('role', e.target.value)}>

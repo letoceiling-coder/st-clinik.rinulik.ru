@@ -1,0 +1,9 @@
+{
+    "status":  "healthy",
+    "checks":  {
+                   "api":  "ok",
+                   "postgres":  "ok",
+                   "redis":  "ok"
+               },
+    "at":  "2026-10-25T20:27:40.686Z"
+}

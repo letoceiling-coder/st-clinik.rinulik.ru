@@ -62,8 +62,13 @@ class LeadService
     }
 
     /** @param array<string,mixed> $data validated */
-    public function create(array $data, ?User $user, string $source = 'clinic_page'): Lead
-    {
+    public function create(
+        array $data,
+        ?User $user,
+        string $source = 'clinic_page',
+        ?int $assistantConversationId = null,
+        bool $assistantBroadcast = false,
+    ): Lead {
         $clinic = Clinic::where('slug', $data['clinic'])->firstOrFail();
 
         $lead = Lead::create([
@@ -79,18 +84,22 @@ class LeadService
             'comment' => $data['comment'] ?? null,
             'is_child' => (bool) ($data['is_child'] ?? false),
             'source' => $source,
+            'assistant_broadcast' => $assistantBroadcast,
+            'assistant_conversation_id' => $assistantConversationId,
             'status' => 'new',
             'consent_at' => now(),
             'consent_version' => '2026-10',
             'ip_hash' => hash('sha256', (request()->ip() ?? '').config('app.key')),
         ]);
 
-        $owner = $clinic->organization?->owner;
-        if ($owner) {
-            UserNotification::create([
-                'user_id' => $owner->id, 'type' => 'lead_new', 'title' => 'Новая заявка',
-                'body' => "Заявка в «{$clinic->name}» от {$lead->name}.", 'url' => '/clinic-cabinet/leads',
-            ]);
+        if (! $assistantBroadcast) {
+            $owner = $clinic->organization?->owner;
+            if ($owner) {
+                UserNotification::create([
+                    'user_id' => $owner->id, 'type' => 'lead_new', 'title' => 'Новая заявка',
+                    'body' => "Заявка в «{$clinic->name}» от {$lead->name}.", 'url' => '/clinic-cabinet/leads',
+                ]);
+            }
         }
         if ($user) {
             UserNotification::create([

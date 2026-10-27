@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Cache;
 
 class ClinicPropertyType extends Model
 {
-    public const KINDS = ['boolean', 'specialty', 'sort', 'achievement'];
+    public const KINDS = ['boolean', 'same_day', 'specialty', 'sort', 'achievement'];
 
     /** @var list<string> */
     public const DB_COLUMNS = [

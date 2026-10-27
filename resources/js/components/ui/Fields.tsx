@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react';
+import type { InputHTMLAttributes, ReactNode, Ref, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react';
 import { useDismiss } from '@/components/ui/Overlay';
 import { cx } from '@/lib/format';
 import Icon from '../Icon';
@@ -52,7 +52,7 @@ export function TextField({
     className,
     inputClassName,
     ...rest
-}: FieldWrap & { inputClassName?: string } & InputHTMLAttributes<HTMLInputElement>) {
+}: FieldWrap & { inputClassName?: string; ref?: Ref<HTMLInputElement> } & InputHTMLAttributes<HTMLInputElement>) {
     const id = useId();
     return (
         <Wrap id={id} label={label} hint={hint} error={error} required={rest.required} className={className}>
@@ -67,7 +67,7 @@ export function TextField({
     );
 }
 
-export function TextArea({ label, hint, error, className, ...rest }: FieldWrap & TextareaHTMLAttributes<HTMLTextAreaElement>) {
+export function TextArea({ label, hint, error, className, ...rest }: FieldWrap & { ref?: Ref<HTMLTextAreaElement> } & TextareaHTMLAttributes<HTMLTextAreaElement>) {
     const id = useId();
     return (
         <Wrap id={id} label={label} hint={hint} error={error} required={rest.required} className={className}>

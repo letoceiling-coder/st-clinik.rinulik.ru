@@ -1,4 +1,4 @@
-import { useForm } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import { FilterBar, PageHead, PagerSafe, StatusBadge, Table } from '@/components/Dash';
 import { Button } from '@/components/ui/Button';
 import { SelectField, TextArea } from '@/components/ui/Fields';
@@ -9,7 +9,10 @@ interface Lead {
     id: number; name: string; phone: string; status: string; status_label: string;
     service: string | null; doctor: string | null; concern: string | null; comment: string | null;
     is_child: boolean; preferred_date: string | null; preferred_time: string | null;
-    clinic_note: string | null; created_at: string | null;
+    clinic_note: string | null; created_at: string | null; has_appointment?: boolean;
+    assistant_broadcast?: boolean;
+    can_take_in_work?: boolean;
+    taken_by_other_clinic?: boolean;
 }
 
 export default function Leads({ leads, statuses, filters }: { leads: Paginated<Lead>; statuses: Record<string, string>; filters: { status?: string } }) {
@@ -43,7 +46,22 @@ function LeadRow({ lead, statuses }: { lead: Lead; statuses: Record<string, stri
                     <b>{lead.name}</b> · {lead.phone}
                     <div className="text-sm text-muted">{[lead.service, lead.doctor, lead.concern, lead.is_child ? 'ребёнок' : null].filter(Boolean).join(' · ')}</div>
                     <div className="text-xs text-muted">{lead.preferred_date} {lead.preferred_time} · {lead.created_at}</div>
+                    {lead.preferred_date && !lead.has_appointment ? (
+                        <Button size="sm" variant="outline" onClick={() => router.post(`/clinic-cabinet/leads/${lead.id}/appointment`)}>Создать запись</Button>
+                    ) : null}
+                    {lead.has_appointment ? <a className="link text-xs" href="/clinic-cabinet/calendar">Открыть в календаре</a> : null}
                     {lead.comment ? <p className="text-sm">{lead.comment}</p> : null}
+                    {lead.assistant_broadcast ? (
+                        <p className="text-xs text-muted">Лид от ассистента · отправлен нескольким клиникам города</p>
+                    ) : null}
+                    {lead.taken_by_other_clinic ? (
+                        <p className="text-xs text-muted">Пациента уже взяли в работу другой клиникой</p>
+                    ) : null}
+                    {lead.can_take_in_work ? (
+                        <Button size="sm" onClick={() => router.post(`/clinic-cabinet/leads/${lead.id}/accept`)}>
+                            Беру в работу
+                        </Button>
+                    ) : null}
                 </div>
                 <StatusBadge status={lead.status} />
             </div>

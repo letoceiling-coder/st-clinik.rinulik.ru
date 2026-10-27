@@ -13,4 +13,9 @@ abstract class AdminController extends Controller
     {
         return $this->page($component, $props, app(Seo::class)->private($title));
     }
+
+    protected function appUrl(): string
+    {
+        return rtrim((string) config('app.url'), '/');
+    }
 }

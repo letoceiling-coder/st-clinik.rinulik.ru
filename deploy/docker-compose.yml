@@ -5,22 +5,84 @@ networks:
     name: st-clinik_net
     driver: bridge
 
+x-app-base: &app-base
+  image: st-clinik-app:local
+  restart: unless-stopped
+  env_file: /opt/st-clinik/.env
+  volumes:
+    - /opt/st-clinik/.env:/var/www/html/.env:ro
+    - st-clinik-storage:/var/www/html/storage
+    - st-clinik-sqlite:/var/www/html/database
+  networks:
+    - st-clinik_net
+
 services:
   app:
+    <<: *app-base
     build:
       context: ..
       dockerfile: deploy/Dockerfile
-    image: st-clinik-app:local
     container_name: st-clinik-app
-    restart: unless-stopped
-    env_file: /opt/st-clinik/.env
     environment:
-      SEED_ON_BOOT: "true"
+      SEED_ON_BOOT: "false"
+      CONTAINER_ROLE: app
     volumes:
       - /opt/st-clinik/.env:/var/www/html/.env:ro
       - st-clinik-storage:/var/www/html/storage
       - st-clinik-sqlite:/var/www/html/database
       - st-clinik-public:/var/www/html/public-export
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  queue:
+    <<: *app-base
+    container_name: st-clinik-queue
+    user: www-data
+    environment:
+      CONTAINER_ROLE: worker
+    command: ["php", "artisan", "queue:work", "--sleep=1", "--tries=3", "--backoff=10", "--max-time=3600"]
+    depends_on:
+      - app
+
+  scheduler:
+    <<: *app-base
+    container_name: st-clinik-scheduler
+    user: www-data
+    environment:
+      CONTAINER_ROLE: worker
+    command: ["php", "artisan", "schedule:work"]
+    depends_on:
+      - app
+
+  postgres:
+    image: pgvector/pgvector:pg17
+    container_name: st-clinik-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-st_clinik}
+      POSTGRES_USER: ${DB_USERNAME:-st_clinik}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set in /opt/st-clinik/.env}
+    command: ["postgres", "-c", "shared_buffers=256MB", "-c", "work_mem=8MB", "-c", "max_connections=60"]
+    volumes:
+      - st-clinik-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - st-clinik_net
+
+  redis:
+    image: redis:7-alpine
+    container_name: st-clinik-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "volatile-lru"]
+    volumes:
+      - st-clinik-redis:/data
     networks:
       - st-clinik_net
 
@@ -47,3 +109,7 @@ volumes:
     name: st-clinik-sqlite
   st-clinik-public:
     name: st-clinik-public
+  st-clinik-pgdata:
+    name: st-clinik-pgdata
+  st-clinik-redis:
+    name: st-clinik-redis

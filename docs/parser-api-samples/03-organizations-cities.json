@@ -1,0 +1,101 @@
+{
+    "total":  217,
+    "cities":  [
+                   {
+                       "city":  "Екатеринбург",
+                       "region":  "муниципальное образование Екатеринбург",
+                       "count":  45,
+                       "withPhone":  45,
+                       "withWebsite":  44,
+                       "avgRating":  4.84,
+                       "searchCategories":  [
+                                                "стоматолог"
+                                            ],
+                       "lastUpdatedAt":  "2026-10-20T15:36:48.644Z"
+                   },
+                   {
+                       "city":  "Краснодар",
+                       "region":  "городской округ Краснодар",
+                       "count":  45,
+                       "withPhone":  45,
+                       "withWebsite":  43,
+                       "avgRating":  4.97,
+                       "searchCategories":  [
+                                                "стоматолог"
+                                            ],
+                       "lastUpdatedAt":  "2026-10-19T06:58:01.513Z"
+                   },
+                   {
+                       "city":  "Москва",
+                       "region":  null,
+                       "count":  45,
+                       "withPhone":  44,
+                       "withWebsite":  40,
+                       "avgRating":  4.95,
+                       "searchCategories":  [
+                                                "стоматолог"
+                                            ],
+                       "lastUpdatedAt":  "2026-10-20T13:28:31.513Z"
+                   },
+                   {
+                       "city":  "Санкт-Петербург",
+                       "region":  null,
+                       "count":  45,
+                       "withPhone":  45,
+                       "withWebsite":  43,
+                       "avgRating":  4.93,
+                       "searchCategories":  [
+                                                "стоматолог"
+                                            ],
+                       "lastUpdatedAt":  "2026-10-20T15:23:21.848Z"
+                   },
+                   {
+                       "city":  "Анапа",
+                       "region":  "муниципальный округ Анапа",
+                       "count":  17,
+                       "withPhone":  17,
+                       "withWebsite":  11,
+                       "avgRating":  4.82,
+                       "searchCategories":  [
+                                                "стоматолог"
+                                            ],
+                       "lastUpdatedAt":  "2026-10-18T15:05:41.329Z"
+                   },
+                   {
+                       "city":  "Ставрополь",
+                       "region":  "городской округ Ставрополь",
+                       "count":  15,
+                       "withPhone":  15,
+                       "withWebsite":  12,
+                       "avgRating":  4.89,
+                       "searchCategories":  [
+                                                "стоматолог"
+                                            ],
+                       "lastUpdatedAt":  "2026-10-18T10:51:06.491Z"
+                   },
+                   {
+                       "city":  "Пятигорск",
+                       "region":  "городской округ Пятигорск",
+                       "count":  4,
+                       "withPhone":  4,
+                       "withWebsite":  3,
+                       "avgRating":  4.88,
+                       "searchCategories":  [
+                                                "стоматолог"
+                                            ],
+                       "lastUpdatedAt":  "2026-10-21T17:08:03.774Z"
+                   },
+                   {
+                       "city":  "посёлок Горячеводский",
+                       "region":  "городской округ Пятигорск",
+                       "count":  1,
+                       "withPhone":  1,
+                       "withWebsite":  1,
+                       "avgRating":  5,
+                       "searchCategories":  [
+                                                "стоматолог"
+                                            ],
+                       "lastUpdatedAt":  "2026-10-21T17:08:03.774Z"
+                   }
+               ]
+}

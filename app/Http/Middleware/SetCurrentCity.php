@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\City;
 use App\Repositories\Contracts\CatalogRepository;
+use App\Services\CityGeolocationService;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
@@ -12,7 +13,10 @@ use Symfony\Component\HttpFoundation\Response;
 /** Определяет текущий город: из URL, затем из cookie, затем город по умолчанию. */
 class SetCurrentCity
 {
-    public function __construct(private readonly CatalogRepository $catalog) {}
+    public function __construct(
+        private readonly CatalogRepository $catalog,
+        private readonly CityGeolocationService $geo,
+    ) {}
 
     public function handle(Request $request, Closure $next): Response
     {
@@ -24,6 +28,9 @@ class SetCurrentCity
         }
         if (! $city && $request->user()?->city_id) {
             $city = $this->catalog->cities()->firstWhere('id', $request->user()->city_id);
+        }
+        if (! $city && ! $request->hasCookie('city')) {
+            $city = $this->geo->detectFromIp($request->ip());
         }
         $city ??= $this->catalog->defaultCity();
 

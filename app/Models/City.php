@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Traits\HasSearchText;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class City extends Model
@@ -11,6 +12,18 @@ class City extends Model
     use HasSearchText;
 
     protected $guarded = [];
+
+    protected static function booted(): void
+    {
+        static::saving(function (City $city): void {
+            if ($city->region_id) {
+                $name = Region::query()->whereKey($city->region_id)->value('name');
+                if ($name) {
+                    $city->region = $name;
+                }
+            }
+        });
+    }
 
     protected function casts(): array
     {
@@ -25,6 +38,11 @@ class City extends Model
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    public function regionModel(): BelongsTo
+    {
+        return $this->belongsTo(Region::class, 'region_id');
     }
 
     public function districts(): HasMany

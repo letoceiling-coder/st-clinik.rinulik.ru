@@ -53,7 +53,7 @@ interface Props {
     active: ActivePromotion[];
     orders: OrderRow[];
     has_publication: boolean;
-    yookassa_configured: boolean;
+    tbank_configured: boolean;
     labels: Record<string, string>;
 }
 
@@ -135,7 +135,7 @@ function CheckoutForm({
         <div className="promo-offer__footer">
             {disabledReason ? <p className="alert alert--warning">{disabledReason}</p> : null}
             <Button type="submit" block disabled={form.processing || !price || disabled}>
-                Оплатить через ЮKassa
+                Оплатить через Т‑Банк
             </Button>
             {'payment' in form.errors && form.errors.payment ? <p className="field-error">{String(form.errors.payment)}</p> : null}
         </div>
@@ -171,7 +171,7 @@ function CheckoutForm({
     );
 }
 
-export default function CabinetPromotions({ products, packages, active, orders, has_publication, yookassa_configured, labels }: Props) {
+export default function CabinetPromotions({ products, packages, active, orders, has_publication, tbank_configured, labels }: Props) {
     const { flash } = usePage<SharedProps>().props;
 
     return (
@@ -181,7 +181,7 @@ export default function CabinetPromotions({ products, packages, active, orders, 
                 text="Пакеты — право на публикацию клиники в каталоге. Буст и баннеры покупаются отдельно при активном пакете."
             />
             {flash?.success ? <p className="alert alert--success">{flash.success}</p> : null}
-            {!yookassa_configured ? <p className="alert alert--warning">Оплата временно недоступна: не настроена ЮKassa на сервере.</p> : null}
+            {!tbank_configured ? <p className="alert alert--warning">Оплата временно недоступна: не настроен эквайринг Т‑Банка в центре интеграций.</p> : null}
 
             {active.length > 0 ? (
                 <section className="stack">

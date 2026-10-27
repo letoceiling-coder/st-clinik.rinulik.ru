@@ -6,9 +6,9 @@ import Icon, { type IconName } from '../Icon';
 
 export function Badge({ children, tone, icon }: { children: ReactNode; tone?: 'success' | 'info' | 'warning' | 'danger' | 'primary' | 'dark'; icon?: IconName }) {
     return (
-        <span className={cx('badge', tone && `badge--${tone}`)}>
+        <span className={cx('badge', tone && `badge--${tone}`)} title={typeof children === 'string' ? children : undefined}>
             {icon ? <Icon name={icon} size={14} /> : null}
-            {children}
+            <span className="badge__text">{children}</span>
         </span>
     );
 }
@@ -204,7 +204,7 @@ export function Tabs<T extends string>({ value, items, onChange, label }: { valu
             {items.map((i) => (
                 <button key={i.key} role="tab" aria-selected={value === i.key} className={cx('tab', value === i.key && 'is-active')} onClick={() => onChange(i.key)}>
                     {i.label}
-                    {i.count !== undefined ? <span className="text-muted"> {i.count}</span> : null}
+                    {i.count !== undefined ? <span className="tab__count">{i.count}</span> : null}
                 </button>
             ))}
         </div>

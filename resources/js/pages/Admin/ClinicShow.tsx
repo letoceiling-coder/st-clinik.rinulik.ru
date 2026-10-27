@@ -9,6 +9,8 @@ interface Clinic {
     slug: string;
     city: string | null;
     organization: string | null;
+    organization_id: number | null;
+    organization_status: string | null;
     address: string;
     status: string;
     is_verified: boolean;

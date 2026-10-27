@@ -16,6 +16,7 @@ use App\Repositories\Filters\ClinicFilters;
 use App\Repositories\Filters\DoctorFilters;
 use App\Services\LeadService;
 use App\Services\SearchService;
+use App\Support\SpecialtyCover;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -38,9 +39,7 @@ class V1Controller extends Controller
 
     public function specialties(): JsonResponse
     {
-        return response()->json(['data' => $this->catalog->specialties()->map(fn ($s) => [
-            'slug' => $s->slug, 'name' => $s->name, 'short' => $s->short, 'icon' => $s->icon,
-        ])->values()]);
+        return response()->json(['data' => $this->catalog->specialties()->map(fn ($s) => SpecialtyCover::toCard($s))->values()]);
     }
 
     public function services(): JsonResponse
@@ -71,6 +70,22 @@ class V1Controller extends Controller
         $ids = $this->ids($request);
 
         return response()->json(['data' => ClinicDetailResource::collection($this->orderByIds($this->clinics->byIds($ids), $ids))->resolve()]);
+    }
+
+    public function homeClinics(Request $request): JsonResponse
+    {
+        $city = $this->cityFrom($request);
+        $offset = max(0, $request->integer('offset'));
+        $limit = min(12, max(1, $request->integer('limit', 6)));
+        $items = $this->clinics->rankedForHome($city->id, $limit, $offset);
+        $nextOffset = $offset + $items->count();
+
+        return response()->json([
+            'data' => ClinicResource::collection($items)->resolve(),
+            'meta' => [
+                'has_more' => $this->clinics->rankedForHome($city->id, 1, $nextOffset)->isNotEmpty(),
+            ],
+        ]);
     }
 
     public function doctorsByIds(Request $request): JsonResponse

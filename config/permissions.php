@@ -17,6 +17,10 @@ return [
         'admin.audit' => 'Журнал аудита',
         'admin.promotions' => 'Продвижение и тарифы',
         'admin.integrations' => 'Интеграции',
+        'admin.parser' => 'Парсер организаций',
+        'offers.manage' => 'КП, демо-кабинеты и кампании',
+        'admin.broadcasts' => 'Рассылки подписчикам платформы',
+        'admin.assistant' => 'AI-ассистент (настройки и диалоги)',
     ],
 
     'defaults' => [

@@ -18,7 +18,7 @@ export default function Schedule({ days, is_24_7, same_day }: { days: Day[]; is_
     };
     return (
         <form className="card stack" onSubmit={submit}>
-            <PageHead title="График работы" />
+            <PageHead title="График филиала" text="Часы работы на карточке. Приём врачей — в отдельном расписании." action={<a className="link" href="/clinic-cabinet/schedule/doctors">Расписание врачей</a>} />
             <Check label="Круглосуточно" checked={form.data.is_24_7} onChange={(e) => form.setData('is_24_7', e.target.checked)} />
             <Check label="Можно записаться на сегодня" checked={form.data.same_day} onChange={(e) => form.setData('same_day', e.target.checked)} />
             {days.map((d) => (

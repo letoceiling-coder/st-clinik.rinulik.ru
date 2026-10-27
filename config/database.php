@@ -44,6 +44,14 @@ return [
             'transaction_mode' => 'DEFERRED',
         ],
 
+        /** Источник для разового переноса данных в PostgreSQL (db:migrate-sqlite-to-pgsql). */
+        'sqlite_legacy' => [
+            'driver' => 'sqlite',
+            'database' => env('DB_LEGACY_SQLITE', database_path('database.sqlite')),
+            'prefix' => '',
+            'foreign_key_constraints' => false,
+        ],
+
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DB_URL'),

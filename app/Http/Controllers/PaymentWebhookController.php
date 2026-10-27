@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\PromotionService;
+use App\Services\Monetization\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class PaymentWebhookController extends Controller
 {
-    public function yookassa(Request $request, PromotionService $promotions): Response
+    public function tbank(Request $request, PaymentService $payments): Response
     {
-        $promotions->handleWebhook($request->all());
+        $payments->handleTBankWebhook($request->all());
 
-        return response('', 200);
+        return response('OK', 200);
     }
 }

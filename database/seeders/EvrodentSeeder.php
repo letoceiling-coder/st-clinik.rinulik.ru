@@ -2,8 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\CardBonusType;
 use App\Models\City;
 use App\Models\Clinic;
+use App\Models\ClinicCardBonus;
 use App\Models\ClinicDocument;
 use App\Models\ClinicPhoto;
 use App\Models\ClinicPost;
@@ -42,6 +44,7 @@ class EvrodentSeeder extends Seeder
             $this->fillDocuments($clinic);
             $this->fillPosts($clinic);
             $this->fillBranch($clinic);
+            $this->fillCardBonuses($clinic);
             app(ProfileMetrics::class)->recalcClinic($clinic->fresh());
         });
 
@@ -425,6 +428,48 @@ TEXT,
             'art_seed' => 11,
             'status' => 'published',
         ]);
+    }
+
+    private function fillCardBonuses(Clinic $clinic): void
+    {
+        $byCode = CardBonusType::query()->get()->keyBy('code');
+        $rows = [
+            'free_consult' => [
+                'short_label' => 'Бесплатная консультация',
+                'description' => 'Первичный осмотр и план лечения без оплаты при записи через сайт. Не распространяется на КТ и анестезию.',
+            ],
+            'treatment_discount' => [
+                'short_label' => 'Скидка на лечение',
+                'description' => 'Скидка 10% на терапевтическое лечение при записи в течение 7 дней после консультации. Подробности у администратора.',
+            ],
+            'cashback' => [
+                'short_label' => 'Кешбэк при первой оплате',
+                'description' => '5% от суммы первого чека возвращаем на бонусный счёт — можно оплатить до 20% следующего визита.',
+            ],
+            'same_day' => [
+                'short_label' => 'Запись на сегодня',
+                'description' => 'Показываем этот значок только если в календаре клиники есть свободные окна на сегодня. Уточните время при записи.',
+            ],
+        ];
+
+        foreach ($rows as $code => $data) {
+            $type = $byCode->get($code);
+            if (! $type) {
+                continue;
+            }
+
+            ClinicCardBonus::query()->updateOrCreate(
+                [
+                    'clinic_id' => $clinic->id,
+                    'card_bonus_type_id' => $type->id,
+                ],
+                [
+                    'enabled' => true,
+                    'short_label' => $data['short_label'],
+                    'description' => $data['description'],
+                ],
+            );
+        }
     }
 
     private function copyDoctorPhoto(int $doctorId, string $file): ?string

@@ -27,12 +27,21 @@ class ProfileMetrics
         $stats = $clinic->reviews()->where('status', 'published')
             ->selectRaw('count(*) as c, avg(rating) as r')->first();
 
+        $internalReviews = (int) ($stats->c ?? 0);
+        if ($internalReviews > 0) {
+            $reviewsCount = $internalReviews;
+            $rating = round((float) $stats->r, 2);
+        } else {
+            $reviewsCount = (int) $clinic->reviews_count;
+            $rating = (float) $clinic->rating;
+        }
+
         $doctors = $clinic->doctors()->where('status', 'published');
         $minPrice = $clinic->clinicServices()->where('price_from', '>', 0)->min('price_from');
 
         $clinic->forceFill([
-            'reviews_count' => (int) ($stats->c ?? 0),
-            'rating' => $stats?->c ? round((float) $stats->r, 2) : 0,
+            'reviews_count' => $reviewsCount,
+            'rating' => $rating,
             'doctors_count' => (clone $doctors)->count(),
             'max_experience' => (int) ((clone $doctors)->max('experience_years') ?? 0),
             'min_price' => $minPrice,

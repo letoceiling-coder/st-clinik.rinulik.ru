@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Http\Resources\ClinicResource;
+use App\Models\Appointment;
 use App\Models\City;
 use App\Models\Clinic;
 use App\Models\Organization;
@@ -10,6 +12,7 @@ use App\Models\Specialty;
 use App\Models\User;
 use App\Repositories\Contracts\ClinicRepository;
 use App\Repositories\Filters\ClinicFilters;
+use Carbon\Carbon;
 use Database\Seeders\FoundationSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -75,6 +78,45 @@ class ClinicPropertyFilterTest extends TestCase
         );
 
         $this->assertSame([$both->id], $filtered->getCollection()->pluck('id')->all());
+    }
+
+    public function test_same_day_filter_keeps_clinic_but_card_hides_badge_when_calendar_full(): void
+    {
+        Carbon::setTestNow(now()->setTime(12, 0));
+
+        $city = City::query()->firstOrFail();
+        $clinic = $this->makeClinic($city, [
+            'name' => 'Same Day Clinic',
+            'slug' => 'same-day-clinic',
+            'same_day' => true,
+            'is_24_7' => true,
+        ]);
+
+        $repo = app(ClinicRepository::class);
+        $filtered = $repo->paginate(ClinicFilters::fromArray(['same_day' => 1], $city->id), 50);
+        $this->assertTrue($filtered->getCollection()->pluck('id')->contains($clinic->id));
+
+        $start = now()->copy()->setTime(9, 0);
+        while ($start->hour < 21) {
+            Appointment::create([
+                'clinic_id' => $clinic->id,
+                'patient_name' => 'Busy',
+                'patient_phone' => '+79001112233',
+                'starts_at' => $start->copy(),
+                'ends_at' => $start->copy()->addMinutes(30),
+                'status' => 'confirmed',
+                'source' => 'manual',
+            ]);
+            $start->addMinutes(30);
+        }
+
+        $stillListed = $repo->paginate(ClinicFilters::fromArray(['same_day' => 1], $city->id), 50);
+        $this->assertTrue($stillListed->getCollection()->pluck('id')->contains($clinic->id));
+
+        $payload = (new ClinicResource($clinic->fresh()))->resolve();
+        $this->assertFalse($payload['same_day']);
+
+        Carbon::setTestNow();
     }
 
     public function test_detskaya_property_filters_by_specialty(): void

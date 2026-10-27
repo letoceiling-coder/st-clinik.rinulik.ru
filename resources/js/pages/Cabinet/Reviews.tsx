@@ -11,6 +11,7 @@ interface Row {
     id: number; rating: number; title: string | null; body: string; author_name: string; status: string;
     is_verified_visit: boolean; visit_date: string | null; created_at: string | null;
     doctor: string | null; service: string | null; reply: string | null; reply_at: string | null;
+    reply_status: string | null; reply_moderation_note: string | null;
     complaint: { status: string; reason: string; resolution: string | null } | null;
 }
 
@@ -28,7 +29,11 @@ export default function Reviews({ reviews, reasons, filters }: { reviews: Pagina
                     <option value="unanswered">Без ответа</option>
                 </SelectField>
             </FilterBar>
-            {reviews.data.length === 0 ? <EmptyState title="Отзывов нет" /> : reviews.data.map((r) => (
+            {reviews.data.length === 0 ? <EmptyState title="Отзывов нет" /> : reviews.data.map((r) => {
+                const replyPublished = Boolean(r.reply && (r.reply_status === 'published' || r.reply_status === null));
+                const canReply = r.status === 'published' && !replyPublished && r.reply_status !== 'pending';
+
+                return (
                 <article key={r.id} className="card stack">
                     <div className="row row--between">
                         <div>
@@ -39,10 +44,17 @@ export default function Reviews({ reviews, reasons, filters }: { reviews: Pagina
                     </div>
                     <Stars value={r.rating} />
                     <p>{r.body}</p>
-                    {r.reply ? <p className="review-reply">{r.reply}</p> : r.status === 'published' ? (
+                    {replyPublished ? <p className="review-reply">{r.reply}</p> : null}
+                    {r.reply_status === 'pending' && r.reply ? (
+                        <p className="text-sm text-muted">Ответ на модерации: {r.reply}</p>
+                    ) : null}
+                    {r.reply_status === 'rejected' ? (
+                        <p className="text-sm text-danger">Ответ отклонён: {r.reply_moderation_note ?? 'исправьте текст и отправьте снова.'}</p>
+                    ) : null}
+                    {canReply ? (
                         <form className="stack" onSubmit={(e) => { e.preventDefault(); reply.post(`/clinic-cabinet/reviews/${r.id}/reply`, { onSuccess: () => reply.reset() }); }}>
                             <TextArea label="Ответ клиники" value={reply.data.reply_text} onChange={(e) => reply.setData('reply_text', e.target.value)} error={reply.errors.reply_text} />
-                            <Button type="submit" size="sm" loading={reply.processing}>Опубликовать ответ</Button>
+                            <Button type="submit" size="sm" loading={reply.processing}>{r.reply_status === 'rejected' ? 'Отправить снова' : 'Опубликовать ответ'}</Button>
                         </form>
                     ) : null}
                     {r.complaint ? <p className="text-sm text-muted">Жалоба: {r.complaint.status}</p> : (
@@ -58,7 +70,7 @@ export default function Reviews({ reviews, reasons, filters }: { reviews: Pagina
                         </form>
                     ) : null}
                 </article>
-            ))}
+            );})}
             <PagerSafe page={reviews} />
         </div>
     );

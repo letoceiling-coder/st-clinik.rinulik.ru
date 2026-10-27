@@ -32,16 +32,17 @@
     @foreach (($seo['jsonld'] ?? []) as $schema)
         <script type="application/ld+json">{!! json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) !!}</script>
     @endforeach
-    @if (request()->routeIs('home'))
-        <link
-            rel="preload"
-            as="image"
-            type="image/webp"
-            href="/images/demo/hero-01-960.webp"
-            imagesrcset="/images/demo/hero-01-480.webp 480w, /images/demo/hero-01-960.webp 960w"
-            imagesizes="(min-width: 1280px) 456px, 90vw"
-            fetchpriority="high"
-        >
+    @php($metrikaId = (string) config('services.yandex_metrika.counter_id'))
+    @if (ctype_digit($metrikaId) && ! request()->is('admin', 'admin/*', 'max', 'max/*'))
+        <script>
+            (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();
+            for (var j = 0; j < document.scripts.length; j++) { if (document.scripts[j].src === r) { return; } }
+            k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+            (window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js', 'ym');
+            window.ymCounterId = {{ $metrikaId }};
+            ym({{ $metrikaId }}, 'init', { defer: true, clickmap: true, trackLinks: true, accurateTrackBounce: true, webvisor: {{ config('services.yandex_metrika.webvisor') ? 'true' : 'false' }} });
+        </script>
+        <noscript><div><img src="https://mc.yandex.ru/watch/{{ $metrikaId }}" style="position:absolute; left:-9999px;" alt=""></div></noscript>
     @endif
     @viteReactRefresh
     @vite('resources/js/app.tsx')

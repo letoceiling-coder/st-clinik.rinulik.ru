@@ -52,7 +52,10 @@ class ClinicDetailResource extends ClinicResource
             ])->values(),
             'week' => Schedule::week($c->schedule),
             'photos' => $c->photos->map(fn ($p) => [
-                'kind' => $p->kind, 'caption' => $p->caption, 'art_seed' => $p->art_seed, 'url' => $p->path ? Storage::disk('public')->url($p->path) : null,
+                'kind' => $p->kind,
+                'caption' => $p->caption,
+                'art_seed' => $p->art_seed,
+                'url' => $p->path ? '/storage/'.$p->path : null,
             ])->values(),
             'doctors' => $c->doctors->map(fn ($d) => DoctorResource::make($d)->resolve($request))->values(),
             'prices' => $prices,

@@ -22,7 +22,7 @@ interface Lead {
 export default function Leads({ leads, statuses, filters }: { leads: Paginated<Lead>; statuses: Record<string, string>; filters: { status?: string } }) {
     return (
         <div className="stack-lg">
-            <PageHead title="Заявки и записи" text="Статус обновляет клиника. Мы не храним диагнозы и меддокументы." />
+            <PageHead title="Заявки на звонок" text="Запись на приём — в разделе «Мои записи». Здесь заявки «перезвоните мне»." />
             <FilterBar>
                 <SelectField name="status" label="Статус" defaultValue={filters.status ?? ''}>
                     <option value="">Все</option>

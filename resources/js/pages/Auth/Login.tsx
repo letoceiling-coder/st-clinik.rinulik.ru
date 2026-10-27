@@ -1,5 +1,6 @@
 import { Link, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
+import { SocialOAuthButtons } from '@/components/auth/SocialOAuthButtons';
 import { Button } from '@/components/ui/Button';
 import { Check, TextField } from '@/components/ui/Fields';
 
@@ -20,9 +21,15 @@ export default function Login() {
             <TextField label="E-mail" type="email" autoComplete="email" required value={form.data.email} onChange={(e) => form.setData('email', e.target.value)} error={form.errors.email} />
             <TextField label="Пароль" type="password" autoComplete="current-password" required value={form.data.password} onChange={(e) => form.setData('password', e.target.value)} error={form.errors.password} />
             <Check label="Запомнить меня" checked={form.data.remember} onChange={(e) => form.setData('remember', e.target.checked)} />
+            <p className="text-sm text-right">
+                <Link href="/forgot-password" className="link">
+                    Забыли пароль?
+                </Link>
+            </p>
             <Button type="submit" block size="lg" loading={form.processing}>
                 Войти
             </Button>
+            <SocialOAuthButtons />
             <p className="text-sm text-center">
                 Нет аккаунта?{' '}
                 <Link href="/register" className="link">

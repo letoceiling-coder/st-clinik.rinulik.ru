@@ -22,6 +22,21 @@ class CityController extends Controller
             $target = $previous === '' ? '/' : $previous;
         }
 
-        return redirect($target)->withCookie(Cookie::make('city', $city->slug, 60 * 24 * 365, '/', null, null, false));
+        return $this->redirectWithCityCookies($target, $city);
+    }
+
+    /** Подтверждение города при первом визите (без смены URL, если город уже совпадает). */
+    public function confirm(City $city): RedirectResponse
+    {
+        $previous = parse_url((string) url()->previous(), PHP_URL_PATH) ?: '/';
+
+        return $this->redirectWithCityCookies($previous === '' ? '/' : $previous, $city);
+    }
+
+    private function redirectWithCityCookies(string $target, City $city): RedirectResponse
+    {
+        return redirect($target)
+            ->withCookie(Cookie::make('city', $city->slug, 60 * 24 * 365, '/', null, null, false))
+            ->withCookie(Cookie::make('city_confirmed', '1', 60 * 24 * 365, '/', null, null, false));
     }
 }

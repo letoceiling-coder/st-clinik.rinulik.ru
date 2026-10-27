@@ -12,9 +12,9 @@ docker exec "$CONTAINER" php artisan db:seed --class=FoundationSeeder --force --
 
 if [ -f "${APP_DIR}/storage/app/parser-orgs-raw.json" ]; then
     docker cp "${APP_DIR}/storage/app/parser-orgs-raw.json" "${CONTAINER}:/var/www/html/storage/app/parser-orgs-raw.json"
-    docker exec "$CONTAINER" php artisan parser:sync-organizations --import --photos --publish
+    docker exec "$CONTAINER" php artisan parser:sync-organizations --import --photos
 else
-    docker exec "$CONTAINER" php artisan parser:sync-organizations --fetch --import --photos --publish
+    docker exec "$CONTAINER" php artisan parser:sync-organizations --fetch --import --photos
 fi
 
 docker exec "$CONTAINER" php artisan cache:clear

@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\Appointment;
+use App\Models\AuditLog;
+use App\Models\Review;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\Audit;
@@ -18,7 +21,7 @@ class UserController extends AdminController
         $status = $request->query('status');
 
         $users = User::query()
-            ->when($q !== '', fn ($b) => $b->where(fn ($w) => $w->where('name', 'like', "%$q%")->orWhere('email', 'like', "%$q%")))
+            ->when($q !== '', fn ($b) => $b->where(fn ($w) => $w->whereLike('name', "%$q%")->orWhereLike('email', "%$q%")))
             ->when($role, fn ($b) => $b->where('role', $role))
             ->when($status, fn ($b) => $b->where('status', $status))
             ->orderByDesc('id')->paginate(20)->withQueryString();
@@ -30,6 +33,43 @@ class UserController extends AdminController
             ])->toArray(),
             'roles' => Role::orderBy('name')->get(['slug', 'name']),
             'filters' => array_filter(['q' => $q, 'role' => $role, 'status' => $status]),
+        ]);
+    }
+
+    public function show(User $user): Response
+    {
+        return $this->render('Admin/UserShow', $user->name, [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'role' => $user->role,
+                'status' => $user->status,
+                'created_at' => $user->created_at?->format('d.m.Y H:i'),
+                'last_login_at' => $user->last_login_at?->format('d.m.Y H:i'),
+            ],
+            'stats' => [
+                'reviews' => Review::where('user_id', $user->id)->count(),
+                'appointments' => Appointment::where('user_id', $user->id)->count(),
+            ],
+            'reviews' => Review::where('user_id', $user->id)->latest()->limit(10)->get()->map(fn (Review $r) => [
+                'id' => $r->id,
+                'rating' => $r->rating,
+                'status' => $r->status,
+                'created_at' => $r->created_at?->format('d.m.Y'),
+            ]),
+            'appointments' => Appointment::where('user_id', $user->id)->with('clinic:id,name')->latest('starts_at')->limit(10)->get()->map(fn (Appointment $a) => [
+                'id' => $a->id,
+                'starts_at' => $a->starts_at?->format('d.m.Y H:i'),
+                'status' => $a->status,
+                'clinic' => $a->clinic?->name,
+            ]),
+            'audit' => AuditLog::where('user_id', $user->id)->latest('id')->limit(15)->get()->map(fn (AuditLog $a) => [
+                'action' => $a->action,
+                'at' => $a->created_at?->format('d.m.Y H:i'),
+            ]),
+            'roles' => Role::orderBy('name')->get(['slug', 'name']),
         ]);
     }
 

@@ -8,3 +8,8 @@
 @import './base.css';
 @import './components.css';
 @import './layout.css';
+@import './parser.css';
+@import './offers.css';
+@import './booking.css';
+@import './clinic-card-premium-light.css';
+@import './clinic-card-premium-avito.css';

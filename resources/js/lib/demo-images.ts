@@ -2,6 +2,9 @@
 
 export type PhotoKind = 'exterior' | 'interior' | 'office' | 'equipment' | 'team' | string;
 
+/** Демо-слайды карточки клиники, если в каталоге нет нескольких одобренных фото. */
+export const CLINIC_CARD_DEMO_KINDS: PhotoKind[] = ['exterior', 'interior', 'equipment', 'office'];
+
 const CLINIC: Record<string, string[]> = {
     exterior: ['/images/demo/clinic-exterior-01.jpg', '/images/demo/clinic-exterior-02.jpg'],
     interior: ['/images/demo/clinic-interior-01.jpg', '/images/demo/clinic-interior-02.jpg', '/images/demo/clinic-interior-03.jpg'],

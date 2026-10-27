@@ -72,6 +72,7 @@ export default function DashboardShell({
 }) {
     const { auth, demo } = usePage<SharedProps>().props;
     const user = auth?.user;
+    const offerDemo = demo?.mode === 'offer';
     const { url } = usePage();
     const [open, setOpen] = useState(false);
     useClientSeo();
@@ -120,12 +121,37 @@ export default function DashboardShell({
                                 </span>
                             </div>
                         ) : null}
-                        <Link href="/logout" method="post" as="button" className="btn btn--ghost btn--sm" type="button">
-                            <Icon name="logout" size={18} /> <span className="hide-mobile">Выйти</span>
-                        </Link>
+                        {offerDemo ? (
+                            <>
+                                {demo?.connect_url ? (
+                                    <a href={demo.connect_url} className="btn btn--primary btn--sm">
+                                        Подключиться
+                                    </a>
+                                ) : null}
+                                <Link href={demo?.exit_url ?? '/'} method="post" as="button" className="btn btn--ghost btn--sm" type="button">
+                                    <Icon name="logout" size={18} /> <span className="hide-mobile">Выйти из демо</span>
+                                </Link>
+                            </>
+                        ) : (
+                            <Link href="/logout" method="post" as="button" className="btn btn--ghost btn--sm" type="button">
+                                <Icon name="logout" size={18} /> <span className="hide-mobile">Выйти</span>
+                            </Link>
+                        )}
                     </div>
                 </header>
-                {demo ? (
+                {offerDemo ? (
+                    <div className="demo-banner demo-banner--offer" role="status">
+                        <Icon name="info" size={18} />
+                        <span>
+                            <b>Демо-режим.</b> Так будет выглядеть кабинет вашей клиники. Данные заявок и записей — примерные, изменения не сохраняются.
+                        </span>
+                        {demo?.connect_url ? (
+                            <a href={demo.connect_url} className="btn btn--primary btn--sm demo-banner__action">
+                                Подключиться
+                            </a>
+                        ) : null}
+                    </div>
+                ) : demo ? (
                     <div className="demo-banner" role="status">
                         <Icon name="info" size={18} />
                         <span>
@@ -138,7 +164,7 @@ export default function DashboardShell({
                         {aside}
                         <SideNav items={items} />
                     </aside>
-                    <main id="main" tabIndex={-1} className="shell__main">
+                    <main id="main" tabIndex={-1} className={cx('shell__main', offerDemo && 'shell__main--demo')}>
                         <div className="show-tablet shell__crumb">
                             <button type="button" className="chip" onClick={() => setOpen(true)}>
                                 <Icon name="menu" size={16} /> {current?.label ?? mobileLabel}

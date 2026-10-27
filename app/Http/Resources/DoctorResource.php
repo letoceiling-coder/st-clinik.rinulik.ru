@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Services\ClinicCardBonusService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
@@ -37,7 +38,7 @@ class DoctorResource extends JsonResource
                 'city' => $d->clinic->relationLoaded('city') && $d->clinic->city ? ['slug' => $d->clinic->city->slug, 'name' => $d->clinic->city->name] : null,
                 'rating' => (float) $d->clinic->rating,
                 'is_verified' => (bool) $d->clinic->is_verified,
-                'same_day' => (bool) $d->clinic->same_day,
+                'same_day' => app(ClinicCardBonusService::class)->hasSameDayFeature($d->clinic),
             ] : null,
         ];
     }

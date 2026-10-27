@@ -102,10 +102,20 @@
     }
 }
 
+@media (max-width: 430px) {
+    :root {
+        --tabbar-h: 62px;
+    }
+}
+
+@media (max-width: 480px) {
+    :root {
+        --gutter: 16px;
+    }
+}
+
 @media (max-width: 374px) {
     :root {
-        --gutter: 12px;
         --fs-hero: clamp(1.625rem, 5vw + 1.1rem, 2rem);
-        --tabbar-h: 56px;
     }
 }

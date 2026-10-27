@@ -87,7 +87,7 @@ class EloquentClinicRepository implements ClinicRepository
             }
 
             match ($type->filter_kind) {
-                'boolean' => $type->db_column ? $query->where('clinics.'.$type->db_column, true) : null,
+                'boolean', 'same_day' => $type->db_column ? $query->where('clinics.'.$type->db_column, true) : null,
                 'specialty' => $query->whereHas('specialties', fn ($s) => $s->where('slug', $type->filter_value)),
                 default => null,
             };
@@ -96,8 +96,8 @@ class EloquentClinicRepository implements ClinicRepository
         foreach ($f->tokens() as $token) {
             $like = '%'.$token.'%';
             $query->where(fn ($q) => $q
-                ->where('clinics.search_text', 'like', $like)
-                ->orWhereHas('doctors', fn ($d) => $d->where('search_text', 'like', $like)));
+                ->whereLike('clinics.search_text', $like)
+                ->orWhereHas('doctors', fn ($d) => $d->whereLike('search_text', $like)));
         }
 
         return $query;
@@ -105,6 +105,8 @@ class EloquentClinicRepository implements ClinicRepository
 
     private function sort(Builder $query, string $sort, ?int $cityId = null): Builder
     {
+        $query->orderByCardPremiumFirst();
+
         if ($cityId && $sort === 'relevance') {
             $boosted = ClinicPromotion::query()
                 ->active()
@@ -113,8 +115,8 @@ class EloquentClinicRepository implements ClinicRepository
                 ->pluck('clinic_id');
 
             if ($boosted->isNotEmpty()) {
-                $ids = $boosted->implode(',');
-                $query->orderByRaw("case when clinics.id in ({$ids}) then 0 else 1 end");
+                $placeholders = implode(',', array_fill(0, $boosted->count(), '?'));
+                $query->orderByRaw("case when clinics.id in ({$placeholders}) then 0 else 1 end", $boosted->map(fn ($id) => (int) $id)->all());
             }
         }
 
@@ -145,6 +147,7 @@ class EloquentClinicRepository implements ClinicRepository
                 ->where(function ($inner) {
                     $inner->where('price_from', 0)->orWhere('is_promo', true);
                 }),
+            'cardBonuses.type',
         ]);
     }
 
@@ -175,8 +178,23 @@ class EloquentClinicRepository implements ClinicRepository
 
     public function top(int $cityId, int $limit = 6): Collection
     {
-        $query = Clinic::query()->published()->where('clinics.city_id', $cityId)->where('clinics.reviews_count', '>=', 3)
-            ->orderByDesc('clinics.is_verified')->orderByDesc('clinics.rating')->orderByDesc('clinics.reviews_count')->limit($limit);
+        return $this->rankedForHome($cityId, $limit, 0);
+    }
+
+    public function rankedForHome(int $cityId, int $limit, int $offset = 0): Collection
+    {
+        $query = Clinic::query()
+            ->published()
+            ->where('clinics.city_id', $cityId)
+            ->orderByCardPremiumFirst()
+            ->orderByRaw('CASE WHEN clinics.reviews_count >= 3 THEN 0 ELSE 1 END')
+            ->orderByDesc('clinics.is_verified')
+            ->orderByDesc('clinics.rating')
+            ->orderByDesc('clinics.reviews_count')
+            ->orderBy('clinics.id')
+            ->offset($offset)
+            ->limit($limit);
+
         $this->withCardRelations($query);
 
         return $query->get();

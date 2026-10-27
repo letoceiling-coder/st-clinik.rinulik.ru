@@ -26,7 +26,7 @@ export default function Overview({
     leads,
     notifications,
 }: {
-    counts: { leads: number; active_leads: number; favorites: number; compare: number; reviews: number; unread: number };
+    counts: { leads: number; active_leads: number; appointments?: number; favorites: number; compare: number; reviews: number; unread: number };
     leads: Lead[];
     notifications: Note[];
 }) {

@@ -2,12 +2,14 @@
 
 namespace App\Services;
 
+use App\Models\Appointment;
 use App\Models\Clinic;
-use App\Models\Lead;
 use App\Models\Review;
 use App\Models\ReviewComplaint;
 use App\Models\User;
 use App\Models\UserNotification;
+use App\Services\Organization\ClinicStaffNotifier;
+use App\Support\ClinicNotificationEvents;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -57,7 +59,7 @@ class ReviewService
     public function create(Clinic $clinic, User $user, array $data): Review
     {
         $text = ($data['title'] ?? '').' '.$data['body'];
-        $verified = Lead::where('user_id', $user->id)->where('clinic_id', $clinic->id)->whereIn('status', ['confirmed', 'completed'])->exists();
+        $verified = Appointment::where('user_id', $user->id)->where('clinic_id', $clinic->id)->where('status', 'completed')->exists();
 
         $review = Review::create([
             'user_id' => $user->id,
@@ -80,6 +82,18 @@ class ReviewService
             'body' => 'Модератор проверит отзыв в течение 48 часов.', 'url' => '/account/reviews',
         ]);
 
+        $clinic->loadMissing('organization');
+        if ($clinic->organization) {
+            app(ClinicStaffNotifier::class)->notify(
+                $clinic->organization,
+                ClinicNotificationEvents::REVIEW,
+                'review_new',
+                'Новый отзыв',
+                "{$review->author_name} · {$review->rating}★ — ожидает модерации.",
+                '/clinic-cabinet/reviews?branch='.$clinic->id,
+            );
+        }
+
         return $review;
     }
 
@@ -94,7 +108,7 @@ class ReviewService
 
     public function complain(Review $review, ?User $user, string $role, array $data): ReviewComplaint
     {
-        return ReviewComplaint::create([
+        $complaint = ReviewComplaint::create([
             'review_id' => $review->id,
             'reporter_id' => $user?->id,
             'reporter_role' => $role,
@@ -102,5 +116,21 @@ class ReviewService
             'comment' => $data['comment'] ?? null,
             'status' => 'open',
         ]);
+
+        $review->loadMissing('clinic.organization');
+        $organization = $review->clinic?->organization;
+        if ($organization) {
+            $from = $role === 'clinic' ? 'Клиника' : 'Пользователь';
+            app(ClinicStaffNotifier::class)->notify(
+                $organization,
+                ClinicNotificationEvents::REVIEW,
+                'review_complaint',
+                'Жалоба на отзыв',
+                "{$from}: {$complaint->reason}. Отзыв #{$review->id}.",
+                '/clinic-cabinet/reviews?branch='.$review->clinic_id,
+            );
+        }
+
+        return $complaint;
     }
 }

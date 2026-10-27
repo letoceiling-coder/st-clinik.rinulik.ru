@@ -56,7 +56,7 @@ class EloquentDoctorRepository implements DoctorRepository
             $query->whereHas('clinic', function ($c) use ($f) {
                 foreach ($f->flags as $slug) {
                     $type = ClinicPropertyType::findBySlug($slug);
-                    if ($type?->filter_kind === 'boolean' && $type->db_column) {
+                    if ($type?->db_column && in_array($type->filter_kind, ['boolean', 'same_day'], true)) {
                         $c->where($type->db_column, true);
                     }
                 }
@@ -64,7 +64,7 @@ class EloquentDoctorRepository implements DoctorRepository
         }
 
         foreach ($f->tokens() as $token) {
-            $query->where('doctors.search_text', 'like', '%'.$token.'%');
+            $query->whereLike('doctors.search_text', '%'.$token.'%');
         }
 
         return (match ($f->sort) {

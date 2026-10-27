@@ -31,6 +31,9 @@ export default function Branches({ branches }: { branches: Branch[] }) {
                                 {['draft', 'rejected'].includes(b.status) ? (
                                     <Button size="sm" variant="ghost" onClick={() => router.post(`/clinic-cabinet/branches/${b.id}/submit`)}>На модерацию</Button>
                                 ) : null}
+                                {b.status === 'approved' ? (
+                                    <Button size="sm" variant="ghost" onClick={() => router.post(`/clinic-cabinet/branches/${b.id}/publish`)}>Опубликовать</Button>
+                                ) : null}
                             </td>
                         </tr>
                     ))}

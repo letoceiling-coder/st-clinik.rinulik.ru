@@ -1,0 +1,20 @@
+{
+    "id":  "f7771841-d21d-47e2-a349-1f08a3c8969d",
+    "type":  "yandex.orgs",
+    "status":  "queued",
+    "input":  {
+                  "city":  "Ставрополь",
+                  "category":  "стоматология",
+                  "maxResults":  3,
+                  "outputFormat":  "json",
+                  "includePhotos":  false
+              },
+    "result":  null,
+    "error":  null,
+    "progress":  0,
+    "createdAt":  "2026-10-25T20:28:28.534Z",
+    "updatedAt":  "2026-10-25T20:28:28.534Z",
+    "startedAt":  null,
+    "completedAt":  null,
+    "workerId":  null
+}

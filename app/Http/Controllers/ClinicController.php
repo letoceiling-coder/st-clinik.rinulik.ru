@@ -9,6 +9,7 @@ use App\Models\HistoryEntry;
 use App\Repositories\Contracts\CatalogRepository;
 use App\Repositories\Contracts\ClinicRepository;
 use App\Repositories\Contracts\ReviewRepository;
+use App\Services\Broadcasts\ClinicFollowerService;
 use App\Services\SchemaOrg;
 use App\Services\Seo;
 use App\Support\Text;
@@ -25,6 +26,7 @@ class ClinicController extends Controller
         CatalogRepository $catalog,
         Seo $seo,
         SchemaOrg $schema,
+        ClinicFollowerService $followers,
     ): Response {
         $clinic = $clinics->findPublishedBySlug($slug) ?? abort(404);
         $clinic->increment('views_count');
@@ -68,6 +70,10 @@ class ClinicController extends Controller
                 'services' => $clinic->clinicServices->map(fn ($cs) => ['id' => $cs->service_id, 'name' => $cs->service->name])->values(),
             ],
             'breadcrumbs' => $crumbs,
+            'clinic_follow' => [
+                'subscribed' => ($user = $request->user()) ? $followers->isFollowing($user, $clinic) : false,
+                'can_subscribe' => $request->user() !== null,
+            ],
         ], $seoData);
     }
 }

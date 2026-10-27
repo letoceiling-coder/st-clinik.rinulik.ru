@@ -86,7 +86,15 @@ class ParserOrganizationMapper
                 'payment_methods' => $this->paymentMethods($card),
                 'rating' => round((float) ($item['rating'] ?? $card['rating'] ?? 0), 2),
                 'reviews_count' => (int) ($item['reviewCount'] ?? $card['reviewCount'] ?? 0),
-                'status' => 'pending',
+                'tagline' => null,
+                'achievements' => [],
+                'license_number' => null,
+                'license_issuer' => null,
+                'license_date' => null,
+                'doctors_count' => 0,
+                'min_price' => null,
+                'views_count' => 0,
+                'status' => 'draft',
                 'is_verified' => false,
                 ...$flags,
             ],
@@ -147,23 +155,21 @@ class ParserOrganizationMapper
     }
 
     /**
+     * Описание клиники берём только из «живого» текста карточки. Служебные данные
+     * (рубрики, часы, ссылка на источник) хранятся в отдельных полях и в описание не попадают.
+     *
      * @param  array<string, mixed>  $card
      */
     private function description(array $card): ?string
     {
-        $parts = [];
-        if (! empty($card['categories']) && is_array($card['categories'])) {
-            $parts[] = 'Рубрики: '.implode(', ', array_map('strval', $card['categories']));
-        }
-        if (! empty($card['hours']) && is_string($card['hours'])) {
-            $parts[] = 'Часы работы: '.$card['hours'];
-        }
-        $source = $card['sourceUrl'] ?? null;
-        if (is_string($source) && $source !== '') {
-            $parts[] = 'Карточка на Яндекс Картах: '.$source;
+        foreach (['description', 'about'] as $key) {
+            $text = $card[$key] ?? null;
+            if (is_string($text) && trim($text) !== '') {
+                return trim($text);
+            }
         }
 
-        return $parts === [] ? null : implode("\n\n", $parts);
+        return null;
     }
 
     /**

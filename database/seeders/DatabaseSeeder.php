@@ -10,6 +10,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(FoundationSeeder::class);
         $this->call(PromotionSeeder::class);
+        $this->call(TariffSeeder::class);
 
         if (config('app.seed_demo', true)) {
             $this->call(DemoSeeder::class);

@@ -7,7 +7,7 @@
 set -euo pipefail
 
 APP_DIR="${APP_DIR:-/opt/st-clinik}"
-COMPOSE="docker compose -f ${APP_DIR}/deploy/docker-compose.yml"
+COMPOSE="docker compose --env-file ${APP_DIR}/.env -f ${APP_DIR}/deploy/docker-compose.yml"
 BRANCH="${DEPLOY_BRANCH:-master}"
 CONTAINER="${APP_CONTAINER:-st-clinik-app}"
 PUBLIC_VOLUME="${PUBLIC_VOLUME:-st-clinik-public}"
@@ -58,6 +58,10 @@ docker run --rm \
             mkdir -p /vol/icons
             cp -a /src/icons/. /vol/icons/
         fi
+        if [ -d /src/images/demo ]; then
+            mkdir -p /vol/images/demo
+            cp -a /src/images/demo/. /vol/images/demo/
+        fi
     '
 
 echo "==> Linking public/storage for nginx"
@@ -73,9 +77,10 @@ if [ -d "${APP_DIR}/public/downloads" ]; then
         alpine sh -c 'mkdir -p /vol/downloads && cp -a /src/. /vol/downloads/'
 fi
 
-echo "==> Rebuilding and restarting app container"
+echo "==> Rebuilding and restarting containers"
 $COMPOSE build app
-$COMPOSE up -d app web
+$COMPOSE up -d postgres redis
+$COMPOSE up -d app web queue scheduler
 
 echo "==> Syncing build manifest into running app container"
 docker cp "${APP_DIR}/public/build/." "${CONTAINER}:/var/www/html/public/build/"
@@ -88,7 +93,7 @@ docker cp "${APP_DIR}/resources/css/." "${CONTAINER}:/var/www/html/resources/css
 docker cp "${APP_DIR}/routes/." "${CONTAINER}:/var/www/html/routes/"
 docker cp "${APP_DIR}/tz.md" "${CONTAINER}:/var/www/html/tz.md" 2>/dev/null || true
 docker cp "${APP_DIR}/config/integrations.php" "${CONTAINER}:/var/www/html/config/integrations.php" 2>/dev/null || true
-docker cp "${APP_DIR}/config/yookassa.php" "${CONTAINER}:/var/www/html/config/yookassa.php" 2>/dev/null || true
+docker cp "${APP_DIR}/config/tbank.php" "${CONTAINER}:/var/www/html/config/tbank.php" 2>/dev/null || true
 docker cp "${APP_DIR}/config/permissions.php" "${CONTAINER}:/var/www/html/config/permissions.php" 2>/dev/null || true
 docker cp "${APP_DIR}/config/services.php" "${CONTAINER}:/var/www/html/config/services.php" 2>/dev/null || true
 docker cp "${APP_DIR}/resources/views/." "${CONTAINER}:/var/www/html/resources/views/" 2>/dev/null || true
@@ -106,14 +111,15 @@ fi
 
 echo "==> Running migrations and clearing caches"
 docker exec "$CONTAINER" php artisan migrate --force --no-interaction
+docker exec "$CONTAINER" php artisan specialties:seed-covers --no-interaction
 
 if [ "${IMPORT_PARSER_ORGS:-0}" = "1" ]; then
-    echo "==> Importing parser organizations (DB + Yandex photos + publish)"
+    echo "==> Importing parser organizations as drafts (DB + Yandex photos)"
     docker exec "$CONTAINER" php artisan db:seed --class=FoundationSeeder --force --no-interaction
     if [ -f "${APP_DIR}/storage/app/parser-orgs-raw.json" ]; then
-        docker exec "$CONTAINER" php artisan parser:sync-organizations --import --photos --publish
+        docker exec "$CONTAINER" php artisan parser:sync-organizations --import --photos
     else
-        docker exec "$CONTAINER" php artisan parser:sync-organizations --fetch --import --photos --publish
+        docker exec "$CONTAINER" php artisan parser:sync-organizations --fetch --import --photos
     fi
 fi
 
@@ -122,6 +128,7 @@ docker exec "$CONTAINER" php artisan config:cache
 docker exec "$CONTAINER" php artisan route:clear
 docker exec "$CONTAINER" php artisan view:clear
 docker exec "$CONTAINER" sh -c 'kill -USR2 1 2>/dev/null || true'
+docker exec "$CONTAINER" php artisan queue:restart
 
 echo "Deploy finished. Assets:"
 grep -E 'app-.*\.(css|js)' "${APP_DIR}/public/build/manifest.json" | head -2 || true

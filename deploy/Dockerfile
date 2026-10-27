@@ -14,10 +14,18 @@ COPY composer.json composer.lock ./
 RUN composer install --no-dev --prefer-dist --no-interaction --no-progress --no-scripts
 
 FROM php:8.3-fpm-bookworm
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        git unzip libzip-dev libicu-dev libsqlite3-0 libsqlite3-dev sqlite3 \
-    && docker-php-ext-install -j$(nproc) intl zip pcntl opcache pdo_sqlite \
-    && rm -rf /var/lib/apt/lists/*
+ARG DEBIAN_MIRROR=mirror.yandex.ru
+RUN sed -i "s|deb.debian.org|${DEBIAN_MIRROR}|g" /etc/apt/sources.list.d/debian.sources \
+    && apt-get update && apt-get install -y --no-install-recommends \
+        git unzip curl ca-certificates libzip-dev libicu-dev libsqlite3-0 libsqlite3-dev sqlite3 libpq-dev \
+    && install -d /usr/share/postgresql-common/pgdg \
+    && curl -fsSL --retry 3 -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc "https://${DEBIAN_MIRROR}/mirrors/postgresql/ACCC4CF8.asc" \
+    && echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://${DEBIAN_MIRROR}/mirrors/postgresql bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update && apt-get install -y --no-install-recommends postgresql-client-17 \
+    && docker-php-ext-install -j$(nproc) intl zip pcntl opcache pdo_sqlite pdo_pgsql \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && rm -rf /var/lib/apt/lists/* /tmp/pear
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
@@ -27,7 +35,7 @@ COPY --from=vendor /app/vendor ./vendor
 COPY --from=assets /app/public/build ./public/build
 RUN composer dump-autoload -o --no-dev --no-interaction
 
-RUN mkdir -p storage/framework/{cache,sessions,views} storage/logs storage/app/public database \
+RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs storage/app/public database \
     && chown -R www-data:www-data storage bootstrap/cache database \
     && chmod -R ug+rwx storage bootstrap/cache
 

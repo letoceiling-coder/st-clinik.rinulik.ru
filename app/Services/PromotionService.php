@@ -4,19 +4,28 @@ namespace App\Services;
 
 use App\Models\Clinic;
 use App\Models\ClinicPromotion;
+use App\Models\Payment;
 use App\Models\PromotionOrder;
 use App\Models\PromotionPackage;
 use App\Models\PromotionPrice;
 use App\Models\PromotionProduct;
 use App\Models\PromotionSetting;
+use App\Models\Tariff;
 use App\Models\User;
+use App\Services\Monetization\ClinicSubscriptionService;
+use App\Services\Monetization\PaymentService;
+use App\Services\Payments\TBankAcquiringService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class PromotionService
 {
-    public function __construct(private readonly YooKassaService $yookassa) {}
+    public function __construct(
+        private readonly TBankAcquiringService $tbank,
+        private readonly PaymentService $payments,
+        private readonly ClinicSubscriptionService $subscriptions,
+    ) {}
 
     public function settings(?int $cityId): PromotionSetting
     {
@@ -57,6 +66,10 @@ class PromotionService
 
     public function hasActivePublication(Clinic $clinic): bool
     {
+        if ($this->subscriptions->activeSubscription($clinic)) {
+            return true;
+        }
+
         return ClinicPromotion::query()
             ->active()
             ->where('clinic_id', $clinic->id)
@@ -114,7 +127,7 @@ class PromotionService
             'priceable_id' => $id,
             'amount' => $price->price,
             'status' => 'pending_payment',
-            'payment_provider' => 'yookassa',
+            'payment_provider' => 'tbank',
             'banner_image_path' => $banner['image_path'] ?? null,
             'banner_url' => $banner['url'] ?? null,
             'banner_title' => $banner['title'] ?? null,
@@ -126,12 +139,20 @@ class PromotionService
     {
         abort_unless($order->status === 'pending_payment', 422, 'Заказ уже оплачен или отменён.');
 
-        $payment = $this->yookassa->createPayment($order);
+        $payment = $this->tbank->createPayment($order);
 
         $order->update([
             'payment_id' => $payment['payment_id'],
             'payment_url' => $payment['payment_url'],
             'payment_meta' => $payment['meta'],
+        ]);
+
+        $ledger = $this->payments->syncFromPromotionOrder($order->fresh());
+        $ledger->update([
+            'payment_id' => $payment['payment_id'],
+            'payment_url' => $payment['payment_url'],
+            'payment_meta' => $payment['meta'],
+            'status' => Payment::STATUS_PENDING,
         ]);
 
         return $order->fresh();
@@ -143,35 +164,69 @@ class PromotionService
             return $order;
         }
 
-        $remote = $this->yookassa->fetchPayment($order->payment_id);
-        if (($remote['status'] ?? null) === 'succeeded') {
+        $remote = $this->tbank->fetchPayment($order->payment_id);
+        if ($remote !== null && $this->remoteMatchesOrder($remote, $order) && $this->remoteIsPaid($remote)) {
             $this->markPaid($order);
         }
 
         return $order->fresh();
     }
 
-    /** @param array<string,mixed> $payload */
-    public function handleWebhook(array $payload): void
+    /**
+     * Тело уведомления не считается источником истины: статус платежа всегда перечитывается через GetState Т‑Банка.
+     *
+     * @param  array<string,mixed>  $payload
+     */
+    public function handleTBankWebhook(array $payload): void
     {
-        $event = $payload['event'] ?? null;
-        $object = $payload['object'] ?? [];
-        $paymentId = $object['id'] ?? null;
+        if (! $this->tbank->verifyNotification($payload)) {
+            return;
+        }
 
-        if (! $paymentId) {
+        $paymentId = (string) ($payload['PaymentId'] ?? '');
+        if ($paymentId === '') {
             return;
         }
 
         $order = PromotionOrder::query()->where('payment_id', $paymentId)->first();
-        if (! $order) {
+        if (! $order || $order->isPaid()) {
             return;
         }
 
-        if ($event === 'payment.succeeded' || ($object['status'] ?? null) === 'succeeded') {
-            $this->markPaid($order);
-        } elseif (in_array($event, ['payment.canceled', 'payment.waiting_for_capture'], true)) {
-            $order->update(['status' => 'canceled', 'payment_meta' => $object]);
+        $remote = $this->tbank->fetchPayment($paymentId);
+        if ($remote === null || ! $this->remoteMatchesOrder($remote, $order)) {
+            return;
         }
+
+        if ($this->remoteIsPaid($remote)) {
+            $this->markPaid($order);
+
+            return;
+        }
+
+        $status = (string) ($remote['Status'] ?? '');
+        if (in_array($status, ['REJECTED', 'REVERSED', 'REFUNDED', 'CANCELED'], true)) {
+            $order->update(['status' => 'canceled', 'payment_meta' => $remote]);
+        }
+    }
+
+    /** @param array<string,mixed> $remote */
+    private function remoteIsPaid(array $remote): bool
+    {
+        return ($remote['Success'] ?? false) === true
+            && ($remote['Status'] ?? null) === 'CONFIRMED';
+    }
+
+    /** @param array<string,mixed> $remote */
+    private function remoteMatchesOrder(array $remote, PromotionOrder $order): bool
+    {
+        $paymentId = (string) ($remote['PaymentId'] ?? $remote['id'] ?? '');
+        $amount = (int) ($remote['Amount'] ?? 0);
+        $metadataOrderId = (string) ($remote['DATA']['order_id'] ?? $remote['metadata']['order_id'] ?? '');
+
+        return $paymentId === (string) $order->payment_id
+            && $amount === (int) $order->amount
+            && ($metadataOrderId === '' || $metadataOrderId === (string) $order->id);
     }
 
     public function markPaid(PromotionOrder $order): void
@@ -182,6 +237,8 @@ class PromotionService
 
         DB::transaction(function () use ($order) {
             $order->update(['status' => 'paid', 'paid_at' => now()]);
+            $ledger = $this->payments->syncFromPromotionOrder($order);
+            $ledger->update(['status' => Payment::STATUS_PAID, 'paid_at' => now()]);
             $this->fulfillOrder($order);
         });
     }
@@ -192,8 +249,25 @@ class PromotionService
         $startsAt = now();
         $endsAt = now()->addDays($duration);
 
-        foreach ($this->productCodes($order->priceable_type, $order->priceable_id) as $code) {
-            $needsModeration = str_starts_with($code, 'banner_');
+        $codes = $this->productCodes($order->priceable_type, $order->priceable_id);
+        if (in_array('publication', $codes, true)) {
+            $tariff = Tariff::query()
+                ->where('is_active', true)
+                ->where('duration_days', $duration)
+                ->orderBy('sort')
+                ->first()
+                ?? Tariff::query()->where('slug', 'standard')->where('is_active', true)->first();
+
+            if ($tariff) {
+                $clinic = Clinic::query()->find($order->clinic_id);
+                if ($clinic) {
+                    $this->subscriptions->activate($clinic, $tariff, null, $startsAt, $endsAt);
+                }
+            }
+        }
+
+        foreach ($codes as $code) {
+            $needsModeration = $this->promotionItemNeedsModeration($order->priceable_type, $order->priceable_id, $code);
 
             ClinicPromotion::create([
                 'order_id' => $order->id,
@@ -323,11 +397,32 @@ class PromotionService
 
     public function needsModeration(string $type, int $id): bool
     {
+        if ($type === 'package') {
+            return false;
+        }
+
+        if (app(ContentModerationSettings::class)->moderatePromotions()) {
+            return true;
+        }
+
         if ($type === 'product') {
             return (bool) PromotionProduct::query()->find($id)?->requires_moderation;
         }
 
         return false;
+    }
+
+    public function promotionItemNeedsModeration(string $type, int $id, string $code): bool
+    {
+        if ($code === 'publication') {
+            return false;
+        }
+
+        if ($this->needsModeration($type, $id)) {
+            return true;
+        }
+
+        return str_starts_with($code, 'banner_');
     }
 
     private function priceable(string $type, int $id): ?Model

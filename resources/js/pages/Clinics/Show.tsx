@@ -1,7 +1,7 @@
 import { router, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import ClinicCard, { ClinicFeatures } from '@/components/ClinicCard';
-import { Gallery, PriceTable, RatingSummary, ScheduleView, documentTitle } from '@/components/ClinicParts';
+import { Gallery, PriceTable, PriceTableGrouped, RatingSummary, ScheduleView, documentTitle } from '@/components/ClinicParts';
 import { CompareButton, FavoriteButton } from '@/components/CollectionButtons';
 import DoctorCard from '@/components/DoctorCard';
 import Icon from '@/components/Icon';
@@ -12,6 +12,8 @@ import { ConcernChips } from '@/components/Tiles';
 import YandexMap from '@/components/YandexMap';
 import { AnchorButton, Button } from '@/components/ui/Button';
 import { Alert, Badge, Breadcrumbs, EmptyState, Pagination } from '@/components/ui/Misc';
+import { AnalyticsEvents, trackAnalyticsEvent } from '@/lib/analytics';
+import { useCity } from '@/lib/city';
 import { cx, doctorsWord, phoneHref, plural, priceFrom, reviewsWord } from '@/lib/format';
 import type { ClinicCardData, ClinicDetailData, ClinicPostData, ConcernData, Crumb, Paginated, ReviewData } from '@/lib/types';
 
@@ -24,7 +26,11 @@ interface Props {
     concerns: ConcernData[];
     review_options: { doctors: { id: number; name: string }[]; services: { id: number; name: string }[] };
     breadcrumbs: Crumb[];
+    clinic_follow: { subscribed: boolean; can_subscribe: boolean };
 }
+
+/** Индекс группы услуг; −1 — вкладка «Все». */
+const PRICE_TAB_ALL = -1;
 
 const BASE_SECTIONS = [
     ['about', 'О клинике'],
@@ -45,6 +51,21 @@ function formatPostPeriod(post: ClinicPostData): string | null {
         return `До ${new Date(post.ends_at).toLocaleDateString('ru-RU')}`;
     }
     return null;
+}
+
+/** Короткое вступление, когда клиника ещё не заполнила описание. */
+function clinicIntro(clinic: ClinicDetailData): string {
+    const where = clinic.city?.name_in ?? (clinic.city ? `в городе ${clinic.city.name}` : '');
+    const parts = [`${clinic.name} — стоматологическая клиника${where ? ` ${where}` : ''}.`];
+    if (clinic.specialties.length > 0) {
+        const names = clinic.specialties.slice(0, 4).map((s) => s.name.toLowerCase());
+        parts.push(`Направления: ${names.join(', ')}${clinic.specialties.length > 4 ? ' и другие' : ''}.`);
+    }
+    if (clinic.accepts_children) {
+        parts.push('Принимают детей.');
+    }
+
+    return parts.join(' ');
 }
 
 function PostCard({ post }: { post: ClinicPostData }) {
@@ -72,11 +93,16 @@ function PostCard({ post }: { post: ClinicPostData }) {
     );
 }
 
-export default function ClinicShow({ clinic, reviews, review_filters, distribution, similar, concerns, review_options, breadcrumbs }: Props) {
+export default function ClinicShow({ clinic, reviews, review_filters, distribution, similar, concerns, review_options, breadcrumbs, clinic_follow }: Props) {
     const lead = useLead();
     const { url } = usePage();
-    const [group, setGroup] = useState(0);
+    const { slug: citySlug } = useCity();
+    const [group, setGroup] = useState(PRICE_TAB_ALL);
     const [section, setSection] = useState<string>('about');
+
+    useEffect(() => {
+        trackAnalyticsEvent(AnalyticsEvents.clinicView, { clinic_id: clinic.id, slug: clinic.slug }, citySlug);
+    }, [clinic.id, clinic.slug, citySlug]);
 
     const open = (extra: Partial<Parameters<typeof lead.open>[0]> = {}) =>
         lead.open({
@@ -90,7 +116,16 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
         });
 
     const hasPosts = clinic.posts.length > 0;
-    const sections = hasPosts ? BASE_SECTIONS : BASE_SECTIONS.filter(([id]) => id !== 'news');
+    const hasDoctors = clinic.doctors.length > 0;
+    const sections = BASE_SECTIONS.filter(([id]) => (id !== 'news' || hasPosts) && (id !== 'doctors' || hasDoctors));
+    const facts = [
+        clinic.founded_year ? { value: String(clinic.founded_year), label: 'год основания' } : null,
+        clinic.reviews_count > 0 ? { value: clinic.rating.toFixed(1).replace('.', ','), label: `рейтинг · ${reviewsWord(clinic.reviews_count)}` } : null,
+        clinic.doctors_count > 0 ? { value: String(clinic.doctors_count), label: `${plural(clinic.doctors_count, ['врач', 'врача', 'врачей'])} в клинике` } : null,
+        clinic.specialties.length > 0
+            ? { value: String(clinic.specialties.length), label: plural(clinic.specialties.length, ['направление', 'направления', 'направлений']) }
+            : null,
+    ].filter((fact) => fact !== null);
 
     useEffect(() => {
         const ids = sections.map(([id]) => id);
@@ -120,7 +155,7 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
     const activeRating = review_filters.rating ?? 0;
     const ratingCount = Object.values(distribution).reduce((a, b) => a + b, 0);
     const hasPrices = clinic.prices.length > 0;
-    const currentGroup = clinic.prices[group] ?? clinic.prices[0];
+    const currentGroup = group >= 0 ? clinic.prices[group] : null;
 
     return (
         <div className="clinic-page">
@@ -176,6 +211,9 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
                     <Button size="lg" block onClick={() => open()}>
                         Записаться онлайн
                     </Button>
+                    <Button variant="ghost" block onClick={() => lead.callback({ slug: clinic.slug, name: clinic.name, phone: clinic.phone, doctors: review_options.doctors, services: review_options.services, source: 'clinic_callback' })}>
+                        Перезвоните мне
+                    </Button>
                     {clinic.phone ? (
                         <AnchorButton href={phoneHref(clinic.phone)} variant="outline" block icon="phone">
                             {clinic.phone}
@@ -185,8 +223,26 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
                         <CompareButton type="clinic" id={clinic.id} name={clinic.name} />
                         <FavoriteButton type="clinic" id={clinic.id} name={clinic.name} floating={false} />
                     </div>
+                    {clinic_follow.can_subscribe ? (
+                        clinic_follow.subscribed ? (
+                            <p className="text-sm text-muted">Вы подписаны на новости и акции этой клиники.</p>
+                        ) : (
+                            <Button variant="outline" block onClick={() => router.post(`/clinics/${clinic.slug}/follow`)}>
+                                Подписаться на новости и акции
+                            </Button>
+                        )
+                    ) : null}
                     <ClinicFeatures clinic={clinic} limit={8} />
-                    {clinic.payment_methods.length > 0 ? <p className="text-sm text-muted">Оплата: {clinic.payment_methods.join(', ')}</p> : null}
+                    {clinic.payment_methods.length > 0 ? (
+                        <div className="booking__payments">
+                            <span className="booking__payments-label">Способы оплаты</span>
+                            <ul className="booking__payments-list">
+                                {clinic.payment_methods.map((method) => (
+                                    <li key={method}>{method}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    ) : null}
                 </aside>
             </div>
 
@@ -213,23 +269,17 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
             <div className="container clinic-body">
                 <section id="about" className="block" aria-labelledby="about-h">
                     <h2 id="about-h">О клинике</h2>
-                    {clinic.description ? <p className="lead-text">{clinic.description}</p> : null}
-                    <div className="facts">
-                        {clinic.founded_year ? (
-                            <div className="fact-card">
-                                <b>{clinic.founded_year}</b>
-                                <span>год основания</span>
-                            </div>
-                        ) : null}
-                        <div className="fact-card">
-                            <b>{clinic.doctors_count}</b>
-                            <span>{plural(clinic.doctors_count, ['врач', 'врача', 'врачей'])} в клинике</span>
+                    <p className="lead-text">{clinic.description ?? clinicIntro(clinic)}</p>
+                    {facts.length > 1 ? (
+                        <div className="facts">
+                            {facts.map((fact) => (
+                                <div key={fact.label} className="fact-card">
+                                    <b>{fact.value}</b>
+                                    <span>{fact.label}</span>
+                                </div>
+                            ))}
                         </div>
-                        <div className="fact-card">
-                            <b>{clinic.specialties.length}</b>
-                            <span>{plural(clinic.specialties.length, ['направление', 'направления', 'направлений'])}</span>
-                        </div>
-                    </div>
+                    ) : null}
                     {clinic.specialties.length > 0 ? (
                         <ul className="tags" aria-label="Направления">
                             {clinic.specialties.map((s) => (
@@ -265,33 +315,66 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
                     ) : null}
                 </section>
 
-                <section id="doctors" className="block" aria-labelledby="doctors-h">
-                    <h2 id="doctors-h">Врачи клиники</h2>
-                    {clinic.doctors.length === 0 ? (
-                        <EmptyState icon="users" title="Врачи пока не добавлены" />
-                    ) : (
+                {hasDoctors ? (
+                    <section id="doctors" className="block" aria-labelledby="doctors-h">
+                        <h2 id="doctors-h">Врачи клиники</h2>
                         <div className="grid grid--doctors grid--2">
                             {clinic.doctors.map((d) => (
                                 <DoctorCard key={d.id} doctor={{ ...d, clinic: d.clinic ?? { id: clinic.id, slug: clinic.slug, name: clinic.name, address: clinic.address, phone: clinic.phone, city: clinic.city, rating: clinic.rating, is_verified: clinic.is_verified, same_day: clinic.same_day } }} />
                             ))}
                         </div>
-                    )}
-                </section>
+                    </section>
+                ) : null}
 
                 <section id="prices" className="block" aria-labelledby="prices-h">
                     <h2 id="prices-h">Услуги и цены</h2>
                     {!hasPrices ? (
-                        <EmptyState icon="ruble" title="Прайс пока не опубликован" text="Уточните стоимость по телефону или в заявке." />
+                        <div className="block-empty">
+                            <span className="block-empty__icon" aria-hidden="true">
+                                <Icon name="ruble" size={24} />
+                            </span>
+                            <div className="block-empty__text">
+                                <b>Прайс пока не опубликован</b>
+                                <span>Оставьте заявку — администратор клиники перезвонит и сориентирует по стоимости.</span>
+                            </div>
+                            <Button variant="outline" onClick={() => open()}>
+                                Узнать стоимость
+                            </Button>
+                        </div>
                     ) : (
                         <>
                             <div className="chip-row" role="tablist" aria-label="Группы услуг">
+                                <button
+                                    type="button"
+                                    role="tab"
+                                    aria-selected={group === PRICE_TAB_ALL}
+                                    className={cx('chip', group === PRICE_TAB_ALL && 'is-active')}
+                                    onClick={() => setGroup(PRICE_TAB_ALL)}
+                                >
+                                    Все
+                                </button>
                                 {clinic.prices.map((g, i) => (
-                                    <button key={g.group} role="tab" aria-selected={group === i} type="button" className={cx('chip', group === i && 'is-active')} onClick={() => setGroup(i)}>
+                                    <button
+                                        key={g.group}
+                                        role="tab"
+                                        aria-selected={group === i}
+                                        type="button"
+                                        className={cx('chip', group === i && 'is-active')}
+                                        onClick={() => setGroup(i)}
+                                    >
                                         {g.group}
                                     </button>
                                 ))}
                             </div>
-                            <PriceTable items={currentGroup.items} />
+                            <div className="price-tab-shell" role="tabpanel" aria-live="polite">
+                                <div key={group} className="price-tab-panel">
+                                    {group === PRICE_TAB_ALL ? (
+                                        <PriceTableGrouped groups={clinic.prices} />
+                                    ) : currentGroup ? (
+                                        <PriceTable items={currentGroup.items} />
+                                    ) : null}
+                                </div>
+                            </div>
                             <p className="text-xs text-muted">Цены указаны «от». Окончательная стоимость определяется врачом после осмотра и согласования плана лечения. Не является публичной офертой.</p>
                         </>
                     )}
@@ -311,7 +394,9 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
 
                 <section id="reviews" className="block" aria-labelledby="reviews-h">
                     <h2 id="reviews-h">Отзывы пациентов</h2>
-                    <RatingSummary rating={clinic.rating} count={ratingCount || clinic.reviews_count} distribution={distribution} active={activeRating} onPick={filterReviews} />
+                    {ratingCount > 0 || clinic.reviews_count > 0 ? (
+                        <RatingSummary rating={clinic.rating} count={ratingCount || clinic.reviews_count} distribution={distribution} active={activeRating} onPick={filterReviews} />
+                    ) : null}
                     {reviews.data.length === 0 ? (
                         <EmptyState icon="thumb" title={activeRating ? 'Нет отзывов с такой оценкой' : 'Отзывов пока нет'} text="Поделитесь опытом после визита — отзыв появится после проверки модератором." />
                     ) : (
@@ -372,18 +457,14 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
                                         zoom={15}
                                         activeSlug={clinic.slug}
                                     />
-                                    <a
-                                        className="map-link"
-                                        href={`https://yandex.ru/maps/?pt=${clinic.lng},${clinic.lat}&z=16&l=map`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >
-                                        <Icon name="pin" size={18} /> Открыть в Яндекс Картах
-                                    </a>
                                 </div>
                             ) : null}
                         </div>
-                        <div className="card">
+                        <div className="card schedule-card">
+                            <h3 className="schedule-card__title">
+                                <Icon name="clock" size={20} />
+                                Режим работы
+                            </h3>
                             <ScheduleView week={clinic.week} />
                         </div>
                     </div>

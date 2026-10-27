@@ -15,8 +15,10 @@ use App\Repositories\Contracts\ReviewRepository;
 use App\Repositories\Filters\ClinicFilters;
 use App\Repositories\Filters\DoctorFilters;
 use App\Services\PromotionService;
+use App\Services\PublicDisplaySettings;
 use App\Services\SchemaOrg;
 use App\Services\Seo;
+use App\Support\SpecialtyCover;
 use App\Support\Text;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -32,6 +34,7 @@ class CatalogController extends Controller
         private readonly Seo $seo,
         private readonly SchemaOrg $schema,
         private readonly PromotionService $promotions,
+        private readonly PublicDisplaySettings $display,
     ) {}
 
     /** @return list<array{0:string,1:string}> */
@@ -56,11 +59,28 @@ class CatalogController extends Controller
                 'name' => $p->name,
                 'group' => $p->group,
                 'kind' => $p->filter_kind,
+                'hint' => $p->slug === 'same_day'
+                    ? 'Показываем клиники с записью на сегодня; значок на карточке — только при свободном времени в календаре.'
+                    : null,
             ])->values(),
         ];
     }
 
     public function clinics(Request $request, City $city): Response
+    {
+        $built = $this->buildClinicsPage($request, $city);
+        $seoData = $this->seo->build('city_clinics', ['city' => $city->name, 'city_in' => $city->name_in, 'count' => $built['total']], [
+            $this->schema->breadcrumbs($this->crumbs($city, 'Клиники')),
+            $this->schema->itemList($built['list_items']),
+        ]);
+
+        return $this->page('Clinics/Index', $built['props'], $seoData);
+    }
+
+    /**
+     * @return array{props: array<string, mixed>, total: int, list_items: list<array{name: string, url: string}>}
+     */
+    public function buildClinicsPage(Request $request, City $city, bool $forMaxApp = false): array
     {
         $filters = ClinicFilters::fromArray($request->query(), $city->id);
         $page = $this->clinics->paginate($filters, 12);
@@ -76,27 +96,36 @@ class CatalogController extends Controller
             1 => $this->catalog->services()->firstWhere('slug', $serviceSlugs[0])?->name,
             default => implode(', ', $this->catalog->services()->whereIn('slug', $serviceSlugs)->pluck('name')->all()),
         };
-        $seoData = $this->seo->build('city_clinics', ['city' => $city->name, 'city_in' => $city->name_in, 'count' => $page->total()], [
-            $this->schema->breadcrumbs($this->crumbs($city, 'Клиники')),
-            $this->schema->itemList($page->getCollection()->map(fn ($c) => ['name' => $c->name, 'url' => route('clinics.show', $c->slug)])->all()),
-        ]);
 
-        return $this->page('Clinics/Index', [
-            'clinics' => $this->paged($page, ClinicResource::class),
-            'recommended_clinics' => ClinicResource::collection($recommended)->resolve(),
-            'banner_catalog' => PromotionBannerResource::collection($this->promotions->activeBanners($city->id, 'banner_catalog'))->resolve(),
-            'map_clinics' => $this->clinics->mapPoints($filters)->map(fn ($c) => [
-                'slug' => $c->slug,
-                'name' => $c->name,
-                'address' => $c->address,
-                'lat' => (float) $c->lat,
-                'lng' => (float) $c->lng,
-            ])->values(),
-            'filters' => $filters->active(),
-            'options' => $this->filterOptions($city),
-            'service_name' => $serviceName,
-            'breadcrumbs' => $this->crumbs($city, 'Клиники'),
-        ], $seoData);
+        $homeUrl = $forMaxApp ? route('max.miniapp') : url('/');
+        $clinicsUrl = $forMaxApp ? route('max.clinics') : route('city.clinics', $city->slug);
+
+        return [
+            'total' => $page->total(),
+            'list_items' => $page->getCollection()->map(fn ($c) => ['name' => $c->name, 'url' => route('clinics.show', $c->slug)])->all(),
+            'props' => [
+                'clinics' => $this->paged($page, ClinicResource::class),
+                'recommended_clinics' => ClinicResource::collection($recommended)->resolve(),
+                'banner_catalog' => $this->display->adsEnabled()
+                    ? PromotionBannerResource::collection($this->promotions->activeBanners($city->id, 'banner_catalog'))->resolve()
+                    : [],
+                'map_clinics' => $this->clinics->mapPoints($filters)->map(fn ($c) => [
+                    'slug' => $c->slug,
+                    'name' => $c->name,
+                    'address' => $c->address,
+                    'lat' => (float) $c->lat,
+                    'lng' => (float) $c->lng,
+                ])->values(),
+                'filters' => $filters->active(),
+                'options' => $this->filterOptions($city),
+                'service_name' => $serviceName,
+                'breadcrumbs' => [
+                    ['Главная', $homeUrl],
+                    [$city->name, $clinicsUrl],
+                    ['Клиники', $clinicsUrl],
+                ],
+            ],
+        ];
     }
 
     public function doctors(Request $request, City $city): Response
@@ -130,10 +159,7 @@ class CatalogController extends Controller
             $services = $this->catalog->services()->where('specialty_id', $s->id);
             $min = $services->map(fn ($sv) => $prices[$sv->id]['min'] ?? null)->filter()->min();
 
-            return [
-                'slug' => $s->slug, 'name' => $s->name, 'short' => $s->short, 'icon' => $s->icon,
-                'clinics' => (int) ($counts[$s->id] ?? 0), 'price_from' => $min,
-            ];
+            return SpecialtyCover::toCard($s, (int) ($counts[$s->id] ?? 0), $min);
         })->values();
 
         $seoData = $this->seo->build('city_directions', ['city' => $city->name, 'city_in' => $city->name_in], [

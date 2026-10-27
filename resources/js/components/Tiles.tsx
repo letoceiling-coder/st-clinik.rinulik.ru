@@ -2,7 +2,7 @@ import { Link } from '@inertiajs/react';
 import { useCity } from '@/lib/city';
 import { clinicsWord, money } from '@/lib/format';
 import type { ConcernData, SpecialtyData } from '@/lib/types';
-import { clinicPhoto } from '@/lib/demo-images';
+import { clinicPhoto, type PhotoKind } from '@/lib/demo-images';
 import Carousel from './Carousel';
 import Icon from './Icon';
 
@@ -32,21 +32,37 @@ export function ConcernChips({ concerns, scroll = true }: { concerns: ConcernDat
     );
 }
 
+const SPECIALTY_PHOTO_KINDS: PhotoKind[] = ['interior', 'exterior', 'office', 'equipment', 'team'];
+
 export function SpecialtyCircles({ specialties }: { specialties: SpecialtyData[] }) {
     const city = useCity();
-    const items = specialties.map((s, index) => (
-        <Link key={s.slug} href={city.direction(s.slug)} className="cat" role="listitem">
-            <span className="cat__circle cat__circle--photo" aria-hidden="true">
-                <img src={clinicPhoto(specialtySeed(s.slug, index), 'interior')} alt="" loading="lazy" width={112} height={112} />
-                <span className="cat__shade" />
-                <Icon name={s.icon ?? 'tooth'} size={32} />
-            </span>
-            <span className="cat__name">{s.name}</span>
-        </Link>
-    ));
+    const items = specialties.map((s, index) => {
+        const kind = SPECIALTY_PHOTO_KINDS[index % SPECIALTY_PHOTO_KINDS.length] ?? 'interior';
+        const meta =
+            s.short ??
+            (s.price_from ? `от ${money(s.price_from)}` : s.clinics != null ? clinicsWord(s.clinics) : null);
+
+        return (
+            <Link key={s.slug} href={city.direction(s.slug)} className="dir-card card card--link" role="listitem">
+                <span className="dir-card__media" aria-hidden="true">
+                    <img
+                        src={s.cover_url ?? clinicPhoto(specialtySeed(s.slug, index), kind)}
+                        alt=""
+                        loading="lazy"
+                        width={168}
+                        height={224}
+                    />
+                </span>
+                <span className="dir-card__caption">
+                    <b className="dir-card__title">{s.name}</b>
+                    {meta ? <span className="dir-card__meta">{meta}</span> : null}
+                </span>
+            </Link>
+        );
+    });
 
     return (
-        <Carousel ariaLabel="Направления стоматологии" staticClassName="cat-scroll" slideClassName="carousel__slide--cat" gap={20}>
+        <Carousel ariaLabel="Направления стоматологии" staticClassName="dir-scroll" slideClassName="carousel__slide--dir" gap={12}>
             {items}
         </Carousel>
     );
@@ -64,7 +80,7 @@ export function SpecialtyTile({ s }: { s: SpecialtyData }) {
                 {s.short ? <span className="tile__text">{s.short}</span> : null}
                 {s.clinics !== undefined || s.price_from ? (
                     <span className="tile__meta">
-                        {s.clinics !== undefined ? clinicsWord(s.clinics) : null}
+                        {s.clinics != null ? clinicsWord(s.clinics) : null}
                         {s.price_from ? ` · от ${money(s.price_from)}` : null}
                     </span>
                 ) : null}

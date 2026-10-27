@@ -49,6 +49,12 @@ h4 {
     text-wrap: balance;
 }
 
+b,
+strong,
+th {
+    font-weight: 600;
+}
+
 ul,
 ol {
     padding: 0;
@@ -73,6 +79,13 @@ select,
 textarea {
     font: inherit;
     color: inherit;
+    max-width: 100%;
+}
+
+input[type='file'] {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 button {
@@ -123,7 +136,7 @@ table {
     background: var(--color-text);
     color: #fff;
     border-radius: var(--radius-12);
-    font-weight: 700;
+    font-weight: 600;
     transition: top 0.15s var(--ease);
 }
 .skip-link:focus,

@@ -11,6 +11,8 @@ class Review extends Model
 {
     public const STATUSES = ['pending', 'published', 'rejected', 'hidden'];
 
+    public const REPLY_STATUSES = ['pending', 'published', 'rejected'];
+
     protected $guarded = [];
 
     protected function casts(): array
@@ -28,6 +30,18 @@ class Review extends Model
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('reviews.status', 'published');
+    }
+
+    /**
+     * Отзывы без опубликованного ответа клиники (зеркало {@see replyIsPublic()}).
+     */
+    public function scopeWithoutPublishedReply(Builder $query): Builder
+    {
+        return $query->where(function (Builder $query) {
+            $query->whereNull('reviews.reply_text')
+                ->orWhere('reviews.reply_text', '')
+                ->orWhere(fn (Builder $query) => $query->whereNotNull('reviews.reply_status')->where('reviews.reply_status', '!=', 'published'));
+        });
     }
 
     public function user(): BelongsTo
@@ -53,5 +67,16 @@ class Review extends Model
     public function complaints(): HasMany
     {
         return $this->hasMany(ReviewComplaint::class);
+    }
+
+    public function replyIsPublic(): bool
+    {
+        if (blank($this->reply_text)) {
+            return false;
+        }
+
+        $status = $this->reply_status;
+
+        return $status === null || $status === 'published';
     }
 }

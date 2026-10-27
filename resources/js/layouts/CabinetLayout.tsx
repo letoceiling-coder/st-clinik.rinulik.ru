@@ -9,36 +9,51 @@ export interface CabinetProps {
     organization: { name: string };
     branches: { id: number; name: string; address: string; status: string }[];
     branch: { id: number; name: string; status: string; slug: string; completeness: number } | null;
+    abilities?: string[];
 }
 
 export const STATUS_LABEL: Record<string, string> = {
     draft: 'Черновик',
     pending: 'На модерации',
+    approved: 'Одобрен',
     published: 'Опубликована',
     rejected: 'Отклонена',
     hidden: 'Скрыта',
+    blocked: 'Заблокирована',
 };
 export const STATUS_TONE: Record<string, 'success' | 'warning' | 'danger' | 'info' | undefined> = {
     draft: undefined,
     pending: 'warning',
+    approved: 'info',
     published: 'success',
     rejected: 'danger',
     hidden: 'info',
+    blocked: 'danger',
 };
 
-const ITEMS: NavItem[] = [
-    { href: '/clinic-cabinet', label: 'Обзор', icon: 'home', exact: true, group: 'Работа' },
-    { href: '/clinic-cabinet/leads', label: 'Заявки', icon: 'calendar', group: 'Работа' },
-    { href: '/clinic-cabinet/reviews', label: 'Отзывы', icon: 'thumb', group: 'Работа' },
-    { href: '/clinic-cabinet/stats', label: 'Статистика', icon: 'chart', group: 'Работа' },
-    { href: '/clinic-cabinet/branches', label: 'Филиалы', icon: 'building', group: 'Профиль' },
-    { href: '/clinic-cabinet/doctors', label: 'Врачи', icon: 'users', group: 'Профиль' },
-    { href: '/clinic-cabinet/prices', label: 'Услуги и цены', icon: 'ruble', group: 'Профиль' },
-    { href: '/clinic-cabinet/schedule', label: 'График работы', icon: 'clock', group: 'Профиль' },
-    { href: '/clinic-cabinet/photos', label: 'Фото', icon: 'image', group: 'Профиль' },
-    { href: '/clinic-cabinet/posts', label: 'Новости и акции', icon: 'flash', group: 'Профиль' },
-    { href: '/clinic-cabinet/promotions', label: 'Продвижение', icon: 'sparkle', group: 'Работа' },
-    { href: '/clinic-cabinet/documents', label: 'Документы', icon: 'file', group: 'Профиль' },
+type CabinetNavItem = NavItem & { ability?: string | null };
+
+const ITEMS: CabinetNavItem[] = [
+    { href: '/clinic-cabinet', label: 'Обзор', icon: 'home', exact: true, group: 'Работа', ability: null },
+    { href: '/clinic-cabinet/calendar', label: 'Календарь', icon: 'calendar', group: 'Работа', ability: 'manage_operations' },
+    { href: '/clinic-cabinet/leads', label: 'Заявки', icon: 'phone', group: 'Работа', ability: 'manage_operations' },
+    { href: '/clinic-cabinet/reviews', label: 'Отзывы', icon: 'thumb', group: 'Работа', ability: 'manage_operations' },
+    { href: '/clinic-cabinet/stats', label: 'Статистика', icon: 'chart', group: 'Работа', ability: null },
+    { href: '/clinic-cabinet/organization', label: 'Организация', icon: 'building', group: 'Профиль', ability: 'manage_organization' },
+    { href: '/clinic-cabinet/staff', label: 'Сотрудники', icon: 'users', group: 'Профиль', ability: 'manage_staff' },
+    { href: '/clinic-cabinet/branches', label: 'Филиалы', icon: 'building', group: 'Профиль', ability: 'manage_content' },
+    { href: '/clinic-cabinet/doctors', label: 'Врачи', icon: 'users', group: 'Профиль', ability: 'manage_content' },
+    { href: '/clinic-cabinet/prices', label: 'Услуги и цены', icon: 'ruble', group: 'Профиль', ability: 'manage_content' },
+    { href: '/clinic-cabinet/schedule', label: 'График работы', icon: 'clock', group: 'Профиль', exact: true, ability: 'manage_schedule' },
+    { href: '/clinic-cabinet/schedule/doctors', label: 'Расписание врачей', icon: 'clock', group: 'Профиль', ability: 'manage_schedule' },
+    { href: '/clinic-cabinet/photos', label: 'Фото', icon: 'image', group: 'Профиль', ability: 'manage_content' },
+    { href: '/clinic-cabinet/posts', label: 'Новости и акции', icon: 'flash', group: 'Профиль', ability: 'manage_content' },
+    { href: '/clinic-cabinet/card-bonuses', label: 'Бонусы на карточке', icon: 'sparkle', group: 'Профиль', ability: 'manage_content' },
+    { href: '/clinic-cabinet/payments', label: 'Тариф и платежи', icon: 'ruble', group: 'Работа', ability: 'manage_billing' },
+    { href: '/clinic-cabinet/promotions', label: 'Продвижение', icon: 'sparkle', group: 'Работа', ability: 'manage_promotions' },
+    { href: '/clinic-cabinet/broadcasts', label: 'Рассылки', icon: 'send', group: 'Работа', ability: 'manage_promotions' },
+    { href: '/clinic-cabinet/documents', label: 'Документы', icon: 'file', group: 'Профиль', ability: 'manage_content' },
+    { href: '/clinic-cabinet/settings', label: 'Настройки', icon: 'settings', group: 'Профиль', ability: null },
 ];
 
 function BranchSwitcher() {
@@ -93,9 +108,26 @@ function BranchSwitcher() {
     );
 }
 
+function sectionOf(href: string) {
+    return href.split('/')[2] ?? 'dashboard';
+}
+
+function visibleItems(items: CabinetNavItem[], abilities: string[] | undefined, demoSections: string[] | undefined): NavItem[] {
+    let list = items;
+    if (demoSections) {
+        list = list.filter((i) => demoSections.includes(sectionOf(i.href)));
+    } else if (abilities && abilities.length > 0) {
+        list = list.filter((i) => i.ability === null || i.ability === undefined || abilities.includes(i.ability));
+    }
+    return list;
+}
+
 export default function CabinetLayout({ children }: { children: ReactNode }) {
+    const { demo, cabinet } = usePage<SharedProps & { cabinet?: CabinetProps }>().props;
+    const items = visibleItems(ITEMS, cabinet?.abilities, demo?.sections);
+
     return (
-        <DashboardShell items={ITEMS} brandSuffix="для клиник" mobileBrandSuffix="Клиника" mobileLabel="Кабинет клиники" aside={<BranchSwitcher />}>
+        <DashboardShell items={items} brandSuffix="для клиник" mobileBrandSuffix="Клиника" mobileLabel="Кабинет клиники" aside={<BranchSwitcher />}>
             {children}
         </DashboardShell>
     );

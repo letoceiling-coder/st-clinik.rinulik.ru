@@ -7,6 +7,7 @@ use App\Models\Clinic;
 use App\Models\Doctor;
 use App\Services\Audit;
 use App\Services\ModerationService;
+use App\Services\Organization\OrganizationModerationService;
 use App\Services\ProfileMetrics;
 use App\Services\Seo;
 use Illuminate\Http\RedirectResponse;
@@ -22,7 +23,7 @@ class ClinicController extends AdminController
         $city = $request->query('city');
 
         $page = Clinic::with(['city:id,name', 'organization:id,name'])
-            ->when($q !== '', fn ($b) => $b->where(fn ($w) => $w->where('name', 'like', "%$q%")->orWhere('address', 'like', "%$q%")))
+            ->when($q !== '', fn ($b) => $b->where(fn ($w) => $w->whereLike('name', "%$q%")->orWhereLike('address', "%$q%")))
             ->when($status, fn ($b) => $b->where('status', $status))
             ->when($city, fn ($b) => $b->where('city_id', $city))
             ->orderByDesc('id')->paginate(20)->withQueryString();
@@ -49,7 +50,7 @@ class ClinicController extends AdminController
 
     public function show(Clinic $clinic): Response
     {
-        $clinic->load(['city:id,name', 'organization:id,name']);
+        $clinic->load(['city:id,name', 'organization:id,name,status']);
 
         return $this->render('Admin/ClinicShow', $clinic->name, [
             'clinic' => [
@@ -58,6 +59,8 @@ class ClinicController extends AdminController
                 'slug' => $clinic->slug,
                 'city' => $clinic->city?->name,
                 'organization' => $clinic->organization?->name,
+                'organization_id' => $clinic->organization_id,
+                'organization_status' => $clinic->organization?->status,
                 'address' => $clinic->address,
                 'status' => $clinic->status,
                 'is_verified' => $clinic->is_verified,
@@ -83,17 +86,55 @@ class ClinicController extends AdminController
         ]);
 
         $statusChanged = $clinic->status !== $data['status'];
-        if ($statusChanged && in_array($data['status'], ['published', 'rejected'], true)) {
-            $moderation->decide('clinic', $clinic->id, $data['status'] === 'published' ? 'approve' : 'reject', $data['moderation_note'] ?? null);
-            unset($data['status'], $data['moderation_note']);
+        if ($statusChanged) {
+            $note = $data['moderation_note'] ?? null;
+            if ($data['status'] === 'rejected' && in_array($clinic->status, ['pending', 'draft'], true)) {
+                $moderation->decide('clinic', $clinic->id, 'reject', $note);
+                unset($data['status'], $data['moderation_note']);
+            } elseif ($data['status'] === 'approved' && in_array($clinic->status, ['pending', 'draft'], true)) {
+                $moderation->decide('clinic', $clinic->id, 'approve', $note);
+                unset($data['status'], $data['moderation_note']);
+            } elseif ($data['status'] === 'published') {
+                if (in_array($clinic->status, ['pending', 'draft'], true)) {
+                    $moderation->decide('clinic', $clinic->id, 'approve', $note);
+                    $clinic->refresh();
+                }
+                if (in_array($clinic->status, ['approved', 'hidden'], true)) {
+                    $moderation->publishClinic($clinic);
+                }
+                unset($data['status'], $data['moderation_note']);
+            }
         }
 
+        $wasBlocked = $clinic->status === 'blocked';
         $clinic->update($data);
         $metrics->recalcClinic($clinic);
+
+        if (! $wasBlocked && $clinic->status === 'blocked') {
+            app(OrganizationModerationService::class)->notifyClinicBlocked($clinic, $data['moderation_note'] ?? null);
+        }
+
         Audit::log('clinic.updated', $clinic, $data);
         Seo::flush();
 
         return back()->with('success', 'Клиника обновлена.');
+    }
+
+    public function blockOrganization(Request $request, Clinic $clinic, OrganizationModerationService $moderation): RedirectResponse
+    {
+        abort_unless($clinic->organization_id, 404);
+        $data = $request->validate(['note' => ['nullable', 'string', 'max:500']]);
+        $moderation->block($clinic->organization, $data['note'] ?? null);
+
+        return back()->with('success', 'Организация и её филиалы заблокированы.');
+    }
+
+    public function unblockOrganization(Clinic $clinic, OrganizationModerationService $moderation): RedirectResponse
+    {
+        abort_unless($clinic->organization_id, 404);
+        $moderation->unblock($clinic->organization);
+
+        return back()->with('success', 'Блокировка организации снята.');
     }
 
     public function destroy(Clinic $clinic): RedirectResponse
@@ -110,7 +151,7 @@ class ClinicController extends AdminController
         $status = $request->query('status');
 
         $page = Doctor::with('clinic:id,name')
-            ->when($q !== '', fn ($b) => $b->where('name', 'like', "%$q%"))
+            ->when($q !== '', fn ($b) => $b->whereLike('name', "%$q%"))
             ->when($status, fn ($b) => $b->where('status', $status))
             ->orderByDesc('id')->paginate(20)->withQueryString();
 

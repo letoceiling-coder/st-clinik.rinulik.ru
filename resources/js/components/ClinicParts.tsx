@@ -86,27 +86,50 @@ export function ScheduleView({ week, compact }: { week: ClinicDetailData['week']
     );
 }
 
+function PriceTableRows({ items }: { items: PriceItem[] }) {
+    return items.map((p) => (
+        <li key={p.id} className="price-row price-row--static">
+            <span className="price-row__name">
+                <b>
+                    {p.name}
+                    {p.is_promo ? (
+                        <span className="badge badge--primary" style={{ marginLeft: 8 }}>
+                            акция
+                        </span>
+                    ) : null}
+                </b>
+                {p.description ? <span className="text-sm text-muted">{p.description}</span> : null}
+            </span>
+            <span className="price-row__meta text-sm text-muted">{p.duration_min ? `~${p.duration_min} мин` : ''}</span>
+            <b className="price-row__price">{p.price_to && p.price_to > p.price_from ? `${money(p.price_from)} – ${money(p.price_to)}` : priceFrom(p.price_from)}</b>
+        </li>
+    ));
+}
+
 export function PriceTable({ items }: { items: PriceItem[] }) {
     return (
         <ul className="price-list">
-            {items.map((p) => (
-                <li key={p.id} className="price-row price-row--static">
-                    <span className="price-row__name">
-                        <b>
-                            {p.name}
-                            {p.is_promo ? (
-                                <span className="badge badge--primary" style={{ marginLeft: 8 }}>
-                                    акция
-                                </span>
-                            ) : null}
-                        </b>
-                        {p.description ? <span className="text-sm text-muted">{p.description}</span> : null}
-                    </span>
-                    <span className="price-row__meta text-sm text-muted">{p.duration_min ? `~${p.duration_min} мин` : ''}</span>
-                    <b className="price-row__price">{p.price_to && p.price_to > p.price_from ? `${money(p.price_from)} – ${money(p.price_to)}` : priceFrom(p.price_from)}</b>
-                </li>
-            ))}
+            <PriceTableRows items={items} />
         </ul>
+    );
+}
+
+export function PriceTableGrouped({ groups }: { groups: { group: string; items: PriceItem[] }[] }) {
+    const visible = groups.filter((g) => g.items.length > 0);
+
+    return (
+        <div className="price-list-grouped">
+            {visible.map((g, index) => (
+                <section key={g.group} className="price-list-section" aria-labelledby={`price-group-${index}`}>
+                    <h3 id={`price-group-${index}`} className="price-list-section__title">
+                        {g.group}
+                    </h3>
+                    <ul className="price-list">
+                        <PriceTableRows items={g.items} />
+                    </ul>
+                </section>
+            ))}
+        </div>
     );
 }
 

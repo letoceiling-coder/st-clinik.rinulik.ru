@@ -1,5 +1,5 @@
 import { Link, router } from '@inertiajs/react';
-import { Children, cloneElement, isValidElement, type FormEvent, type ReactElement, type ReactNode } from 'react';
+import { Children, cloneElement, isValidElement, type CSSProperties, type FormEvent, type ReactElement, type ReactNode } from 'react';
 import { cx } from '@/lib/format';
 import type { Paginated } from '@/lib/types';
 import { Button } from './ui/Button';
@@ -8,6 +8,7 @@ import { Badge } from './ui/Misc';
 export const STATUS: Record<string, { label: string; tone?: 'success' | 'warning' | 'danger' | 'info' | 'primary' }> = {
     draft: { label: 'Черновик' },
     pending: { label: 'На модерации', tone: 'warning' },
+    approved: { label: 'Одобрено', tone: 'info' },
     published: { label: 'Опубликовано', tone: 'success' },
     rejected: { label: 'Отклонено', tone: 'danger' },
     hidden: { label: 'Скрыто', tone: 'info' },
@@ -15,16 +16,18 @@ export const STATUS: Record<string, { label: string; tone?: 'success' | 'warning
     blocked: { label: 'Заблокирован', tone: 'danger' },
     new: { label: 'Новая', tone: 'primary' },
     confirmed: { label: 'Подтверждена', tone: 'info' },
+    rescheduled: { label: 'Перенесена', tone: 'info' },
     completed: { label: 'Состоялась', tone: 'success' },
     cancelled: { label: 'Отменена' },
     no_show: { label: 'Не пришёл', tone: 'warning' },
+    booked: { label: 'Забронировано', tone: 'primary' },
     open: { label: 'Открыта', tone: 'warning' },
     upheld: { label: 'Подтверждена', tone: 'success' },
 };
 
-export function StatusBadge({ status }: { status: string }) {
+export function StatusBadge({ status, label }: { status: string; label?: string }) {
     const s = STATUS[status];
-    return <Badge tone={s?.tone}>{s?.label ?? status}</Badge>;
+    return <Badge tone={s?.tone}>{label ?? s?.label ?? status}</Badge>;
 }
 
 export function PageHead({ title, text, action }: { title: string; text?: ReactNode; action?: ReactNode }) {
@@ -39,9 +42,21 @@ export function PageHead({ title, text, action }: { title: string; text?: ReactN
     );
 }
 
+/** Колонок столько, чтобы ряды были ровными: 6 → 3+3, 8 → 4+4, 5 → 5. */
+function kpiColumns(count: number): number {
+    if (count % 4 === 0) {
+        return 4;
+    }
+    if (count % 3 === 0) {
+        return 3;
+    }
+
+    return Math.min(count, 5);
+}
+
 export function Kpis({ items }: { items: { label: string; value: ReactNode; hint?: string }[] }) {
     return (
-        <dl className="kpi-grid">
+        <dl className="kpi-grid kpi-grid--balanced" style={{ '--kpi-cols': kpiColumns(items.length) } as CSSProperties}>
             {items.map((i) => (
                 <div key={i.label} className="kpi card">
                     <dt>{i.label}</dt>

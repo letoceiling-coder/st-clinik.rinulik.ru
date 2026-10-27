@@ -42,7 +42,7 @@ function DemoBanner({ slot }: { slot: BannerSlot }) {
     );
 }
 
-export default function AdSlot({ banners, label = 'Реклама', slot = 'home', demoWhenEmpty = true }: Props) {
+export default function AdSlot({ banners, label = 'Реклама', slot = 'home', demoWhenEmpty = false }: Props) {
     const tracked = useRef<Set<number>>(new Set());
     const hasBanners = banners.length > 0;
     const demoCount = BANNER_SLOT_CAPACITY[slot];

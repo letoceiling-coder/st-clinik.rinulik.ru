@@ -20,7 +20,7 @@ class ReviewController extends AdminController
 
         $page = Review::with('clinic:id,name')
             ->when($status, fn ($b) => $b->where('status', $status))
-            ->when($q !== '', fn ($b) => $b->where(fn ($w) => $w->where('body', 'like', "%$q%")->orWhere('author_name', 'like', "%$q%")))
+            ->when($q !== '', fn ($b) => $b->where(fn ($w) => $w->whereLike('body', "%$q%")->orWhereLike('author_name', "%$q%")))
             ->latest()->paginate(15)->withQueryString();
 
         return $this->render('Admin/Reviews', 'Отзывы', [

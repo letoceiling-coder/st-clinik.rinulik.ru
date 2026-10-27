@@ -48,7 +48,7 @@ export default function ClinicsIndex({ clinics, recommended_clinics, banner_cata
                     <section className="recommended-block stack" aria-labelledby="recommended-h">
                         <div className="recommended-block__head">
                             <h2 id="recommended-h">Рекомендуем</h2>
-                            <span className="text-xs text-muted">Продвижение</span>
+                            <span className="text-xs text-muted">Реклама</span>
                         </div>
                         <div className="stack-lg">
                             {recommended_clinics.map((c, i) => (
@@ -58,7 +58,7 @@ export default function ClinicsIndex({ clinics, recommended_clinics, banner_cata
                     </section>
                 ) : null}
 
-                <AdSlot banners={banner_catalog} slot="catalog" demoWhenEmpty />
+                <AdSlot banners={banner_catalog} slot="catalog" />
 
                 {map_clinics.length > 0 ? (
                     <section className={cx('catalog__map card', mapOpen && 'catalog__map--open')} aria-labelledby="catalog-map-h">

@@ -11,7 +11,7 @@ class ClinicService extends Model
 
     protected function casts(): array
     {
-        return ['is_promo' => 'boolean', 'price_from' => 'integer', 'price_to' => 'integer'];
+        return ['is_promo' => 'boolean', 'price_from' => 'integer', 'price_to' => 'integer', 'duration_min' => 'integer'];
     }
 
     public function clinic(): BelongsTo

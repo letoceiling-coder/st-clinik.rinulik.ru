@@ -1,7 +1,7 @@
 import { t as Icon } from "./assets/Icon-DQahs-u2.js";
 import { a as initials, n as cx } from "./assets/format-BPZIj7DQ.js";
 import { i as LinkButton, n as Button, r as IconButton } from "./assets/Button-D8Mzgn6o.js";
-import { Link, createInertiaApp, router, useForm, usePage } from "@inertiajs/react";
+import { Head, Link, createInertiaApp, router, useForm, usePage } from "@inertiajs/react";
 import { createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 import { createPortal } from "react-dom";
@@ -66,6 +66,56 @@ function usePwaInstall() {
 		hasNativePrompt: promptEvent !== null,
 		install
 	};
+}
+//#endregion
+//#region resources/js/lib/analytics.ts
+/** Имена целей в Яндекс.Метрике должны совпадать с этими идентификаторами. */
+var AnalyticsEvents = {
+	pageView: "page_view",
+	search: "search",
+	cityPick: "city_pick",
+	clinicView: "clinic_view",
+	doctorView: "doctor_view",
+	bookingStart: "booking_start",
+	bookingSuccess: "booking_success",
+	register: "register",
+	tariffPurchase: "tariff_purchase",
+	adPurchase: "ad_purchase",
+	assistantOpen: "assistant_open"
+};
+function xsrfToken$3() {
+	const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
+	return match ? decodeURIComponent(match[1]) : "";
+}
+function sessionId() {
+	const key = "st_analytics_sid";
+	let id = sessionStorage.getItem(key);
+	if (!id) {
+		id = crypto.randomUUID();
+		sessionStorage.setItem(key, id);
+	}
+	return id;
+}
+/** Событие воронки: таблица analytics_events + цель Яндекс.Метрики (если счётчик подключён). */
+function trackAnalyticsEvent(event, meta, citySlug) {
+	if (typeof window === "undefined") return;
+	fetch("/api/v1/analytics/event", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			Accept: "application/json",
+			"X-XSRF-TOKEN": xsrfToken$3()
+		},
+		credentials: "same-origin",
+		keepalive: true,
+		body: JSON.stringify({
+			event,
+			meta: meta ?? {},
+			city_slug: citySlug ?? void 0,
+			session_id: sessionId()
+		})
+	}).catch(() => {});
+	if (window.ym && window.ymCounterId) window.ym(window.ymCounterId, "reachGoal", event, meta ?? {});
 }
 //#endregion
 //#region resources/js/components/ui/Overlay.tsx
@@ -456,10 +506,14 @@ function CitySearchField({ cities, name = "city", label = "Город", defaultV
 function Badge$1({ children, tone, icon }) {
 	return /* @__PURE__ */ jsxs("span", {
 		className: cx("badge", tone && `badge--${tone}`),
+		title: typeof children === "string" ? children : void 0,
 		children: [icon ? /* @__PURE__ */ jsx(Icon, {
 			name: icon,
 			size: 14
-		}) : null, children]
+		}) : null, /* @__PURE__ */ jsx("span", {
+			className: "badge__text",
+			children
+		})]
 	});
 }
 function Stars({ value, size = 16 }) {
@@ -651,9 +705,9 @@ function Tabs({ value, items, onChange, label }) {
 			"aria-selected": value === i.key,
 			className: cx("tab", value === i.key && "is-active"),
 			onClick: () => onChange(i.key),
-			children: [i.label, i.count !== void 0 ? /* @__PURE__ */ jsxs("span", {
-				className: "text-muted",
-				children: [" ", i.count]
+			children: [i.label, i.count !== void 0 ? /* @__PURE__ */ jsx("span", {
+				className: "tab__count",
+				children: i.count
 			}) : null]
 		}, i.key))
 	});
@@ -719,7 +773,7 @@ function LeadModal({ target, onClose }) {
 	return /* @__PURE__ */ jsx(Modal, {
 		open: true,
 		onClose,
-		title: `Запись в «${target.name}»`,
+		title: `Перезвоните мне · «${target.name}»`,
 		footer: /* @__PURE__ */ jsxs(Fragment, { children: [/* @__PURE__ */ jsx(Button, {
 			variant: "ghost",
 			onClick: onClose,
@@ -891,12 +945,28 @@ function LeadModal({ target, onClose }) {
 }
 //#endregion
 //#region resources/js/components/LeadContext.tsx
-var LeadCtx = createContext({ open: () => void 0 });
+function bookingUrl(target) {
+	const q = new URLSearchParams();
+	if (target.doctorId) q.set("doctor", String(target.doctorId));
+	if (target.serviceId) q.set("service", String(target.serviceId));
+	const qs = q.toString();
+	return `/clinics/${target.slug}/booking${qs ? `?${qs}` : ""}`;
+}
+var LeadCtx = createContext({
+	open: () => void 0,
+	callback: () => void 0
+});
 var useLead = () => useContext(LeadCtx);
 function LeadProvider({ children }) {
 	const [target, setTarget] = useState(null);
-	const open = useCallback((t) => setTarget(t), []);
-	const value = useMemo(() => ({ open }), [open]);
+	const open = useCallback((t) => {
+		router.visit(bookingUrl(t));
+	}, []);
+	const callback = useCallback((t) => setTarget(t), []);
+	const value = useMemo(() => ({
+		open,
+		callback
+	}), [open, callback]);
 	return /* @__PURE__ */ jsxs(LeadCtx.Provider, {
 		value,
 		children: [children, /* @__PURE__ */ jsx(LeadModal, {
@@ -997,6 +1067,7 @@ function SearchBox({ variant = "header", placeholder = "Клиника, врач
 		if (!query) return;
 		setOpen(false);
 		onDone?.();
+		trackAnalyticsEvent(AnalyticsEvents.search, { q: query }, city?.slug ?? null);
 		router.get("/search", { q: query });
 	};
 	const onKey = (e) => {
@@ -1220,7 +1291,7 @@ function accountLabel(user) {
 //#endregion
 //#region resources/js/lib/city.ts
 function useCity() {
-	const { city, cities } = usePage().props;
+	const { city, cities, max_app: maxApp } = usePage().props;
 	const slug = city?.slug ?? cities?.[0]?.slug ?? "moskva";
 	return {
 		city,
@@ -1230,6 +1301,7 @@ function useCity() {
 		nameIn: city?.name_in ?? (city?.name ? `в ${city.name}` : "в Москве"),
 		path: (section, query) => {
 			const qs = query ? "?" + new URLSearchParams(Object.entries(query).map(([k, v]) => [k, String(v)])).toString() : "";
+			if (maxApp && section === "clinics") return `/max/clinics${qs}`;
 			return `/${slug}/${section}${qs}`;
 		},
 		direction: (specialty) => `/${slug}/directions/${specialty}`,
@@ -1453,65 +1525,49 @@ function InstallAppButton({ className }) {
 	})] });
 }
 //#endregion
-//#region resources/js/layouts/CityPicker.tsx
-function CityPicker() {
-	const { name, slug } = useCity();
-	const { cities } = usePage().props;
-	const [open, setOpen] = useState(false);
+//#region resources/js/components/CitySelectModal.tsx
+function CitySelectModal({ open, onClose, cities, currentSlug, onPick, title = "Выберите город" }) {
 	const [q, setQ] = useState("");
 	const list = useMemo(() => {
 		const needle = q.trim().toLowerCase();
-		return (cities ?? []).filter((c) => !needle || c.name.toLowerCase().includes(needle) || (c.region ?? "").toLowerCase().includes(needle));
+		return cities.filter((c) => !needle || c.name.toLowerCase().includes(needle) || (c.region ?? "").toLowerCase().includes(needle));
 	}, [cities, q]);
-	const pick = (citySlug) => {
-		setOpen(false);
-		if (citySlug === slug) return;
-		router.post(`/city/${citySlug}`, {}, { preserveScroll: false });
+	const choose = (slug) => {
+		onClose();
+		onPick(slug);
 	};
-	return /* @__PURE__ */ jsxs(Fragment, { children: [/* @__PURE__ */ jsxs("button", {
-		type: "button",
-		className: "city-btn",
-		onClick: () => setOpen(true),
-		"aria-haspopup": "dialog",
-		children: [
-			/* @__PURE__ */ jsx(Icon, {
-				name: "pin",
-				size: 18
-			}),
-			/* @__PURE__ */ jsx("span", { children: name }),
-			/* @__PURE__ */ jsx(Icon, {
-				name: "chevron-down",
-				size: 16
-			})
-		]
-	}), /* @__PURE__ */ jsx(Modal, {
+	return /* @__PURE__ */ jsx(Modal, {
 		open,
-		onClose: () => setOpen(false),
-		title: "Выберите город",
+		onClose,
+		title,
+		wide: true,
 		children: /* @__PURE__ */ jsxs("div", {
-			className: "stack",
+			className: "stack city-select",
 			children: [
 				/* @__PURE__ */ jsx(SearchInput, {
 					label: "Поиск города",
-					placeholder: "Начните вводить название",
+					placeholder: "Начните вводить название или регион",
 					value: q,
 					onChange: (e) => setQ(e.target.value),
 					"data-autofocus": true
 				}),
 				/* @__PURE__ */ jsx("ul", {
-					className: "city-list",
+					className: "city-list city-list--modal",
+					role: "listbox",
+					"aria-label": "Города",
 					children: list.map((c) => /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsxs("button", {
 						type: "button",
-						className: c.slug === slug ? "is-active" : "",
-						onClick: () => pick(c.slug),
-						"aria-current": c.slug === slug ? "true" : void 0,
+						role: "option",
+						"aria-selected": c.slug === currentSlug,
+						className: c.slug === currentSlug ? "is-active" : "",
+						onClick: () => choose(c.slug),
 						children: [
 							/* @__PURE__ */ jsx("b", { children: c.name }),
 							c.region ? /* @__PURE__ */ jsx("span", {
 								className: "text-muted text-sm",
 								children: c.region
 							}) : null,
-							c.slug === slug ? /* @__PURE__ */ jsx(Icon, {
+							c.slug === currentSlug ? /* @__PURE__ */ jsx(Icon, {
 								name: "check",
 								size: 18
 							}) : null
@@ -1519,11 +1575,191 @@ function CityPicker() {
 					}) }, c.slug))
 				}),
 				list.length === 0 ? /* @__PURE__ */ jsx("p", {
-					className: "text-muted",
+					className: "text-muted text-sm",
 					children: "Город не найден. Мы постоянно расширяем покрытие."
 				}) : null
 			]
 		})
+	});
+}
+//#endregion
+//#region resources/js/components/CityPrompt.tsx
+function xsrfToken$2() {
+	const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+	return match ? decodeURIComponent(match[1]) : "";
+}
+function CityPrompt() {
+	const { city_prompt, cities, max_app } = usePage().props;
+	const current = useCity();
+	const [open, setOpen] = useState(false);
+	const [listOpen, setListOpen] = useState(false);
+	const [geoLoading, setGeoLoading] = useState(false);
+	const [geoError, setGeoError] = useState(null);
+	const prompt = city_prompt;
+	useEffect(() => {
+		if (prompt && !max_app) setOpen(true);
+	}, [prompt, max_app]);
+	const confirmCity = useCallback((slug) => {
+		trackAnalyticsEvent(AnalyticsEvents.cityPick, {
+			city_slug: slug,
+			source: "prompt"
+		});
+		router.post(`/city/${slug}/confirm`, {}, { preserveScroll: false });
+	}, []);
+	const switchCity = useCallback((slug) => {
+		if (slug === current.slug) {
+			confirmCity(slug);
+			return;
+		}
+		trackAnalyticsEvent(AnalyticsEvents.cityPick, {
+			city_slug: slug,
+			source: "prompt_list"
+		});
+		router.post(`/city/${slug}`, {}, { preserveScroll: false });
+	}, [confirmCity, current.slug]);
+	const detectByDevice = () => {
+		if (!("geolocation" in navigator)) {
+			setGeoError("Браузер не поддерживает геолокацию.");
+			return;
+		}
+		setGeoLoading(true);
+		setGeoError(null);
+		navigator.geolocation.getCurrentPosition(async (pos) => {
+			try {
+				const response = await fetch("/api/v1/city/locate", {
+					method: "POST",
+					credentials: "same-origin",
+					headers: {
+						Accept: "application/json",
+						"Content-Type": "application/json",
+						"X-XSRF-TOKEN": xsrfToken$2()
+					},
+					body: JSON.stringify({
+						lat: pos.coords.latitude,
+						lng: pos.coords.longitude
+					})
+				});
+				const json = await response.json();
+				if (!response.ok || !json.city?.slug) {
+					setGeoError(json.message ?? "Не удалось определить город.");
+					return;
+				}
+				switchCity(json.city.slug);
+			} catch {
+				setGeoError("Не удалось определить город. Выберите из списка.");
+			} finally {
+				setGeoLoading(false);
+			}
+		}, () => {
+			setGeoLoading(false);
+			setGeoError("Нет доступа к геолокации. Выберите город вручную.");
+		}, {
+			enableHighAccuracy: false,
+			timeout: 12e3,
+			maximumAge: 3e5
+		});
+	};
+	if (!prompt || max_app) return null;
+	const suggested = prompt.suggested;
+	const hint = prompt.source === "ip" ? "Определили по вашему IP-адресу. Можно изменить или уточнить по GPS." : "Выберите город, чтобы видеть актуальные клиники и цены.";
+	return /* @__PURE__ */ jsxs(Fragment, { children: [/* @__PURE__ */ jsx(Modal, {
+		open,
+		onClose: () => confirmCity(current.slug),
+		title: "Ваш город",
+		footer: /* @__PURE__ */ jsxs("div", {
+			className: "city-prompt__actions",
+			children: [/* @__PURE__ */ jsxs(Button, {
+				type: "button",
+				variant: "dark",
+				className: "city-prompt__yes",
+				onClick: () => switchCity(suggested.slug),
+				children: ["Да, ", suggested.name]
+			}), /* @__PURE__ */ jsx(Button, {
+				type: "button",
+				variant: "outline",
+				onClick: () => setListOpen(true),
+				children: "Выбрать другой"
+			})]
+		}),
+		children: /* @__PURE__ */ jsxs("div", {
+			className: "city-prompt stack",
+			children: [
+				/* @__PURE__ */ jsxs("p", {
+					className: "city-prompt__lead",
+					children: [
+						"Похоже, вы в ",
+						/* @__PURE__ */ jsx("strong", { children: suggested.name_in ?? suggested.name }),
+						". Показывать клиники и цены для этого города?"
+					]
+				}),
+				/* @__PURE__ */ jsx("p", {
+					className: "text-sm text-muted",
+					children: hint
+				}),
+				/* @__PURE__ */ jsx(Button, {
+					type: "button",
+					variant: "secondary",
+					size: "sm",
+					loading: geoLoading,
+					onClick: detectByDevice,
+					className: "city-prompt__geo",
+					children: "Определить по GPS"
+				}),
+				geoError ? /* @__PURE__ */ jsx("p", {
+					className: "text-sm city-prompt__error",
+					children: geoError
+				}) : null
+			]
+		})
+	}), /* @__PURE__ */ jsx(CitySelectModal, {
+		open: listOpen,
+		onClose: () => setListOpen(false),
+		cities: cities ?? [],
+		currentSlug: current.slug,
+		onPick: switchCity,
+		title: "Выберите город"
+	})] });
+}
+//#endregion
+//#region resources/js/layouts/CityPicker.tsx
+function CityPicker() {
+	const { name, slug } = useCity();
+	const { cities } = usePage().props;
+	const [open, setOpen] = useState(false);
+	const pick = (citySlug) => {
+		if (citySlug === slug) return;
+		trackAnalyticsEvent(AnalyticsEvents.cityPick, {
+			city_slug: citySlug,
+			source: "header"
+		});
+		router.post(`/city/${citySlug}`, {}, { preserveScroll: false });
+	};
+	return /* @__PURE__ */ jsxs(Fragment, { children: [/* @__PURE__ */ jsxs("button", {
+		type: "button",
+		className: "city-btn",
+		onClick: () => setOpen(true),
+		"aria-haspopup": "dialog",
+		"aria-label": `Город: ${name}. Нажмите, чтобы сменить`,
+		children: [
+			/* @__PURE__ */ jsx(Icon, {
+				name: "pin",
+				size: 18
+			}),
+			/* @__PURE__ */ jsx("span", {
+				className: "city-btn__label",
+				children: name
+			}),
+			/* @__PURE__ */ jsx(Icon, {
+				name: "chevron-down",
+				size: 16
+			})
+		]
+	}), /* @__PURE__ */ jsx(CitySelectModal, {
+		open,
+		onClose: () => setOpen(false),
+		cities: cities ?? [],
+		currentSlug: slug,
+		onPick: pick
 	})] });
 }
 //#endregion
@@ -1572,7 +1808,7 @@ function Logo({ to = "/", suffix, mobileSuffix }) {
 }
 //#endregion
 //#region resources/js/layouts/PublicLayout.tsx
-function useActive() {
+function useActive$1() {
 	const { url } = usePage();
 	return (href) => {
 		const path = url.split("?")[0];
@@ -1832,7 +2068,7 @@ function Footer() {
 function PublicLayout({ children, bare }) {
 	const city = useCity();
 	const { auth } = usePage().props;
-	const active = useActive();
+	const active = useActive$1();
 	const { count } = useCollections();
 	const [menu, setMenu] = useState(false);
 	const [searchOpen, setSearchOpen] = useState(false);
@@ -2056,6 +2292,7 @@ function PublicLayout({ children, bare }) {
 			})]
 		}),
 		/* @__PURE__ */ jsx(CookieBanner, {}),
+		/* @__PURE__ */ jsx(CityPrompt, {}),
 		/* @__PURE__ */ jsx(ToastHost, {})
 	] });
 }
@@ -2069,9 +2306,16 @@ var ITEMS$1 = [
 		exact: true
 	},
 	{
-		href: "/account/leads",
-		label: "Заявки и записи",
+		href: "/account/appointments",
+		label: "Мои записи",
+		shortLabel: "Записи",
 		icon: "calendar"
+	},
+	{
+		href: "/account/leads",
+		label: "Заявки на звонок",
+		shortLabel: "Заявки",
+		icon: "phone"
 	},
 	{
 		href: "/account/favorites",
@@ -2086,16 +2330,19 @@ var ITEMS$1 = [
 	{
 		href: "/account/history",
 		label: "История просмотров",
+		shortLabel: "История",
 		icon: "clock"
 	},
 	{
 		href: "/account/reviews",
 		label: "Мои отзывы",
+		shortLabel: "Отзывы",
 		icon: "thumb"
 	},
 	{
 		href: "/account/notifications",
 		label: "Уведомления",
+		shortLabel: "Уведомл.",
 		icon: "bell"
 	},
 	{
@@ -2133,7 +2380,16 @@ function AccountLayout({ children }) {
 								name: i.icon,
 								size: 20
 							}),
-							/* @__PURE__ */ jsx("span", { children: i.label }),
+							/* @__PURE__ */ jsx("span", {
+								className: "account__link-label",
+								children: i.shortLabel ? /* @__PURE__ */ jsxs(Fragment, { children: [/* @__PURE__ */ jsx("span", {
+									className: "account__link-label-full",
+									children: i.label
+								}), /* @__PURE__ */ jsx("span", {
+									className: "account__link-label-short",
+									children: i.shortLabel
+								})] }) : i.label
+							}),
 							i.href === "/account/notifications" && auth.user?.unread ? /* @__PURE__ */ jsx("span", {
 								className: "count-badge count-badge--inline",
 								children: auth.user.unread
@@ -2147,6 +2403,201 @@ function AccountLayout({ children }) {
 			children
 		})]
 	}) });
+}
+//#endregion
+//#region resources/js/components/ParserTaskProgress.tsx
+var formatEta = (sec) => {
+	const minutes = Math.max(1, Math.round(sec / 60));
+	if (minutes < 60) return `≈ ${minutes} мин`;
+	const hours = Math.floor(minutes / 60);
+	const rest = minutes % 60;
+	return `≈ ${hours} ч${rest > 0 ? ` ${rest} мин` : ""}`;
+};
+/** Прогресс сбора: шкала этапов, «собрано N из M», оставшееся время и предупреждение о проверке Яндекса. */
+function ParserTaskProgress({ task, compact = false }) {
+	const indeterminate = task.progress === null || task.status === "queued";
+	return /* @__PURE__ */ jsxs("div", {
+		className: "parser-task-progress",
+		children: [
+			!compact && task.stages.length > 0 ? /* @__PURE__ */ jsx("ol", {
+				className: "parser-stages",
+				"aria-label": "Этапы сбора",
+				children: task.stages.map((s) => /* @__PURE__ */ jsx("li", {
+					className: `parser-stages__item is-${s.state}`,
+					children: s.label
+				}, s.id))
+			}) : null,
+			/* @__PURE__ */ jsx("div", {
+				className: `parser-progress${indeterminate ? " is-indeterminate" : ""}`,
+				role: "progressbar",
+				"aria-valuenow": task.progress ?? void 0,
+				"aria-valuemin": 0,
+				"aria-valuemax": 100,
+				children: /* @__PURE__ */ jsx("span", { style: indeterminate ? void 0 : { width: `${Math.max(task.progress ?? 0, 4)}%` } })
+			}),
+			/* @__PURE__ */ jsxs("div", {
+				className: "parser-task-progress__facts text-xs",
+				children: [
+					task.target ? /* @__PURE__ */ jsxs("b", { children: [
+						"Собрано ",
+						task.collected,
+						" из ",
+						task.target
+					] }) : null,
+					task.progress !== null && task.status !== "queued" ? /* @__PURE__ */ jsxs("span", { children: [task.progress, "%"] }) : null,
+					task.eta_sec ? /* @__PURE__ */ jsxs("span", { children: ["осталось ", formatEta(task.eta_sec)] }) : null
+				]
+			}),
+			task.attention ? /* @__PURE__ */ jsx("p", {
+				className: "parser-attention text-xs",
+				children: task.attention
+			}) : null,
+			/* @__PURE__ */ jsx("p", {
+				className: "text-xs",
+				children: task.stage
+			}),
+			task.last_organization ? /* @__PURE__ */ jsxs("p", {
+				className: "text-xs text-muted",
+				children: ["Последняя: ", task.last_organization]
+			}) : null,
+			!compact && task.status_page ? /* @__PURE__ */ jsx("a", {
+				href: task.status_page,
+				target: "_blank",
+				rel: "noreferrer",
+				className: "link text-xs",
+				children: "Подробный статус в парсере"
+			}) : null
+		]
+	});
+}
+//#endregion
+//#region resources/js/components/ParserActivity.tsx
+var SINCE_KEY = "parser-activity-since";
+var SEEN_KEY = "parser-activity-seen";
+var ACTIVE_INTERVAL = 4e3;
+var IDLE_INTERVAL = 2e4;
+var readSeen = () => {
+	try {
+		return JSON.parse(sessionStorage.getItem(SEEN_KEY) ?? "[]");
+	} catch {
+		return [];
+	}
+};
+/**
+* Индикатор фоновых задач парсера. Живёт в layout админки, поэтому виден на любой странице,
+* а задачи продолжают выполняться на сервере независимо от того, где находится администратор.
+*/
+function ParserActivity() {
+	const [active, setActive] = useState([]);
+	const [collapsed, setCollapsed] = useState(false);
+	const [offline, setOffline] = useState(false);
+	const timer = useRef(void 0);
+	const activeCount = useRef(0);
+	const load = useCallback(async () => {
+		window.clearTimeout(timer.current);
+		try {
+			const since = sessionStorage.getItem(SINCE_KEY) ?? "";
+			const response = await fetch(`/admin/parser/activity?since=${encodeURIComponent(since)}`, {
+				headers: {
+					Accept: "application/json",
+					"X-Requested-With": "XMLHttpRequest"
+				},
+				credentials: "same-origin"
+			});
+			if (!response.ok) throw new Error(String(response.status));
+			const data = await response.json();
+			const seen = readSeen();
+			const fresh = data.finished.filter((t) => !seen.includes(t.id));
+			fresh.forEach((t) => notify(`${t.title}. ${t.stage}`, t.status === "completed" ? "info" : "error"));
+			if (fresh.length > 0) {
+				sessionStorage.setItem(SEEN_KEY, JSON.stringify([...seen, ...fresh.map((t) => t.id)].slice(-50)));
+				if (window.location.pathname.startsWith("/admin/parser")) router.reload();
+			}
+			sessionStorage.setItem(SINCE_KEY, data.now);
+			setActive(data.active);
+			activeCount.current = data.active.length;
+			setOffline(false);
+		} catch {
+			setOffline(activeCount.current > 0);
+		} finally {
+			timer.current = window.setTimeout(load, activeCount.current > 0 ? ACTIVE_INTERVAL : IDLE_INTERVAL);
+		}
+	}, []);
+	useEffect(() => {
+		load();
+		const off = router.on("success", () => void load());
+		return () => {
+			off();
+			window.clearTimeout(timer.current);
+		};
+	}, [load]);
+	if (active.length === 0) return null;
+	return /* @__PURE__ */ jsxs("aside", {
+		className: `parser-activity card${collapsed ? " is-collapsed" : ""}`,
+		"aria-live": "polite",
+		"aria-label": "Фоновые процессы парсера",
+		children: [/* @__PURE__ */ jsxs("button", {
+			type: "button",
+			className: "parser-activity__head",
+			onClick: () => setCollapsed((v) => !v),
+			"aria-expanded": !collapsed,
+			children: [
+				/* @__PURE__ */ jsx("span", {
+					className: "parser-activity__spinner",
+					"aria-hidden": "true"
+				}),
+				/* @__PURE__ */ jsx("span", {
+					className: "parser-activity__title",
+					children: active.some((t) => t.attention) ? "Сбор на паузе: проверка Яндекса" : active.length === 1 ? `Идёт процесс парсера${active[0].target ? ` · ${active[0].collected}/${active[0].target}` : ""}` : `Процессов парсера: ${active.length}`
+				}),
+				/* @__PURE__ */ jsx(Icon, {
+					name: collapsed ? "chevron-up" : "chevron-down",
+					size: 18
+				})
+			]
+		}), !collapsed ? /* @__PURE__ */ jsxs("div", {
+			className: "parser-activity__body",
+			children: [
+				active.map((t) => /* @__PURE__ */ jsxs("div", {
+					className: "parser-activity__item",
+					children: [
+						/* @__PURE__ */ jsxs("div", {
+							className: "parser-activity__row",
+							children: [/* @__PURE__ */ jsx("b", { children: t.title }), /* @__PURE__ */ jsx("span", {
+								className: "text-xs text-muted",
+								children: t.status_label
+							})]
+						}),
+						/* @__PURE__ */ jsx(ParserTaskProgress, {
+							task: t,
+							compact: true
+						}),
+						/* @__PURE__ */ jsxs("p", {
+							className: "text-xs text-muted",
+							children: [
+								"Запущено ",
+								t.started,
+								t.checked ? ` · статус обновлён ${t.checked}` : ""
+							]
+						})
+					]
+				}, t.id)),
+				offline ? /* @__PURE__ */ jsx("p", {
+					className: "text-xs parser-warn",
+					children: "Нет связи с сервером — повторяем запрос…"
+				}) : null,
+				/* @__PURE__ */ jsx("p", {
+					className: "text-xs text-muted",
+					children: "Можно работать на других страницах — по завершении появится уведомление."
+				}),
+				/* @__PURE__ */ jsx(Link, {
+					href: "/admin/parser?tab=tasks",
+					className: "link text-sm",
+					children: "Открыть задачи"
+				})
+			]
+		}) : null]
+	});
 }
 //#endregion
 //#region resources/js/layouts/DashboardShell.tsx
@@ -2192,6 +2643,7 @@ function SideNav({ items, onNavigate }) {
 function DashboardShell({ children, items, brandSuffix, mobileBrandSuffix, aside, mobileLabel }) {
 	const { auth, demo } = usePage().props;
 	const user = auth?.user;
+	const offerDemo = demo?.mode === "offer";
 	const { url } = usePage();
 	const [open, setOpen] = useState(false);
 	useClientSeo();
@@ -2257,7 +2709,28 @@ function DashboardShell({ children, items, brandSuffix, mobileBrandSuffix, aside
 									]
 								})
 							}) : null,
-							/* @__PURE__ */ jsxs(Link, {
+							offerDemo ? /* @__PURE__ */ jsxs(Fragment, { children: [demo?.connect_url ? /* @__PURE__ */ jsx("a", {
+								href: demo.connect_url,
+								className: "btn btn--primary btn--sm",
+								children: "Подключиться"
+							}) : null, /* @__PURE__ */ jsxs(Link, {
+								href: demo?.exit_url ?? "/",
+								method: "post",
+								as: "button",
+								className: "btn btn--ghost btn--sm",
+								type: "button",
+								children: [
+									/* @__PURE__ */ jsx(Icon, {
+										name: "logout",
+										size: 18
+									}),
+									" ",
+									/* @__PURE__ */ jsx("span", {
+										className: "hide-mobile",
+										children: "Выйти из демо"
+									})
+								]
+							})] }) : /* @__PURE__ */ jsxs(Link, {
 								href: "/logout",
 								method: "post",
 								as: "button",
@@ -2278,7 +2751,22 @@ function DashboardShell({ children, items, brandSuffix, mobileBrandSuffix, aside
 						]
 					})
 				}),
-				demo ? /* @__PURE__ */ jsxs("div", {
+				offerDemo ? /* @__PURE__ */ jsxs("div", {
+					className: "demo-banner demo-banner--offer",
+					role: "status",
+					children: [
+						/* @__PURE__ */ jsx(Icon, {
+							name: "info",
+							size: 18
+						}),
+						/* @__PURE__ */ jsxs("span", { children: [/* @__PURE__ */ jsx("b", { children: "Демо-режим." }), " Так будет выглядеть кабинет вашей клиники. Данные заявок и записей — примерные, изменения не сохраняются."] }),
+						demo?.connect_url ? /* @__PURE__ */ jsx("a", {
+							href: demo.connect_url,
+							className: "btn btn--primary btn--sm demo-banner__action",
+							children: "Подключиться"
+						}) : null
+					]
+				}) : demo ? /* @__PURE__ */ jsxs("div", {
 					className: "demo-banner",
 					role: "status",
 					children: [/* @__PURE__ */ jsx(Icon, {
@@ -2294,7 +2782,7 @@ function DashboardShell({ children, items, brandSuffix, mobileBrandSuffix, aside
 					}), /* @__PURE__ */ jsxs("main", {
 						id: "main",
 						tabIndex: -1,
-						className: "shell__main",
+						className: cx("shell__main", offerDemo && "shell__main--demo"),
 						children: [/* @__PURE__ */ jsx("div", {
 							className: "show-tablet shell__crumb",
 							children: /* @__PURE__ */ jsxs("button", {
@@ -2340,6 +2828,41 @@ var ALL = [
 		perm: "admin.dashboard"
 	},
 	{
+		href: "/admin/appointments",
+		label: "Записи",
+		icon: "calendar",
+		group: "Работа",
+		perm: "admin.dashboard"
+	},
+	{
+		href: "/admin/reports",
+		label: "Отчёты",
+		icon: "file",
+		group: "Работа",
+		perm: "admin.dashboard"
+	},
+	{
+		href: "/admin/analytics",
+		label: "Аналитика",
+		icon: "chart",
+		group: "Работа",
+		perm: "admin.dashboard"
+	},
+	{
+		href: "/admin/geography",
+		label: "География",
+		icon: "pin",
+		group: "Справочники",
+		perm: "admin.dictionaries"
+	},
+	{
+		href: "/admin/dictionaries/regions",
+		label: "Регионы",
+		icon: "globe",
+		group: "Справочники",
+		perm: "admin.dictionaries"
+	},
+	{
 		href: "/admin/moderation",
 		label: "Модерация",
 		icon: "shield",
@@ -2352,6 +2875,76 @@ var ALL = [
 		icon: "sparkle",
 		group: "Работа",
 		perm: "admin.promotions"
+	},
+	{
+		href: "/admin/site-display",
+		label: "Сайт: карта и реклама",
+		icon: "globe",
+		group: "Работа",
+		perm: "admin.promotions"
+	},
+	{
+		href: "/admin/tariffs",
+		label: "Тарифы",
+		icon: "ruble",
+		group: "Работа",
+		perm: "admin.promotions"
+	},
+	{
+		href: "/admin/finance",
+		label: "Финансы",
+		icon: "chart",
+		group: "Работа",
+		perm: "admin.promotions"
+	},
+	{
+		href: "/admin/card-bonuses",
+		label: "Бонусы карточек",
+		icon: "sparkle",
+		group: "Работа",
+		perm: "admin.promotions"
+	},
+	{
+		href: "/admin/clinic-card-appearance",
+		label: "Премиум-карточки",
+		icon: "crown",
+		group: "Работа",
+		perm: "admin.promotions"
+	},
+	{
+		href: "/admin/parser",
+		label: "Парсер",
+		icon: "search",
+		group: "Работа",
+		perm: "admin.parser"
+	},
+	{
+		href: "/admin/offers",
+		label: "КП и демо",
+		icon: "send",
+		group: "Работа",
+		perm: "offers.manage"
+	},
+	{
+		href: "/admin/campaigns",
+		label: "Кампании КП",
+		icon: "mail",
+		group: "Работа",
+		perm: "offers.manage"
+	},
+	{
+		href: "/admin/broadcasts",
+		label: "Рассылки",
+		icon: "send",
+		group: "Работа",
+		perm: "admin.broadcasts"
+	},
+	{
+		href: "/admin/assistant",
+		label: "AI-ассистент",
+		icon: "send",
+		group: "Система",
+		perm: "admin.assistant"
 	},
 	{
 		href: "/admin/integrations",
@@ -2476,12 +3069,12 @@ var ALL = [
 function AdminLayout({ children }) {
 	const { auth } = usePage().props;
 	const items = useMemo(() => ALL.filter((i) => can(auth?.user, i.perm)), [auth?.user]);
-	return /* @__PURE__ */ jsx(DashboardShell, {
+	return /* @__PURE__ */ jsxs(DashboardShell, {
 		items,
 		brandSuffix: "админ-панель",
 		mobileBrandSuffix: "Админ",
 		mobileLabel: "Админ-панель",
-		children
+		children: [children, can(auth?.user, "admin.parser") ? /* @__PURE__ */ jsx(ParserActivity, {}) : null]
 	});
 }
 //#endregion
@@ -2523,16 +3116,20 @@ function AuthLayout({ children }) {
 var STATUS_LABEL = {
 	draft: "Черновик",
 	pending: "На модерации",
+	approved: "Одобрен",
 	published: "Опубликована",
 	rejected: "Отклонена",
-	hidden: "Скрыта"
+	hidden: "Скрыта",
+	blocked: "Заблокирована"
 };
 var STATUS_TONE = {
 	draft: void 0,
 	pending: "warning",
+	approved: "info",
 	published: "success",
 	rejected: "danger",
-	hidden: "info"
+	hidden: "info",
+	blocked: "danger"
 };
 var ITEMS = [
 	{
@@ -2540,73 +3137,142 @@ var ITEMS = [
 		label: "Обзор",
 		icon: "home",
 		exact: true,
-		group: "Работа"
+		group: "Работа",
+		ability: null
+	},
+	{
+		href: "/clinic-cabinet/calendar",
+		label: "Календарь",
+		icon: "calendar",
+		group: "Работа",
+		ability: "manage_operations"
 	},
 	{
 		href: "/clinic-cabinet/leads",
 		label: "Заявки",
-		icon: "calendar",
-		group: "Работа"
+		icon: "phone",
+		group: "Работа",
+		ability: "manage_operations"
 	},
 	{
 		href: "/clinic-cabinet/reviews",
 		label: "Отзывы",
 		icon: "thumb",
-		group: "Работа"
+		group: "Работа",
+		ability: "manage_operations"
 	},
 	{
 		href: "/clinic-cabinet/stats",
 		label: "Статистика",
 		icon: "chart",
-		group: "Работа"
+		group: "Работа",
+		ability: null
+	},
+	{
+		href: "/clinic-cabinet/organization",
+		label: "Организация",
+		icon: "building",
+		group: "Профиль",
+		ability: "manage_organization"
+	},
+	{
+		href: "/clinic-cabinet/staff",
+		label: "Сотрудники",
+		icon: "users",
+		group: "Профиль",
+		ability: "manage_staff"
 	},
 	{
 		href: "/clinic-cabinet/branches",
 		label: "Филиалы",
 		icon: "building",
-		group: "Профиль"
+		group: "Профиль",
+		ability: "manage_content"
 	},
 	{
 		href: "/clinic-cabinet/doctors",
 		label: "Врачи",
 		icon: "users",
-		group: "Профиль"
+		group: "Профиль",
+		ability: "manage_content"
 	},
 	{
 		href: "/clinic-cabinet/prices",
 		label: "Услуги и цены",
 		icon: "ruble",
-		group: "Профиль"
+		group: "Профиль",
+		ability: "manage_content"
 	},
 	{
 		href: "/clinic-cabinet/schedule",
 		label: "График работы",
 		icon: "clock",
-		group: "Профиль"
+		group: "Профиль",
+		exact: true,
+		ability: "manage_schedule"
+	},
+	{
+		href: "/clinic-cabinet/schedule/doctors",
+		label: "Расписание врачей",
+		icon: "clock",
+		group: "Профиль",
+		ability: "manage_schedule"
 	},
 	{
 		href: "/clinic-cabinet/photos",
 		label: "Фото",
 		icon: "image",
-		group: "Профиль"
+		group: "Профиль",
+		ability: "manage_content"
 	},
 	{
 		href: "/clinic-cabinet/posts",
 		label: "Новости и акции",
 		icon: "flash",
-		group: "Профиль"
+		group: "Профиль",
+		ability: "manage_content"
+	},
+	{
+		href: "/clinic-cabinet/card-bonuses",
+		label: "Бонусы на карточке",
+		icon: "sparkle",
+		group: "Профиль",
+		ability: "manage_content"
+	},
+	{
+		href: "/clinic-cabinet/payments",
+		label: "Тариф и платежи",
+		icon: "ruble",
+		group: "Работа",
+		ability: "manage_billing"
 	},
 	{
 		href: "/clinic-cabinet/promotions",
 		label: "Продвижение",
 		icon: "sparkle",
-		group: "Работа"
+		group: "Работа",
+		ability: "manage_promotions"
+	},
+	{
+		href: "/clinic-cabinet/broadcasts",
+		label: "Рассылки",
+		icon: "send",
+		group: "Работа",
+		ability: "manage_promotions"
 	},
 	{
 		href: "/clinic-cabinet/documents",
 		label: "Документы",
 		icon: "file",
-		group: "Профиль"
+		group: "Профиль",
+		ability: "manage_content"
+	},
+	{
+		href: "/clinic-cabinet/settings",
+		label: "Настройки",
+		icon: "settings",
+		group: "Профиль",
+		ability: null
 	}
 ];
 function BranchSwitcher() {
@@ -2671,9 +3337,20 @@ function BranchSwitcher() {
 		]
 	});
 }
+function sectionOf(href) {
+	return href.split("/")[2] ?? "dashboard";
+}
+function visibleItems(items, abilities, demoSections) {
+	let list = items;
+	if (demoSections) list = list.filter((i) => demoSections.includes(sectionOf(i.href)));
+	else if (abilities && abilities.length > 0) list = list.filter((i) => i.ability === null || i.ability === void 0 || abilities.includes(i.ability));
+	return list;
+}
 function CabinetLayout({ children }) {
+	const { demo, cabinet } = usePage().props;
+	const items = visibleItems(ITEMS, cabinet?.abilities, demo?.sections);
 	return /* @__PURE__ */ jsx(DashboardShell, {
-		items: ITEMS,
+		items,
 		brandSuffix: "для клиник",
 		mobileBrandSuffix: "Клиника",
 		mobileLabel: "Кабинет клиники",
@@ -2682,64 +3359,669 @@ function CabinetLayout({ children }) {
 	});
 }
 //#endregion
+//#region resources/js/components/AssistantLeadPanel.tsx
+function xsrfToken$1() {
+	const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+	return match ? decodeURIComponent(match[1]) : "";
+}
+function slugFromClinicUrl(url) {
+	return url.match(/\/clinics\/([^/?#]+)/)?.[1] ?? null;
+}
+function clinicChoicesFromMessages(messages) {
+	const map = /* @__PURE__ */ new Map();
+	for (const msg of messages) for (const link of msg.links ?? []) {
+		const slug = slugFromClinicUrl(link.url);
+		if (slug && !map.has(slug)) map.set(slug, link.label);
+	}
+	return [...map.entries()].map(([slug, label]) => ({
+		slug,
+		label
+	}));
+}
+function AssistantLeadPanel({ conversationId, clinics, onClose, onSuccess }) {
+	const { auth } = usePage().props;
+	const [clinic, setClinic] = useState(clinics[0]?.slug ?? "");
+	const [name, setName] = useState(auth.user?.name ?? "");
+	const [phone, setPhone] = useState("");
+	const [comment, setComment] = useState("");
+	const [consent, setConsent] = useState(false);
+	const [broadcast, setBroadcast] = useState(false);
+	const [busy, setBusy] = useState(false);
+	const [error, setError] = useState(null);
+	const clinicOptions = useMemo(() => clinics, [clinics]);
+	const submit = async (e) => {
+		e.preventDefault();
+		if (!conversationId) {
+			setError("Сначала задайте вопрос ассистенту, чтобы начать диалог.");
+			return;
+		}
+		if (!broadcast && !clinic) {
+			setError("Выберите клинику из списка или отметьте «Любая клиника города».");
+			return;
+		}
+		setBusy(true);
+		setError(null);
+		try {
+			const res = await fetch("/api/v1/assistant/lead", {
+				method: "POST",
+				credentials: "same-origin",
+				headers: {
+					Accept: "application/json",
+					"Content-Type": "application/json",
+					"X-XSRF-TOKEN": xsrfToken$1()
+				},
+				body: JSON.stringify({
+					conversation_id: conversationId,
+					clinic: broadcast ? clinic || void 0 : clinic,
+					broadcast,
+					name,
+					phone,
+					comment: comment || void 0,
+					consent: consent ? true : void 0
+				})
+			});
+			const data = await res.json();
+			if (!res.ok) {
+				const first = data.errors ? Object.values(data.errors).flat()[0] : data.message;
+				throw new Error(first ?? "Не удалось отправить заявку");
+			}
+			onSuccess(data.message ?? "Заявка отправлена.");
+			onClose();
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Ошибка сети");
+		} finally {
+			setBusy(false);
+		}
+	};
+	return /* @__PURE__ */ jsxs("form", {
+		className: "assistant-lead",
+		onSubmit: (e) => void submit(e),
+		children: [
+			/* @__PURE__ */ jsx("p", {
+				className: "text-sm text-muted",
+				children: "Клиника перезвонит для подтверждения. Для выбора времени сразу — онлайн-запись в карточке клиники."
+			}),
+			/* @__PURE__ */ jsx(Check, {
+				label: "Любая подходящая клиника города (заявку получат несколько клиник)",
+				checked: broadcast,
+				onChange: (e) => setBroadcast(e.target.checked)
+			}),
+			clinicOptions.length && !broadcast ? /* @__PURE__ */ jsx(SelectField, {
+				label: "Клиника",
+				value: clinic,
+				onChange: (e) => setClinic(e.target.value),
+				required: true,
+				children: clinicOptions.map((c) => /* @__PURE__ */ jsx("option", {
+					value: c.slug,
+					children: c.label
+				}, c.slug))
+			}) : !broadcast ? /* @__PURE__ */ jsx(TextField, {
+				label: "Slug клиники",
+				value: clinic,
+				onChange: (e) => setClinic(e.target.value),
+				placeholder: "из ссылки каталога",
+				required: true
+			}) : null,
+			/* @__PURE__ */ jsx(TextField, {
+				label: "Имя",
+				value: name,
+				onChange: (e) => setName(e.target.value),
+				required: true,
+				autoComplete: "name"
+			}),
+			/* @__PURE__ */ jsx(TextField, {
+				label: "Телефон",
+				type: "tel",
+				value: phone,
+				onChange: (e) => setPhone(e.target.value),
+				required: true,
+				autoComplete: "tel"
+			}),
+			/* @__PURE__ */ jsx(TextArea, {
+				label: "Комментарий",
+				value: comment,
+				onChange: (e) => setComment(e.target.value),
+				rows: 2,
+				maxLength: 300
+			}),
+			/* @__PURE__ */ jsx(Check, {
+				label: broadcast ? "Согласие: контакты будут переданы нескольким клиникам города для обратного звонка" : "Согласие на обработку персональных данных",
+				checked: consent,
+				onChange: (e) => setConsent(e.target.checked)
+			}),
+			error ? /* @__PURE__ */ jsx("p", {
+				className: "text-sm assistant-lead__error",
+				children: error
+			}) : null,
+			/* @__PURE__ */ jsxs("div", {
+				className: "assistant-lead__actions",
+				children: [/* @__PURE__ */ jsx(Button, {
+					type: "button",
+					variant: "ghost",
+					size: "sm",
+					onClick: onClose,
+					children: "Отмена"
+				}), /* @__PURE__ */ jsx(Button, {
+					type: "submit",
+					size: "sm",
+					disabled: busy || !consent,
+					children: "Отправить"
+				})]
+			})
+		]
+	});
+}
+//#endregion
+//#region resources/js/lib/assistant-stream.ts
+function parseSseBlock(block) {
+	const lines = block.split("\n");
+	let event = "message";
+	let data = "";
+	for (const line of lines) if (line.startsWith("event:")) event = line.slice(6).trim();
+	else if (line.startsWith("data:")) data += line.slice(5).trim();
+	if (data === "") return null;
+	return {
+		event,
+		data
+	};
+}
+async function postAssistantMessageStream(url, body, headers, onChunk) {
+	const res = await fetch(url, {
+		method: "POST",
+		credentials: "same-origin",
+		headers: {
+			Accept: "text/event-stream",
+			"Content-Type": "application/json",
+			...headers
+		},
+		body: JSON.stringify(body)
+	});
+	if (!res.ok) {
+		const err = await res.json().catch(() => ({}));
+		throw new Error(err.message ?? "Не удалось отправить сообщение");
+	}
+	const reader = res.body?.getReader();
+	if (!reader) throw new Error("Поток недоступен");
+	const decoder = new TextDecoder();
+	let buffer = "";
+	let donePayload = null;
+	while (true) {
+		const { done, value } = await reader.read();
+		if (done) break;
+		buffer += decoder.decode(value, { stream: true });
+		const parts = buffer.split("\n\n");
+		buffer = parts.pop() ?? "";
+		for (const part of parts) {
+			const parsed = parseSseBlock(part.trim());
+			if (!parsed) continue;
+			const json = JSON.parse(parsed.data);
+			if (parsed.event === "chunk" && typeof json.text === "string") onChunk(json.text);
+			if (parsed.event === "done") donePayload = json;
+			if (parsed.event === "error") throw new Error(typeof json.message === "string" ? json.message : "Ошибка ассистента");
+		}
+	}
+	if (!donePayload) throw new Error("Ответ оборвался");
+	return donePayload;
+}
+//#endregion
+//#region resources/js/components/AssistantWidget.tsx
+function xsrfToken() {
+	const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+	return match ? decodeURIComponent(match[1]) : "";
+}
+function AssistantWidget() {
+	const { assistant } = usePage().props;
+	const streamResponses = assistant?.stream_responses !== false;
+	const [open, setOpen] = useState(false);
+	const [messages, setMessages] = useState([]);
+	const [input, setInput] = useState("");
+	const [busy, setBusy] = useState(false);
+	const [conversationId, setConversationId] = useState(null);
+	const [isMock, setIsMock] = useState(true);
+	const [showLead, setShowLead] = useState(false);
+	const listRef = useRef(null);
+	const [quickReplies, setQuickReplies] = useState([]);
+	const clinicChoices = useMemo(() => clinicChoicesFromMessages(messages), [messages]);
+	useEffect(() => {
+		if (open && messages.length === 0 && assistant?.greeting) setMessages([{
+			role: "assistant",
+			text: assistant.greeting
+		}]);
+	}, [
+		open,
+		assistant?.greeting,
+		messages.length
+	]);
+	useEffect(() => {
+		listRef.current?.scrollTo({
+			top: listRef.current.scrollHeight,
+			behavior: "smooth"
+		});
+	}, [
+		messages,
+		open,
+		showLead
+	]);
+	const send = useCallback(async (text) => {
+		const trimmed = text.trim();
+		if (!trimmed || busy) return;
+		setInput("");
+		setShowLead(false);
+		setMessages((m) => [...m, {
+			role: "user",
+			text: trimmed
+		}]);
+		setBusy(true);
+		try {
+			const headers = { "X-XSRF-TOKEN": xsrfToken() };
+			if (streamResponses) {
+				setMessages((m) => [...m, {
+					role: "assistant",
+					text: ""
+				}]);
+				const data = await postAssistantMessageStream("/api/v1/assistant/message/stream", {
+					message: trimmed,
+					conversation_id: conversationId
+				}, headers, (piece) => {
+					setMessages((m) => {
+						const copy = [...m];
+						const last = copy[copy.length - 1];
+						if (last?.role === "assistant") copy[copy.length - 1] = {
+							...last,
+							text: last.text + piece
+						};
+						return copy;
+					});
+				});
+				if (data.conversation_id) setConversationId(data.conversation_id);
+				if (typeof data.mock === "boolean") setIsMock(data.mock);
+				setMessages((m) => {
+					const copy = [...m];
+					const last = copy[copy.length - 1];
+					if (last?.role === "assistant") copy[copy.length - 1] = {
+						...last,
+						text: data.reply ?? last.text,
+						links: data.links
+					};
+					return copy;
+				});
+				if (data.suggestions?.length) setQuickReplies(data.suggestions);
+			} else {
+				const res = await fetch("/api/v1/assistant/message", {
+					method: "POST",
+					credentials: "same-origin",
+					headers: {
+						Accept: "application/json",
+						"Content-Type": "application/json",
+						...headers
+					},
+					body: JSON.stringify({
+						message: trimmed,
+						conversation_id: conversationId
+					})
+				});
+				const data = await res.json();
+				if (!res.ok) throw new Error(data.message ?? "Не удалось отправить сообщение");
+				if (data.conversation_id) setConversationId(data.conversation_id);
+				if (typeof data.mock === "boolean") setIsMock(data.mock);
+				setMessages((m) => [...m, {
+					role: "assistant",
+					text: data.reply ?? "…",
+					links: data.links
+				}]);
+				if (data.suggestions?.length) setQuickReplies(data.suggestions);
+			}
+		} catch (e) {
+			setMessages((m) => [...m, {
+				role: "assistant",
+				text: e instanceof Error ? e.message : "Ошибка сети. Попробуйте позже."
+			}]);
+		} finally {
+			setBusy(false);
+		}
+	}, [
+		busy,
+		conversationId,
+		streamResponses
+	]);
+	if (!assistant?.enabled) return null;
+	return /* @__PURE__ */ jsxs(Fragment, { children: [!open ? /* @__PURE__ */ jsx("button", {
+		type: "button",
+		className: "assistant-fab",
+		"aria-label": "Открыть ассистента",
+		onClick: () => {
+			setOpen(true);
+			trackAnalyticsEvent(AnalyticsEvents.assistantOpen);
+		},
+		children: /* @__PURE__ */ jsx(Icon, {
+			name: "send",
+			size: 26
+		})
+	}) : null, /* @__PURE__ */ jsxs("div", {
+		className: cx("assistant-panel", open && "is-open"),
+		role: "dialog",
+		"aria-label": "AI-ассистент",
+		children: [
+			/* @__PURE__ */ jsxs("header", {
+				className: "assistant-panel__head",
+				children: [/* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx("strong", { children: "AI-ассистент" }), /* @__PURE__ */ jsxs("p", {
+					className: "text-xs text-muted",
+					children: [isMock ? "Каталог + шаблоны" : "OpenRouter", " · без диагнозов"]
+				})] }), /* @__PURE__ */ jsxs("div", {
+					className: "assistant-panel__head-actions",
+					children: [/* @__PURE__ */ jsx("button", {
+						type: "button",
+						className: "assistant-chip assistant-chip--head",
+						disabled: busy,
+						onClick: () => setShowLead((v) => !v),
+						children: "Заявка"
+					}), /* @__PURE__ */ jsx("button", {
+						type: "button",
+						className: "icon-link",
+						"aria-label": "Закрыть",
+						onClick: () => setOpen(false),
+						children: /* @__PURE__ */ jsx(Icon, {
+							name: "x",
+							size: 22
+						})
+					})]
+				})]
+			}),
+			/* @__PURE__ */ jsxs("div", {
+				className: "assistant-panel__messages",
+				ref: listRef,
+				children: [messages.map((m, i) => /* @__PURE__ */ jsxs("div", {
+					className: cx("assistant-bubble", m.role === "user" && "is-user"),
+					children: [/* @__PURE__ */ jsx("p", {
+						className: "assistant-bubble__text",
+						children: m.text
+					}), m.links?.length ? /* @__PURE__ */ jsx("ul", {
+						className: "assistant-bubble__links",
+						children: m.links.map((l) => /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsx("a", {
+							href: l.url,
+							target: "_blank",
+							rel: "noreferrer",
+							children: l.label
+						}) }, l.url))
+					}) : null]
+				}, i)), busy ? /* @__PURE__ */ jsx("p", {
+					className: "text-sm text-muted assistant-typing",
+					children: "Печатает…"
+				}) : null]
+			}),
+			showLead ? /* @__PURE__ */ jsx(AssistantLeadPanel, {
+				conversationId,
+				clinics: clinicChoices,
+				onClose: () => setShowLead(false),
+				onSuccess: (text) => setMessages((m) => [...m, {
+					role: "assistant",
+					text
+				}])
+			}) : null,
+			!showLead && assistant.disclaimer ? /* @__PURE__ */ jsx("p", {
+				className: "assistant-panel__note text-xs text-muted",
+				children: assistant.disclaimer
+			}) : null,
+			!showLead && quickReplies.length ? /* @__PURE__ */ jsx("div", {
+				className: "assistant-panel__chips",
+				children: quickReplies.slice(0, 4).map((s) => /* @__PURE__ */ jsx("button", {
+					type: "button",
+					className: "assistant-chip",
+					disabled: busy,
+					onClick: () => void send(s),
+					children: s
+				}, s))
+			}) : null,
+			!showLead ? /* @__PURE__ */ jsxs("form", {
+				className: "assistant-panel__form",
+				onSubmit: (e) => {
+					e.preventDefault();
+					send(input);
+				},
+				children: [/* @__PURE__ */ jsx("input", {
+					type: "text",
+					value: input,
+					onChange: (e) => setInput(e.target.value),
+					placeholder: "Спросите о клиниках или записи…",
+					maxLength: 2e3,
+					disabled: busy
+				}), /* @__PURE__ */ jsx(Button, {
+					type: "submit",
+					size: "sm",
+					disabled: busy || !input.trim(),
+					children: "Отправить"
+				})]
+			}) : null
+		]
+	})] });
+}
+//#endregion
+//#region resources/js/layouts/MaxLayout.tsx
+function useActive() {
+	const { url } = usePage();
+	return (href) => {
+		const path = url.split("?")[0];
+		if (path === href) return true;
+		return href !== "/max" && path.startsWith(`${href}/`);
+	};
+}
+function MaxLayout({ children }) {
+	const { auth, maxBridgeScript } = usePage().props;
+	const city = useCity();
+	const active = useActive();
+	const user = auth?.user;
+	const tabs = [
+		{
+			href: "/max",
+			label: "Главная",
+			icon: "home"
+		},
+		{
+			href: "/max/clinics",
+			label: "Клиники",
+			icon: "building"
+		},
+		...user ? [{
+			href: "/max/appointments",
+			label: "Записи",
+			icon: "calendar"
+		}] : [],
+		{
+			href: user ? accountHome(user) : "/login",
+			label: user ? "Профиль" : "Вход",
+			icon: "user"
+		}
+	];
+	return /* @__PURE__ */ jsx(LeadProvider, { children: /* @__PURE__ */ jsxs("div", {
+		className: "min-h-dvh bg-[var(--surface-page)] text-[var(--text-primary)] pb-[calc(4.5rem+env(safe-area-inset-bottom))]",
+		children: [
+			/* @__PURE__ */ jsx(Head, { children: maxBridgeScript ? /* @__PURE__ */ jsx("script", {
+				src: maxBridgeScript,
+				defer: true
+			}) : null }),
+			/* @__PURE__ */ jsxs("header", {
+				className: "header",
+				children: [/* @__PURE__ */ jsxs("div", {
+					className: "container header__row",
+					children: [
+						/* @__PURE__ */ jsx(Logo, {}),
+						/* @__PURE__ */ jsx(CityPicker, {}),
+						/* @__PURE__ */ jsx("div", {
+							className: "header__search hide-mobile",
+							children: /* @__PURE__ */ jsx(SearchBox, {})
+						}),
+						/* @__PURE__ */ jsx("nav", {
+							className: "header__actions",
+							"aria-label": "MAX",
+							children: user ? /* @__PURE__ */ jsx(Link, {
+								href: accountHome(user),
+								className: "text-sm font-semibold",
+								children: accountLabel(user)
+							}) : /* @__PURE__ */ jsx("span", {
+								className: "text-xs text-muted",
+								children: "MAX"
+							})
+						})
+					]
+				}), /* @__PURE__ */ jsx("div", {
+					className: "header__nav hide-mobile",
+					children: /* @__PURE__ */ jsx("nav", {
+						className: "container",
+						"aria-label": "MAX навигация",
+						children: /* @__PURE__ */ jsxs("ul", { children: [
+							/* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsx(Link, {
+								href: "/max",
+								className: cx(active("/max") && "is-active"),
+								children: "Главная"
+							}) }),
+							/* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsxs(Link, {
+								href: "/max/clinics",
+								className: cx(active("/max/clinics") && "is-active"),
+								children: ["Клиники ", city.nameIn]
+							}) }),
+							/* @__PURE__ */ jsx("li", { className: "grow" }),
+							/* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsx(Link, {
+								href: "/privacy",
+								className: "header__b2b",
+								children: "Конфиденциальность"
+							}) })
+						] })
+					})
+				})]
+			}),
+			/* @__PURE__ */ jsx("main", {
+				id: "main",
+				className: "main",
+				children
+			}),
+			/* @__PURE__ */ jsx("nav", {
+				className: "tabbar",
+				"aria-label": "MAX навигация",
+				children: tabs.map((t) => /* @__PURE__ */ jsxs(Link, {
+					href: t.href,
+					className: cx("tabbar__item", active(t.href) && "is-active"),
+					children: [/* @__PURE__ */ jsx(Icon, {
+						name: t.icon,
+						size: 24
+					}), /* @__PURE__ */ jsx("span", { children: t.label })]
+				}, t.href))
+			}),
+			/* @__PURE__ */ jsx(AssistantWidget, {}),
+			/* @__PURE__ */ jsx(ToastHost, {})
+		]
+	}) });
+}
+//#endregion
 //#region resources/js/app.tsx
 registerServiceWorker();
+if (typeof window !== "undefined") router.on("navigate", (event) => {
+	if (window.ym && window.ymCounterId) window.ym(window.ymCounterId, "hit", event.detail.page.url, { referer: document.referrer });
+	const url = event.detail.page.url;
+	if (!url.includes("/admin") && !url.includes("/cabinet") && !url.includes("/max")) trackAnalyticsEvent(AnalyticsEvents.pageView, { path: url });
+});
 var renderPromise = createInertiaApp({
 	resolve: async (name, page) => {
 		const pages = /* #__PURE__ */ Object.assign({
-			"./pages/Account/Compare.tsx": () => import("./assets/Compare-fTm9zdOf.js"),
-			"./pages/Account/Favorites.tsx": () => import("./assets/Favorites-Bbdixvzh.js"),
-			"./pages/Account/History.tsx": () => import("./assets/History-DpVlEqZE.js"),
-			"./pages/Account/Leads.tsx": () => import("./assets/Leads-Be4dlrBi.js"),
-			"./pages/Account/Notifications.tsx": () => import("./assets/Notifications-CVG2pexl.js"),
-			"./pages/Account/Overview.tsx": () => import("./assets/Overview-DowIgnDC.js"),
-			"./pages/Account/Profile.tsx": () => import("./assets/Profile-BCbVvzqY.js"),
-			"./pages/Account/Reviews.tsx": () => import("./assets/Reviews-DnKFx-VT.js"),
-			"./pages/Admin/Audit.tsx": () => import("./assets/Audit-H7npJ3Kr.js"),
-			"./pages/Admin/ClinicShow.tsx": () => import("./assets/ClinicShow-bMTbryBp.js"),
-			"./pages/Admin/Clinics.tsx": () => import("./assets/Clinics-BP7fnbqh.js"),
-			"./pages/Admin/Complaints.tsx": () => import("./assets/Complaints-BAORXL5j.js"),
-			"./pages/Admin/Dashboard.tsx": () => import("./assets/Dashboard-PMjEAbyr.js"),
-			"./pages/Admin/Dictionary.tsx": () => import("./assets/Dictionary-CC5H_xKb.js"),
-			"./pages/Admin/Doctors.tsx": () => import("./assets/Doctors-eLQRf6S4.js"),
-			"./pages/Admin/Duplicates.tsx": () => import("./assets/Duplicates-Dl-ztmiU.js"),
-			"./pages/Admin/Integrations.tsx": () => import("./assets/Integrations-mkEZlQdw.js"),
-			"./pages/Admin/Moderation.tsx": () => import("./assets/Moderation-D4U3vKnB.js"),
-			"./pages/Admin/Promotions.tsx": () => import("./assets/Promotions-BywWa2kv.js"),
-			"./pages/Admin/Reviews.tsx": () => import("./assets/Reviews-Ch5FJquE.js"),
-			"./pages/Admin/Roles.tsx": () => import("./assets/Roles-Dkhr_6-6.js"),
-			"./pages/Admin/Users.tsx": () => import("./assets/Users-DYlsMrCl.js"),
-			"./pages/Auth/Login.tsx": () => import("./assets/Login-B8MouHkG.js"),
-			"./pages/Auth/Register.tsx": () => import("./assets/Register-mfVYBLzt.js"),
-			"./pages/Cabinet/BranchForm.tsx": () => import("./assets/BranchForm-BIV15K84.js"),
-			"./pages/Cabinet/Branches.tsx": () => import("./assets/Branches-CPBOwnGQ.js"),
-			"./pages/Cabinet/Dashboard.tsx": () => import("./assets/Dashboard-CJIbPkuQ.js"),
-			"./pages/Cabinet/DoctorForm.tsx": () => import("./assets/DoctorForm-D0-pALKI.js"),
-			"./pages/Cabinet/Doctors.tsx": () => import("./assets/Doctors-_vu9Rhw6.js"),
-			"./pages/Cabinet/Documents.tsx": () => import("./assets/Documents-fd4-ss5m.js"),
-			"./pages/Cabinet/Leads.tsx": () => import("./assets/Leads-JuXVYVdy.js"),
-			"./pages/Cabinet/Photos.tsx": () => import("./assets/Photos-C0ixnmbj.js"),
-			"./pages/Cabinet/Posts.tsx": () => import("./assets/Posts-CTVSdaPS.js"),
-			"./pages/Cabinet/Prices.tsx": () => import("./assets/Prices-CbH_R-XH.js"),
-			"./pages/Cabinet/Promotions.tsx": () => import("./assets/Promotions-g5jTtOEy.js"),
-			"./pages/Cabinet/Reviews.tsx": () => import("./assets/Reviews-su3tXOZ1.js"),
-			"./pages/Cabinet/Schedule.tsx": () => import("./assets/Schedule-BEp8X5uy.js"),
-			"./pages/Cabinet/Stats.tsx": () => import("./assets/Stats-BdfiTKRb.js"),
-			"./pages/Clinics/Index.tsx": () => import("./assets/Index-FO8skkJB.js"),
-			"./pages/Clinics/Show.tsx": () => import("./assets/Show-Yf04ZGuz.js"),
-			"./pages/Collections/Compare.tsx": () => import("./assets/Compare-CpcMKPhO.js"),
-			"./pages/Collections/Favorites.tsx": () => import("./assets/Favorites-J6w_Gvnr.js"),
-			"./pages/Concerns/Show.tsx": () => import("./assets/Show-B18XNlkJ.js"),
-			"./pages/Directions/Index.tsx": () => import("./assets/Index-BlutzO9j.js"),
-			"./pages/Directions/Show.tsx": () => import("./assets/Show-B28dxqbn.js"),
-			"./pages/Doctors/Index.tsx": () => import("./assets/Index-NXLQhi50.js"),
-			"./pages/Doctors/Show.tsx": () => import("./assets/Show--TQPvm80.js"),
-			"./pages/Error.tsx": () => import("./assets/Error-CLbF-qRl.js"),
-			"./pages/Home.tsx": () => import("./assets/Home-BDN5bdTN.js"),
+			"./pages/Account/Appointments.tsx": () => import("./assets/Appointments-BI16fjmq.js"),
+			"./pages/Account/Compare.tsx": () => import("./assets/Compare-1gzu06eo.js"),
+			"./pages/Account/Favorites.tsx": () => import("./assets/Favorites-l9yyYWVy.js"),
+			"./pages/Account/History.tsx": () => import("./assets/History-BSV3OVEx.js"),
+			"./pages/Account/Leads.tsx": () => import("./assets/Leads-DudA4aS-.js"),
+			"./pages/Account/Notifications.tsx": () => import("./assets/Notifications-B8nHYWUY.js"),
+			"./pages/Account/Overview.tsx": () => import("./assets/Overview-Gp53wnj8.js"),
+			"./pages/Account/Profile.tsx": () => import("./assets/Profile-DjTZYGSz.js"),
+			"./pages/Account/Reviews.tsx": () => import("./assets/Reviews-BHf1E3NV.js"),
+			"./pages/Admin/Analytics.tsx": () => import("./assets/Analytics-Crr0dH2U.js"),
+			"./pages/Admin/Appointments.tsx": () => import("./assets/Appointments-B7Xk_MnA.js"),
+			"./pages/Admin/Assistant.tsx": () => import("./assets/Assistant-BpNQSGhA.js"),
+			"./pages/Admin/AssistantConversation.tsx": () => import("./assets/AssistantConversation-C9SHna7f.js"),
+			"./pages/Admin/Audit.tsx": () => import("./assets/Audit-6n2tg36j.js"),
+			"./pages/Admin/BroadcastShow.tsx": () => import("./assets/BroadcastShow-CDBRcYXg.js"),
+			"./pages/Admin/Broadcasts.tsx": () => import("./assets/Broadcasts-D62z-kJ5.js"),
+			"./pages/Admin/Campaign.tsx": () => import("./assets/Campaign-BBb_Zudd.js"),
+			"./pages/Admin/Campaigns.tsx": () => import("./assets/Campaigns-BKrNu1vu.js"),
+			"./pages/Admin/CardBonuses.tsx": () => import("./assets/CardBonuses-BoptNEUU.js"),
+			"./pages/Admin/ClinicCardAppearance.tsx": () => import("./assets/ClinicCardAppearance-BXP1qnT5.js"),
+			"./pages/Admin/ClinicShow.tsx": () => import("./assets/ClinicShow-6lKi_0lx.js"),
+			"./pages/Admin/Clinics.tsx": () => import("./assets/Clinics-CdxwHwvo.js"),
+			"./pages/Admin/Complaints.tsx": () => import("./assets/Complaints-CDt5gjWj.js"),
+			"./pages/Admin/Dashboard.tsx": () => import("./assets/Dashboard-1Wc87vqN.js"),
+			"./pages/Admin/Dictionary.tsx": () => import("./assets/Dictionary-B_vHlUfG.js"),
+			"./pages/Admin/Doctors.tsx": () => import("./assets/Doctors-BR_7GrBP.js"),
+			"./pages/Admin/Duplicates.tsx": () => import("./assets/Duplicates-BCvCa0gR.js"),
+			"./pages/Admin/Finance.tsx": () => import("./assets/Finance-0Gs0y162.js"),
+			"./pages/Admin/Geography.tsx": () => import("./assets/Geography-CxLPc6bI.js"),
+			"./pages/Admin/Integrations.tsx": () => import("./assets/Integrations-Cr73UyiB.js"),
+			"./pages/Admin/MaxPublish.tsx": () => import("./assets/MaxPublish-CYM8Lz5h.js"),
+			"./pages/Admin/Moderation.tsx": () => import("./assets/Moderation-CDzZxe_A.js"),
+			"./pages/Admin/Offer.tsx": () => import("./assets/Offer-DebZefMC.js"),
+			"./pages/Admin/OfferTemplate.tsx": () => import("./assets/OfferTemplate-D0fjamRf.js"),
+			"./pages/Admin/Offers.tsx": () => import("./assets/Offers-BjjHD3CQ.js"),
+			"./pages/Admin/ParsedOrganization.tsx": () => import("./assets/ParsedOrganization-ZQWVnvYJ.js"),
+			"./pages/Admin/Parser.tsx": () => import("./assets/Parser-DJv3Mc6y.js"),
+			"./pages/Admin/Promotions.tsx": () => import("./assets/Promotions-DXv-Q9Zr.js"),
+			"./pages/Admin/Reports.tsx": () => import("./assets/Reports-Bc1guLxW.js"),
+			"./pages/Admin/Reviews.tsx": () => import("./assets/Reviews-CnGHPljU.js"),
+			"./pages/Admin/Roles.tsx": () => import("./assets/Roles-iRR7XGCe.js"),
+			"./pages/Admin/SiteDisplay.tsx": () => import("./assets/SiteDisplay-Cu3Fp2KU.js"),
+			"./pages/Admin/Tariffs.tsx": () => import("./assets/Tariffs-D8BwhZL6.js"),
+			"./pages/Admin/UserShow.tsx": () => import("./assets/UserShow-0YDOJ9lG.js"),
+			"./pages/Admin/Users.tsx": () => import("./assets/Users-DnNHdEL8.js"),
+			"./pages/Auth/AcceptStaffInvite.tsx": () => import("./assets/AcceptStaffInvite-CbzclQjm.js"),
+			"./pages/Auth/ForgotPassword.tsx": () => import("./assets/ForgotPassword-Etk7LBgz.js"),
+			"./pages/Auth/LinkSocial.tsx": () => import("./assets/LinkSocial-CfzinSse.js"),
+			"./pages/Auth/Login.tsx": () => import("./assets/Login-CMgoqEdX.js"),
+			"./pages/Auth/MaxLogin.tsx": () => import("./assets/MaxLogin-CuUvp9yu.js"),
+			"./pages/Auth/Register.tsx": () => import("./assets/Register-BkbRwMjD.js"),
+			"./pages/Auth/RegisterClinic.tsx": () => import("./assets/RegisterClinic-DBQfe-By.js"),
+			"./pages/Auth/ResetPassword.tsx": () => import("./assets/ResetPassword-Df1CP1n3.js"),
+			"./pages/Auth/VerifyEmail.tsx": () => import("./assets/VerifyEmail-D6X1OyGK.js"),
+			"./pages/Booking/Create.tsx": () => import("./assets/Create-QvMi5o5F.js"),
+			"./pages/Booking/Show.tsx": () => import("./assets/Show-DrURsMxX.js"),
+			"./pages/Cabinet/BranchForm.tsx": () => import("./assets/BranchForm-D_3vZ-R4.js"),
+			"./pages/Cabinet/Branches.tsx": () => import("./assets/Branches-VbWgwuL0.js"),
+			"./pages/Cabinet/Broadcasts.tsx": () => import("./assets/Broadcasts-C_gLxe24.js"),
+			"./pages/Cabinet/Calendar.tsx": () => import("./assets/Calendar-Ca1_VhgG.js"),
+			"./pages/Cabinet/CardBonuses.tsx": () => import("./assets/CardBonuses-BgPAr5NS.js"),
+			"./pages/Cabinet/Dashboard.tsx": () => import("./assets/Dashboard-DOZw4TpQ.js"),
+			"./pages/Cabinet/DoctorForm.tsx": () => import("./assets/DoctorForm-NW9Ptd4m.js"),
+			"./pages/Cabinet/DoctorSchedules.tsx": () => import("./assets/DoctorSchedules-Bnc44Uv_.js"),
+			"./pages/Cabinet/Doctors.tsx": () => import("./assets/Doctors-Cchacse-.js"),
+			"./pages/Cabinet/Documents.tsx": () => import("./assets/Documents-MqOdlPyg.js"),
+			"./pages/Cabinet/Leads.tsx": () => import("./assets/Leads-DQaRnCBs.js"),
+			"./pages/Cabinet/Organization.tsx": () => import("./assets/Organization-N20_-Wzy.js"),
+			"./pages/Cabinet/Payments.tsx": () => import("./assets/Payments-DLbV002u.js"),
+			"./pages/Cabinet/Photos.tsx": () => import("./assets/Photos-CvEaO2IZ.js"),
+			"./pages/Cabinet/Posts.tsx": () => import("./assets/Posts-cG8KTT_c.js"),
+			"./pages/Cabinet/Prices.tsx": () => import("./assets/Prices-apByHchg.js"),
+			"./pages/Cabinet/Promotions.tsx": () => import("./assets/Promotions-hvo3uRm6.js"),
+			"./pages/Cabinet/Reviews.tsx": () => import("./assets/Reviews-CT49vdSm.js"),
+			"./pages/Cabinet/Schedule.tsx": () => import("./assets/Schedule-7meQxLRE.js"),
+			"./pages/Cabinet/Settings.tsx": () => import("./assets/Settings-B4P14iAv.js"),
+			"./pages/Cabinet/Staff.tsx": () => import("./assets/Staff-CLWY0E52.js"),
+			"./pages/Cabinet/Stats.tsx": () => import("./assets/Stats-DAkoD3_f.js"),
+			"./pages/Clinics/Index.tsx": () => import("./assets/Index-BZR9ydMG.js"),
+			"./pages/Clinics/Show.tsx": () => import("./assets/Show-CS-uZLlG.js"),
+			"./pages/Collections/Compare.tsx": () => import("./assets/Compare-n1cMMFD8.js"),
+			"./pages/Collections/Favorites.tsx": () => import("./assets/Favorites-CrB7rfQW.js"),
+			"./pages/Concerns/Show.tsx": () => import("./assets/Show-CUPlB1Uu.js"),
+			"./pages/Directions/Index.tsx": () => import("./assets/Index-DBCP5Gdl.js"),
+			"./pages/Directions/Show.tsx": () => import("./assets/Show-dvYm55KL.js"),
+			"./pages/Doctors/Index.tsx": () => import("./assets/Index-Ce7e1Ftu.js"),
+			"./pages/Doctors/Show.tsx": () => import("./assets/Show-Bp3ypQfK.js"),
+			"./pages/Error.tsx": () => import("./assets/Error-DWqlU8Jf.js"),
+			"./pages/Home.tsx": () => import("./assets/Home-Doh85Gow.js"),
+			"./pages/Max/Appointments.tsx": () => import("./assets/Appointments-BcNihhNY.js"),
+			"./pages/Max/ClinicShow.tsx": () => import("./assets/ClinicShow-C30zjIjV.js"),
+			"./pages/Max/Clinics.tsx": () => import("./assets/Clinics-BQpDJP_y.js"),
+			"./pages/Max/Home.tsx": () => import("./assets/Home-BKkptQ4-.js"),
+			"./pages/Offer/Claim.tsx": () => import("./assets/Claim-Bgm_TckJ.js"),
+			"./pages/Offer/Show.tsx": () => import("./assets/Show-R8MasmVK.js"),
+			"./pages/Offer/Unsubscribe.tsx": () => import("./assets/Unsubscribe-BDAmvDpr.js"),
 			"./pages/Page.tsx": () => import("./assets/Page-hGncEqSS.js"),
-			"./pages/Prices/Index.tsx": () => import("./assets/Index-D1Dzdplm.js"),
-			"./pages/Reviews/Index.tsx": () => import("./assets/Index-BM0zN3Pq.js"),
-			"./pages/Search/Index.tsx": () => import("./assets/Index-CQpMgPM6.js"),
+			"./pages/Prices/Index.tsx": () => import("./assets/Index-BVG4FvnU.js"),
+			"./pages/Reviews/Index.tsx": () => import("./assets/Index-Y-UpGuuN.js"),
+			"./pages/Search/Index.tsx": () => import("./assets/Index-BtYVn8zF.js"),
 			"./pages/Tz.tsx": () => import("./assets/Tz-Rs0ffHIw.js")
 		});
 		const module = await (pages[`./pages/${name}.tsx`] || pages[`./pages/${name}.jsx`] || pages[`./Pages/${name}.tsx`] || pages[`./Pages/${name}.jsx`])?.();
@@ -2751,6 +4033,7 @@ var renderPromise = createInertiaApp({
 		if (name.startsWith("Account/")) return AccountLayout;
 		if (name.startsWith("Cabinet/")) return CabinetLayout;
 		if (name.startsWith("Admin/")) return AdminLayout;
+		if (name.startsWith("Max/")) return MaxLayout;
 		if (name === "Error") return AuthLayout;
 		return PublicLayout;
 	},
@@ -2765,6 +4048,6 @@ var renderPage = async (page) => {
 };
 createServer(renderPage);
 //#endregion
-export { Lightbox as C, Drawer as S, CitySearchField as _, Alert as a, TextArea as b, Breadcrumbs as c, Pagination as d, renderPage as default, SectionHead as f, Check as g, Tabs as h, useLead as i, EmptyState as l, Stars as m, useCity as n, Avatar as o, Skeleton as p, SearchBox as r, Badge$1 as s, useCollections as t, ErrorState as u, SearchInput as v, Modal as w, TextField as x, SelectField as y };
+export { TextField as C, AnalyticsEvents as D, Modal as E, trackAnalyticsEvent as O, TextArea as S, Lightbox as T, Tabs as _, SearchBox as a, SearchInput as b, Avatar as c, EmptyState as d, renderPage as default, ErrorState as f, Stars as g, Skeleton as h, useCity as i, Badge$1 as l, SectionHead as m, formatEta as n, useLead as o, Pagination as p, useCollections as r, Alert as s, ParserTaskProgress as t, Breadcrumbs as u, Check as v, Drawer as w, SelectField as x, CitySearchField as y };
 
 //# sourceMappingURL=app.js.map

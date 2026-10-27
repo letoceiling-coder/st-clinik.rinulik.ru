@@ -64,49 +64,177 @@
     "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/components/AdSlot.tsx": [
-    "/build/assets/AdSlot-BUO_3DCv.js"
+    "/build/assets/AdSlot-CZyjHECs.js"
+  ],
+  "resources/js/components/AssistantLeadPanel.tsx": [
+    "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
+    "/build/assets/geist-cyrillic-ext-400-normal-ChfpGzr5.woff",
+    "/build/assets/geist-cyrillic-400-normal-DXusLSnH.woff2",
+    "/build/assets/geist-cyrillic-400-normal-DkrqoNl2.woff",
+    "/build/assets/geist-vietnamese-400-normal-C4gMWAkH.woff2",
+    "/build/assets/geist-vietnamese-400-normal-C8xY9-dI.woff",
+    "/build/assets/geist-latin-ext-400-normal-CND6cjiG.woff2",
+    "/build/assets/geist-latin-ext-400-normal-Bz1pQMyt.woff",
+    "/build/assets/geist-latin-400-normal-B40WzpMT.woff2",
+    "/build/assets/geist-latin-400-normal-akEymXtG.woff",
+    "/build/assets/geist-cyrillic-ext-500-normal-UpgxCE-h.woff2",
+    "/build/assets/geist-cyrillic-ext-500-normal-BXrH8YSv.woff",
+    "/build/assets/geist-cyrillic-500-normal-NWpm63d5.woff2",
+    "/build/assets/geist-cyrillic-500-normal-BboVsk8R.woff",
+    "/build/assets/geist-vietnamese-500-normal-DEhtl5QD.woff2",
+    "/build/assets/geist-vietnamese-500-normal-_b1ojCbH.woff",
+    "/build/assets/geist-latin-ext-500-normal-BovoTgeE.woff2",
+    "/build/assets/geist-latin-ext-500-normal-C9fx-R30.woff",
+    "/build/assets/geist-latin-500-normal-CTWBw9NS.woff2",
+    "/build/assets/geist-latin-500-normal-BDXIbFrL.woff",
+    "/build/assets/geist-cyrillic-ext-600-normal-Cr7e20Aw.woff2",
+    "/build/assets/geist-cyrillic-ext-600-normal-PR76dHFV.woff",
+    "/build/assets/geist-cyrillic-600-normal-BeW5VFD_.woff2",
+    "/build/assets/geist-cyrillic-600-normal-CnEeIcMC.woff",
+    "/build/assets/geist-vietnamese-600-normal-BFUgqsz8.woff2",
+    "/build/assets/geist-vietnamese-600-normal-B5MZcNo4.woff",
+    "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
+    "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
+    "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
+  ],
+  "resources/js/components/AssistantWidget.tsx": [
+    "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
+    "/build/assets/geist-cyrillic-ext-400-normal-ChfpGzr5.woff",
+    "/build/assets/geist-cyrillic-400-normal-DXusLSnH.woff2",
+    "/build/assets/geist-cyrillic-400-normal-DkrqoNl2.woff",
+    "/build/assets/geist-vietnamese-400-normal-C4gMWAkH.woff2",
+    "/build/assets/geist-vietnamese-400-normal-C8xY9-dI.woff",
+    "/build/assets/geist-latin-ext-400-normal-CND6cjiG.woff2",
+    "/build/assets/geist-latin-ext-400-normal-Bz1pQMyt.woff",
+    "/build/assets/geist-latin-400-normal-B40WzpMT.woff2",
+    "/build/assets/geist-latin-400-normal-akEymXtG.woff",
+    "/build/assets/geist-cyrillic-ext-500-normal-UpgxCE-h.woff2",
+    "/build/assets/geist-cyrillic-ext-500-normal-BXrH8YSv.woff",
+    "/build/assets/geist-cyrillic-500-normal-NWpm63d5.woff2",
+    "/build/assets/geist-cyrillic-500-normal-BboVsk8R.woff",
+    "/build/assets/geist-vietnamese-500-normal-DEhtl5QD.woff2",
+    "/build/assets/geist-vietnamese-500-normal-_b1ojCbH.woff",
+    "/build/assets/geist-latin-ext-500-normal-BovoTgeE.woff2",
+    "/build/assets/geist-latin-ext-500-normal-C9fx-R30.woff",
+    "/build/assets/geist-latin-500-normal-CTWBw9NS.woff2",
+    "/build/assets/geist-latin-500-normal-BDXIbFrL.woff",
+    "/build/assets/geist-cyrillic-ext-600-normal-Cr7e20Aw.woff2",
+    "/build/assets/geist-cyrillic-ext-600-normal-PR76dHFV.woff",
+    "/build/assets/geist-cyrillic-600-normal-BeW5VFD_.woff2",
+    "/build/assets/geist-cyrillic-600-normal-CnEeIcMC.woff",
+    "/build/assets/geist-vietnamese-600-normal-BFUgqsz8.woff2",
+    "/build/assets/geist-vietnamese-600-normal-B5MZcNo4.woff",
+    "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
+    "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
+    "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/components/BannerCropper.tsx": [
-    "/build/assets/Promotions-g5jTtOEy.js"
+    "/build/assets/Promotions-hvo3uRm6.js"
   ],
   "resources/js/components/BannerPreview.tsx": [
-    "/build/assets/Promotions-g5jTtOEy.js"
+    "/build/assets/Promotions-hvo3uRm6.js"
   ],
   "resources/js/components/Carousel.tsx": [
-    "/build/assets/Tiles-DluvyisT.js"
+    "/build/assets/Tiles-a3mBYE1A.js"
   ],
   "resources/js/components/Catalog.tsx": [
-    "/build/assets/Catalog-DLf46ZEi.js"
+    "/build/assets/Catalog-CNTAvbzg.js"
+  ],
+  "resources/js/components/CityPrompt.tsx": [
+    "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
+    "/build/assets/geist-cyrillic-ext-400-normal-ChfpGzr5.woff",
+    "/build/assets/geist-cyrillic-400-normal-DXusLSnH.woff2",
+    "/build/assets/geist-cyrillic-400-normal-DkrqoNl2.woff",
+    "/build/assets/geist-vietnamese-400-normal-C4gMWAkH.woff2",
+    "/build/assets/geist-vietnamese-400-normal-C8xY9-dI.woff",
+    "/build/assets/geist-latin-ext-400-normal-CND6cjiG.woff2",
+    "/build/assets/geist-latin-ext-400-normal-Bz1pQMyt.woff",
+    "/build/assets/geist-latin-400-normal-B40WzpMT.woff2",
+    "/build/assets/geist-latin-400-normal-akEymXtG.woff",
+    "/build/assets/geist-cyrillic-ext-500-normal-UpgxCE-h.woff2",
+    "/build/assets/geist-cyrillic-ext-500-normal-BXrH8YSv.woff",
+    "/build/assets/geist-cyrillic-500-normal-NWpm63d5.woff2",
+    "/build/assets/geist-cyrillic-500-normal-BboVsk8R.woff",
+    "/build/assets/geist-vietnamese-500-normal-DEhtl5QD.woff2",
+    "/build/assets/geist-vietnamese-500-normal-_b1ojCbH.woff",
+    "/build/assets/geist-latin-ext-500-normal-BovoTgeE.woff2",
+    "/build/assets/geist-latin-ext-500-normal-C9fx-R30.woff",
+    "/build/assets/geist-latin-500-normal-CTWBw9NS.woff2",
+    "/build/assets/geist-latin-500-normal-BDXIbFrL.woff",
+    "/build/assets/geist-cyrillic-ext-600-normal-Cr7e20Aw.woff2",
+    "/build/assets/geist-cyrillic-ext-600-normal-PR76dHFV.woff",
+    "/build/assets/geist-cyrillic-600-normal-BeW5VFD_.woff2",
+    "/build/assets/geist-cyrillic-600-normal-CnEeIcMC.woff",
+    "/build/assets/geist-vietnamese-600-normal-BFUgqsz8.woff2",
+    "/build/assets/geist-vietnamese-600-normal-B5MZcNo4.woff",
+    "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
+    "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
+    "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
+  ],
+  "resources/js/components/CitySelectModal.tsx": [
+    "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
+    "/build/assets/geist-cyrillic-ext-400-normal-ChfpGzr5.woff",
+    "/build/assets/geist-cyrillic-400-normal-DXusLSnH.woff2",
+    "/build/assets/geist-cyrillic-400-normal-DkrqoNl2.woff",
+    "/build/assets/geist-vietnamese-400-normal-C4gMWAkH.woff2",
+    "/build/assets/geist-vietnamese-400-normal-C8xY9-dI.woff",
+    "/build/assets/geist-latin-ext-400-normal-CND6cjiG.woff2",
+    "/build/assets/geist-latin-ext-400-normal-Bz1pQMyt.woff",
+    "/build/assets/geist-latin-400-normal-B40WzpMT.woff2",
+    "/build/assets/geist-latin-400-normal-akEymXtG.woff",
+    "/build/assets/geist-cyrillic-ext-500-normal-UpgxCE-h.woff2",
+    "/build/assets/geist-cyrillic-ext-500-normal-BXrH8YSv.woff",
+    "/build/assets/geist-cyrillic-500-normal-NWpm63d5.woff2",
+    "/build/assets/geist-cyrillic-500-normal-BboVsk8R.woff",
+    "/build/assets/geist-vietnamese-500-normal-DEhtl5QD.woff2",
+    "/build/assets/geist-vietnamese-500-normal-_b1ojCbH.woff",
+    "/build/assets/geist-latin-ext-500-normal-BovoTgeE.woff2",
+    "/build/assets/geist-latin-ext-500-normal-C9fx-R30.woff",
+    "/build/assets/geist-latin-500-normal-CTWBw9NS.woff2",
+    "/build/assets/geist-latin-500-normal-BDXIbFrL.woff",
+    "/build/assets/geist-cyrillic-ext-600-normal-Cr7e20Aw.woff2",
+    "/build/assets/geist-cyrillic-ext-600-normal-PR76dHFV.woff",
+    "/build/assets/geist-cyrillic-600-normal-BeW5VFD_.woff2",
+    "/build/assets/geist-cyrillic-600-normal-CnEeIcMC.woff",
+    "/build/assets/geist-vietnamese-600-normal-BFUgqsz8.woff2",
+    "/build/assets/geist-vietnamese-600-normal-B5MZcNo4.woff",
+    "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
+    "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
+    "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/components/ClinicCard.tsx": [
-    "/build/assets/ClinicCard-DKtN5TAQ.js"
+    "/build/assets/ClinicCard-zFOmpmd8.js"
   ],
   "resources/js/components/ClinicCardGallery.tsx": [
-    "/build/assets/ClinicCard-DKtN5TAQ.js"
+    "/build/assets/ClinicCard-zFOmpmd8.js"
   ],
   "resources/js/components/ClinicParts.tsx": [
-    "/build/assets/ClinicParts-CLgoIzSd.js"
+    "/build/assets/ClinicParts-DOkTfmu1.js"
   ],
   "resources/js/components/CollectionButtons.tsx": [
-    "/build/assets/CollectionButtons-BKdZIxph.js"
+    "/build/assets/CollectionButtons-B_nEL-42.js"
   ],
   "resources/js/components/CollectionViews.tsx": [
-    "/build/assets/CollectionViews-CFTurwtS.js"
+    "/build/assets/CollectionViews-Dp03HWut.js"
+  ],
+  "resources/js/components/CopyButton.tsx": [
+    "/build/assets/CopyButton-DsuWkbYx.js"
   ],
   "resources/js/components/Dash.tsx": [
-    "/build/assets/Dash-BbiOlhfn.js"
+    "/build/assets/Dash-mdaQWR8t.js"
   ],
   "resources/js/components/DoctorCard.tsx": [
-    "/build/assets/DoctorCard-D7tYn8a0.js"
+    "/build/assets/DoctorCard-BIG_o9b_.js"
   ],
   "resources/js/components/FilterPanel.tsx": [
-    "/build/assets/Catalog-DLf46ZEi.js"
-  ],
-  "resources/js/components/HeroPhoto.tsx": [
-    "/build/assets/Home-BDN5bdTN.js"
+    "/build/assets/Catalog-CNTAvbzg.js"
   ],
   "resources/js/components/HeroServiceFinder.tsx": [
-    "/build/assets/Home-BDN5bdTN.js"
+    "/build/assets/Home-Doh85Gow.js"
   ],
   "resources/js/components/Icon.tsx": [
     "/build/assets/Icon-DQahs-u2.js"
@@ -207,14 +335,78 @@
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
     "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
+  "resources/js/components/ParserActivity.tsx": [
+    "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
+    "/build/assets/geist-cyrillic-ext-400-normal-ChfpGzr5.woff",
+    "/build/assets/geist-cyrillic-400-normal-DXusLSnH.woff2",
+    "/build/assets/geist-cyrillic-400-normal-DkrqoNl2.woff",
+    "/build/assets/geist-vietnamese-400-normal-C4gMWAkH.woff2",
+    "/build/assets/geist-vietnamese-400-normal-C8xY9-dI.woff",
+    "/build/assets/geist-latin-ext-400-normal-CND6cjiG.woff2",
+    "/build/assets/geist-latin-ext-400-normal-Bz1pQMyt.woff",
+    "/build/assets/geist-latin-400-normal-B40WzpMT.woff2",
+    "/build/assets/geist-latin-400-normal-akEymXtG.woff",
+    "/build/assets/geist-cyrillic-ext-500-normal-UpgxCE-h.woff2",
+    "/build/assets/geist-cyrillic-ext-500-normal-BXrH8YSv.woff",
+    "/build/assets/geist-cyrillic-500-normal-NWpm63d5.woff2",
+    "/build/assets/geist-cyrillic-500-normal-BboVsk8R.woff",
+    "/build/assets/geist-vietnamese-500-normal-DEhtl5QD.woff2",
+    "/build/assets/geist-vietnamese-500-normal-_b1ojCbH.woff",
+    "/build/assets/geist-latin-ext-500-normal-BovoTgeE.woff2",
+    "/build/assets/geist-latin-ext-500-normal-C9fx-R30.woff",
+    "/build/assets/geist-latin-500-normal-CTWBw9NS.woff2",
+    "/build/assets/geist-latin-500-normal-BDXIbFrL.woff",
+    "/build/assets/geist-cyrillic-ext-600-normal-Cr7e20Aw.woff2",
+    "/build/assets/geist-cyrillic-ext-600-normal-PR76dHFV.woff",
+    "/build/assets/geist-cyrillic-600-normal-BeW5VFD_.woff2",
+    "/build/assets/geist-cyrillic-600-normal-CnEeIcMC.woff",
+    "/build/assets/geist-vietnamese-600-normal-BFUgqsz8.woff2",
+    "/build/assets/geist-vietnamese-600-normal-B5MZcNo4.woff",
+    "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
+    "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
+    "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
+  ],
+  "resources/js/components/ParserTaskProgress.tsx": [
+    "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
+    "/build/assets/geist-cyrillic-ext-400-normal-ChfpGzr5.woff",
+    "/build/assets/geist-cyrillic-400-normal-DXusLSnH.woff2",
+    "/build/assets/geist-cyrillic-400-normal-DkrqoNl2.woff",
+    "/build/assets/geist-vietnamese-400-normal-C4gMWAkH.woff2",
+    "/build/assets/geist-vietnamese-400-normal-C8xY9-dI.woff",
+    "/build/assets/geist-latin-ext-400-normal-CND6cjiG.woff2",
+    "/build/assets/geist-latin-ext-400-normal-Bz1pQMyt.woff",
+    "/build/assets/geist-latin-400-normal-B40WzpMT.woff2",
+    "/build/assets/geist-latin-400-normal-akEymXtG.woff",
+    "/build/assets/geist-cyrillic-ext-500-normal-UpgxCE-h.woff2",
+    "/build/assets/geist-cyrillic-ext-500-normal-BXrH8YSv.woff",
+    "/build/assets/geist-cyrillic-500-normal-NWpm63d5.woff2",
+    "/build/assets/geist-cyrillic-500-normal-BboVsk8R.woff",
+    "/build/assets/geist-vietnamese-500-normal-DEhtl5QD.woff2",
+    "/build/assets/geist-vietnamese-500-normal-_b1ojCbH.woff",
+    "/build/assets/geist-latin-ext-500-normal-BovoTgeE.woff2",
+    "/build/assets/geist-latin-ext-500-normal-C9fx-R30.woff",
+    "/build/assets/geist-latin-500-normal-CTWBw9NS.woff2",
+    "/build/assets/geist-latin-500-normal-BDXIbFrL.woff",
+    "/build/assets/geist-cyrillic-ext-600-normal-Cr7e20Aw.woff2",
+    "/build/assets/geist-cyrillic-ext-600-normal-PR76dHFV.woff",
+    "/build/assets/geist-cyrillic-600-normal-BeW5VFD_.woff2",
+    "/build/assets/geist-cyrillic-600-normal-CnEeIcMC.woff",
+    "/build/assets/geist-vietnamese-600-normal-BFUgqsz8.woff2",
+    "/build/assets/geist-vietnamese-600-normal-B5MZcNo4.woff",
+    "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
+    "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
+    "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
+  ],
   "resources/js/components/PhotoArt.tsx": [
-    "/build/assets/PhotoArt-Z6HeA8fZ.js"
+    "/build/assets/PhotoArt-ICkoZAxa.js"
   ],
   "resources/js/components/ReviewCard.tsx": [
-    "/build/assets/ReviewCard-DMd-uulm.js"
+    "/build/assets/ReviewCard-CBj_6vSg.js"
   ],
   "resources/js/components/ReviewForm.tsx": [
-    "/build/assets/Show-Yf04ZGuz.js"
+    "/build/assets/Show-CS-uZLlG.js"
   ],
   "resources/js/components/SearchBox.tsx": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -249,10 +441,10 @@
     "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/components/ServicePickerModal.tsx": [
-    "/build/assets/Home-BDN5bdTN.js"
+    "/build/assets/Home-Doh85Gow.js"
   ],
   "resources/js/components/Tiles.tsx": [
-    "/build/assets/Tiles-DluvyisT.js"
+    "/build/assets/Tiles-a3mBYE1A.js"
   ],
   "resources/js/components/ToastHost.tsx": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -288,6 +480,9 @@
   ],
   "resources/js/components/YandexMap.tsx": [
     "/build/assets/YandexMap-Bx-QJpGw.js"
+  ],
+  "resources/js/components/auth/SocialOAuthButtons.tsx": [
+    "/build/assets/SocialOAuthButtons-BfmrBF_z.js"
   ],
   "resources/js/components/ui/Button.tsx": [
     "/build/assets/Button-D8Mzgn6o.js"
@@ -615,7 +810,103 @@
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
     "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
+  "resources/js/layouts/MaxLayout.tsx": [
+    "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
+    "/build/assets/geist-cyrillic-ext-400-normal-ChfpGzr5.woff",
+    "/build/assets/geist-cyrillic-400-normal-DXusLSnH.woff2",
+    "/build/assets/geist-cyrillic-400-normal-DkrqoNl2.woff",
+    "/build/assets/geist-vietnamese-400-normal-C4gMWAkH.woff2",
+    "/build/assets/geist-vietnamese-400-normal-C8xY9-dI.woff",
+    "/build/assets/geist-latin-ext-400-normal-CND6cjiG.woff2",
+    "/build/assets/geist-latin-ext-400-normal-Bz1pQMyt.woff",
+    "/build/assets/geist-latin-400-normal-B40WzpMT.woff2",
+    "/build/assets/geist-latin-400-normal-akEymXtG.woff",
+    "/build/assets/geist-cyrillic-ext-500-normal-UpgxCE-h.woff2",
+    "/build/assets/geist-cyrillic-ext-500-normal-BXrH8YSv.woff",
+    "/build/assets/geist-cyrillic-500-normal-NWpm63d5.woff2",
+    "/build/assets/geist-cyrillic-500-normal-BboVsk8R.woff",
+    "/build/assets/geist-vietnamese-500-normal-DEhtl5QD.woff2",
+    "/build/assets/geist-vietnamese-500-normal-_b1ojCbH.woff",
+    "/build/assets/geist-latin-ext-500-normal-BovoTgeE.woff2",
+    "/build/assets/geist-latin-ext-500-normal-C9fx-R30.woff",
+    "/build/assets/geist-latin-500-normal-CTWBw9NS.woff2",
+    "/build/assets/geist-latin-500-normal-BDXIbFrL.woff",
+    "/build/assets/geist-cyrillic-ext-600-normal-Cr7e20Aw.woff2",
+    "/build/assets/geist-cyrillic-ext-600-normal-PR76dHFV.woff",
+    "/build/assets/geist-cyrillic-600-normal-BeW5VFD_.woff2",
+    "/build/assets/geist-cyrillic-600-normal-CnEeIcMC.woff",
+    "/build/assets/geist-vietnamese-600-normal-BFUgqsz8.woff2",
+    "/build/assets/geist-vietnamese-600-normal-B5MZcNo4.woff",
+    "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
+    "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
+    "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
+  ],
   "resources/js/layouts/PublicLayout.tsx": [
+    "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
+    "/build/assets/geist-cyrillic-ext-400-normal-ChfpGzr5.woff",
+    "/build/assets/geist-cyrillic-400-normal-DXusLSnH.woff2",
+    "/build/assets/geist-cyrillic-400-normal-DkrqoNl2.woff",
+    "/build/assets/geist-vietnamese-400-normal-C4gMWAkH.woff2",
+    "/build/assets/geist-vietnamese-400-normal-C8xY9-dI.woff",
+    "/build/assets/geist-latin-ext-400-normal-CND6cjiG.woff2",
+    "/build/assets/geist-latin-ext-400-normal-Bz1pQMyt.woff",
+    "/build/assets/geist-latin-400-normal-B40WzpMT.woff2",
+    "/build/assets/geist-latin-400-normal-akEymXtG.woff",
+    "/build/assets/geist-cyrillic-ext-500-normal-UpgxCE-h.woff2",
+    "/build/assets/geist-cyrillic-ext-500-normal-BXrH8YSv.woff",
+    "/build/assets/geist-cyrillic-500-normal-NWpm63d5.woff2",
+    "/build/assets/geist-cyrillic-500-normal-BboVsk8R.woff",
+    "/build/assets/geist-vietnamese-500-normal-DEhtl5QD.woff2",
+    "/build/assets/geist-vietnamese-500-normal-_b1ojCbH.woff",
+    "/build/assets/geist-latin-ext-500-normal-BovoTgeE.woff2",
+    "/build/assets/geist-latin-ext-500-normal-C9fx-R30.woff",
+    "/build/assets/geist-latin-500-normal-CTWBw9NS.woff2",
+    "/build/assets/geist-latin-500-normal-BDXIbFrL.woff",
+    "/build/assets/geist-cyrillic-ext-600-normal-Cr7e20Aw.woff2",
+    "/build/assets/geist-cyrillic-ext-600-normal-PR76dHFV.woff",
+    "/build/assets/geist-cyrillic-600-normal-BeW5VFD_.woff2",
+    "/build/assets/geist-cyrillic-600-normal-CnEeIcMC.woff",
+    "/build/assets/geist-vietnamese-600-normal-BFUgqsz8.woff2",
+    "/build/assets/geist-vietnamese-600-normal-B5MZcNo4.woff",
+    "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
+    "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
+    "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
+  ],
+  "resources/js/lib/analytics.ts": [
+    "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
+    "/build/assets/geist-cyrillic-ext-400-normal-ChfpGzr5.woff",
+    "/build/assets/geist-cyrillic-400-normal-DXusLSnH.woff2",
+    "/build/assets/geist-cyrillic-400-normal-DkrqoNl2.woff",
+    "/build/assets/geist-vietnamese-400-normal-C4gMWAkH.woff2",
+    "/build/assets/geist-vietnamese-400-normal-C8xY9-dI.woff",
+    "/build/assets/geist-latin-ext-400-normal-CND6cjiG.woff2",
+    "/build/assets/geist-latin-ext-400-normal-Bz1pQMyt.woff",
+    "/build/assets/geist-latin-400-normal-B40WzpMT.woff2",
+    "/build/assets/geist-latin-400-normal-akEymXtG.woff",
+    "/build/assets/geist-cyrillic-ext-500-normal-UpgxCE-h.woff2",
+    "/build/assets/geist-cyrillic-ext-500-normal-BXrH8YSv.woff",
+    "/build/assets/geist-cyrillic-500-normal-NWpm63d5.woff2",
+    "/build/assets/geist-cyrillic-500-normal-BboVsk8R.woff",
+    "/build/assets/geist-vietnamese-500-normal-DEhtl5QD.woff2",
+    "/build/assets/geist-vietnamese-500-normal-_b1ojCbH.woff",
+    "/build/assets/geist-latin-ext-500-normal-BovoTgeE.woff2",
+    "/build/assets/geist-latin-ext-500-normal-C9fx-R30.woff",
+    "/build/assets/geist-latin-500-normal-CTWBw9NS.woff2",
+    "/build/assets/geist-latin-500-normal-BDXIbFrL.woff",
+    "/build/assets/geist-cyrillic-ext-600-normal-Cr7e20Aw.woff2",
+    "/build/assets/geist-cyrillic-ext-600-normal-PR76dHFV.woff",
+    "/build/assets/geist-cyrillic-600-normal-BeW5VFD_.woff2",
+    "/build/assets/geist-cyrillic-600-normal-CnEeIcMC.woff",
+    "/build/assets/geist-vietnamese-600-normal-BFUgqsz8.woff2",
+    "/build/assets/geist-vietnamese-600-normal-B5MZcNo4.woff",
+    "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
+    "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
+    "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
+  ],
+  "resources/js/lib/assistant-stream.ts": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
     "/build/assets/geist-cyrillic-ext-400-normal-ChfpGzr5.woff",
     "/build/assets/geist-cyrillic-400-normal-DXusLSnH.woff2",
@@ -747,13 +1038,16 @@
     "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/lib/demo-images.ts": [
-    "/build/assets/demo-images-BOCchIKZ.js"
+    "/build/assets/demo-images-B26oc1SN.js"
   ],
   "resources/js/lib/entities.ts": [
-    "/build/assets/CollectionViews-CFTurwtS.js"
+    "/build/assets/CollectionViews-Dp03HWut.js"
   ],
   "resources/js/lib/format.ts": [
     "/build/assets/format-BPZIj7DQ.js"
+  ],
+  "resources/js/lib/max-web-app.ts": [
+    "/build/assets/max-web-app-BIxFfehh.js"
   ],
   "resources/js/lib/pwa-install.ts": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -851,164 +1145,308 @@
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
     "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
+  "resources/js/lib/web-push.ts": [
+    "/build/assets/Profile-DjTZYGSz.js"
+  ],
+  "resources/js/pages/Account/Appointments.tsx": [
+    "/build/assets/Appointments-BI16fjmq.js"
+  ],
   "resources/js/pages/Account/Compare.tsx": [
-    "/build/assets/Compare-fTm9zdOf.js"
+    "/build/assets/Compare-1gzu06eo.js"
   ],
   "resources/js/pages/Account/Favorites.tsx": [
-    "/build/assets/Favorites-Bbdixvzh.js"
+    "/build/assets/Favorites-l9yyYWVy.js"
   ],
   "resources/js/pages/Account/History.tsx": [
-    "/build/assets/History-DpVlEqZE.js"
+    "/build/assets/History-BSV3OVEx.js"
   ],
   "resources/js/pages/Account/Leads.tsx": [
-    "/build/assets/Leads-Be4dlrBi.js"
+    "/build/assets/Leads-DudA4aS-.js"
   ],
   "resources/js/pages/Account/Notifications.tsx": [
-    "/build/assets/Notifications-CVG2pexl.js"
+    "/build/assets/Notifications-B8nHYWUY.js"
   ],
   "resources/js/pages/Account/Overview.tsx": [
-    "/build/assets/Overview-DowIgnDC.js"
+    "/build/assets/Overview-Gp53wnj8.js"
   ],
   "resources/js/pages/Account/Profile.tsx": [
-    "/build/assets/Profile-BCbVvzqY.js"
+    "/build/assets/Profile-DjTZYGSz.js"
   ],
   "resources/js/pages/Account/Reviews.tsx": [
-    "/build/assets/Reviews-DnKFx-VT.js"
+    "/build/assets/Reviews-BHf1E3NV.js"
+  ],
+  "resources/js/pages/Admin/Analytics.tsx": [
+    "/build/assets/Analytics-Crr0dH2U.js"
+  ],
+  "resources/js/pages/Admin/Appointments.tsx": [
+    "/build/assets/Appointments-B7Xk_MnA.js"
+  ],
+  "resources/js/pages/Admin/Assistant.tsx": [
+    "/build/assets/Assistant-BpNQSGhA.js"
+  ],
+  "resources/js/pages/Admin/AssistantConversation.tsx": [
+    "/build/assets/AssistantConversation-C9SHna7f.js"
   ],
   "resources/js/pages/Admin/Audit.tsx": [
-    "/build/assets/Audit-H7npJ3Kr.js"
+    "/build/assets/Audit-6n2tg36j.js"
+  ],
+  "resources/js/pages/Admin/BroadcastShow.tsx": [
+    "/build/assets/BroadcastShow-CDBRcYXg.js"
+  ],
+  "resources/js/pages/Admin/Broadcasts.tsx": [
+    "/build/assets/Broadcasts-D62z-kJ5.js"
+  ],
+  "resources/js/pages/Admin/Campaign.tsx": [
+    "/build/assets/Campaign-BBb_Zudd.js"
+  ],
+  "resources/js/pages/Admin/Campaigns.tsx": [
+    "/build/assets/Campaigns-BKrNu1vu.js"
+  ],
+  "resources/js/pages/Admin/CardBonuses.tsx": [
+    "/build/assets/CardBonuses-BoptNEUU.js"
+  ],
+  "resources/js/pages/Admin/ClinicCardAppearance.tsx": [
+    "/build/assets/ClinicCardAppearance-BXP1qnT5.js"
   ],
   "resources/js/pages/Admin/ClinicShow.tsx": [
-    "/build/assets/ClinicShow-bMTbryBp.js"
+    "/build/assets/ClinicShow-6lKi_0lx.js"
   ],
   "resources/js/pages/Admin/Clinics.tsx": [
-    "/build/assets/Clinics-BP7fnbqh.js"
+    "/build/assets/Clinics-CdxwHwvo.js"
   ],
   "resources/js/pages/Admin/Complaints.tsx": [
-    "/build/assets/Complaints-BAORXL5j.js"
+    "/build/assets/Complaints-CDt5gjWj.js"
   ],
   "resources/js/pages/Admin/Dashboard.tsx": [
-    "/build/assets/Dashboard-PMjEAbyr.js"
+    "/build/assets/Dashboard-1Wc87vqN.js"
   ],
   "resources/js/pages/Admin/Dictionary.tsx": [
-    "/build/assets/Dictionary-CC5H_xKb.js"
+    "/build/assets/Dictionary-B_vHlUfG.js"
   ],
   "resources/js/pages/Admin/Doctors.tsx": [
-    "/build/assets/Doctors-eLQRf6S4.js"
+    "/build/assets/Doctors-BR_7GrBP.js"
   ],
   "resources/js/pages/Admin/Duplicates.tsx": [
-    "/build/assets/Duplicates-Dl-ztmiU.js"
+    "/build/assets/Duplicates-BCvCa0gR.js"
+  ],
+  "resources/js/pages/Admin/Finance.tsx": [
+    "/build/assets/Finance-0Gs0y162.js"
+  ],
+  "resources/js/pages/Admin/Geography.tsx": [
+    "/build/assets/Geography-CxLPc6bI.js"
   ],
   "resources/js/pages/Admin/Integrations.tsx": [
-    "/build/assets/Integrations-mkEZlQdw.js"
+    "/build/assets/Integrations-Cr73UyiB.js"
+  ],
+  "resources/js/pages/Admin/MaxPublish.tsx": [
+    "/build/assets/MaxPublish-CYM8Lz5h.js"
   ],
   "resources/js/pages/Admin/Moderation.tsx": [
-    "/build/assets/Moderation-D4U3vKnB.js"
+    "/build/assets/Moderation-CDzZxe_A.js"
+  ],
+  "resources/js/pages/Admin/Offer.tsx": [
+    "/build/assets/Offer-DebZefMC.js"
+  ],
+  "resources/js/pages/Admin/OfferTemplate.tsx": [
+    "/build/assets/OfferTemplate-D0fjamRf.js"
+  ],
+  "resources/js/pages/Admin/Offers.tsx": [
+    "/build/assets/Offers-BjjHD3CQ.js"
+  ],
+  "resources/js/pages/Admin/ParsedOrganization.tsx": [
+    "/build/assets/ParsedOrganization-ZQWVnvYJ.js"
+  ],
+  "resources/js/pages/Admin/Parser.tsx": [
+    "/build/assets/Parser-DJv3Mc6y.js"
   ],
   "resources/js/pages/Admin/Promotions.tsx": [
-    "/build/assets/Promotions-BywWa2kv.js"
+    "/build/assets/Promotions-DXv-Q9Zr.js"
+  ],
+  "resources/js/pages/Admin/Reports.tsx": [
+    "/build/assets/Reports-Bc1guLxW.js"
   ],
   "resources/js/pages/Admin/Reviews.tsx": [
-    "/build/assets/Reviews-Ch5FJquE.js"
+    "/build/assets/Reviews-CnGHPljU.js"
   ],
   "resources/js/pages/Admin/Roles.tsx": [
-    "/build/assets/Roles-Dkhr_6-6.js"
+    "/build/assets/Roles-iRR7XGCe.js"
+  ],
+  "resources/js/pages/Admin/SiteDisplay.tsx": [
+    "/build/assets/SiteDisplay-Cu3Fp2KU.js"
+  ],
+  "resources/js/pages/Admin/Tariffs.tsx": [
+    "/build/assets/Tariffs-D8BwhZL6.js"
+  ],
+  "resources/js/pages/Admin/UserShow.tsx": [
+    "/build/assets/UserShow-0YDOJ9lG.js"
   ],
   "resources/js/pages/Admin/Users.tsx": [
-    "/build/assets/Users-DYlsMrCl.js"
+    "/build/assets/Users-DnNHdEL8.js"
+  ],
+  "resources/js/pages/Auth/AcceptStaffInvite.tsx": [
+    "/build/assets/AcceptStaffInvite-CbzclQjm.js"
+  ],
+  "resources/js/pages/Auth/ForgotPassword.tsx": [
+    "/build/assets/ForgotPassword-Etk7LBgz.js"
+  ],
+  "resources/js/pages/Auth/LinkSocial.tsx": [
+    "/build/assets/LinkSocial-CfzinSse.js"
   ],
   "resources/js/pages/Auth/Login.tsx": [
-    "/build/assets/Login-B8MouHkG.js"
+    "/build/assets/Login-CMgoqEdX.js"
+  ],
+  "resources/js/pages/Auth/MaxLogin.tsx": [
+    "/build/assets/MaxLogin-CuUvp9yu.js"
   ],
   "resources/js/pages/Auth/Register.tsx": [
-    "/build/assets/Register-mfVYBLzt.js"
+    "/build/assets/Register-BkbRwMjD.js"
+  ],
+  "resources/js/pages/Auth/RegisterClinic.tsx": [
+    "/build/assets/RegisterClinic-DBQfe-By.js"
+  ],
+  "resources/js/pages/Auth/ResetPassword.tsx": [
+    "/build/assets/ResetPassword-Df1CP1n3.js"
+  ],
+  "resources/js/pages/Auth/VerifyEmail.tsx": [
+    "/build/assets/VerifyEmail-D6X1OyGK.js"
+  ],
+  "resources/js/pages/Booking/Create.tsx": [
+    "/build/assets/Create-QvMi5o5F.js"
+  ],
+  "resources/js/pages/Booking/Show.tsx": [
+    "/build/assets/Show-DrURsMxX.js"
   ],
   "resources/js/pages/Cabinet/BranchForm.tsx": [
-    "/build/assets/BranchForm-BIV15K84.js"
+    "/build/assets/BranchForm-D_3vZ-R4.js"
   ],
   "resources/js/pages/Cabinet/Branches.tsx": [
-    "/build/assets/Branches-CPBOwnGQ.js"
+    "/build/assets/Branches-VbWgwuL0.js"
+  ],
+  "resources/js/pages/Cabinet/Broadcasts.tsx": [
+    "/build/assets/Broadcasts-C_gLxe24.js"
+  ],
+  "resources/js/pages/Cabinet/Calendar.tsx": [
+    "/build/assets/Calendar-Ca1_VhgG.js"
+  ],
+  "resources/js/pages/Cabinet/CardBonuses.tsx": [
+    "/build/assets/CardBonuses-BgPAr5NS.js"
   ],
   "resources/js/pages/Cabinet/Dashboard.tsx": [
-    "/build/assets/Dashboard-CJIbPkuQ.js"
+    "/build/assets/Dashboard-DOZw4TpQ.js"
   ],
   "resources/js/pages/Cabinet/DoctorForm.tsx": [
-    "/build/assets/DoctorForm-D0-pALKI.js"
+    "/build/assets/DoctorForm-NW9Ptd4m.js"
+  ],
+  "resources/js/pages/Cabinet/DoctorSchedules.tsx": [
+    "/build/assets/DoctorSchedules-Bnc44Uv_.js"
   ],
   "resources/js/pages/Cabinet/Doctors.tsx": [
-    "/build/assets/Doctors-_vu9Rhw6.js"
+    "/build/assets/Doctors-Cchacse-.js"
   ],
   "resources/js/pages/Cabinet/Documents.tsx": [
-    "/build/assets/Documents-fd4-ss5m.js"
+    "/build/assets/Documents-MqOdlPyg.js"
   ],
   "resources/js/pages/Cabinet/Leads.tsx": [
-    "/build/assets/Leads-JuXVYVdy.js"
+    "/build/assets/Leads-DQaRnCBs.js"
+  ],
+  "resources/js/pages/Cabinet/Organization.tsx": [
+    "/build/assets/Organization-N20_-Wzy.js"
+  ],
+  "resources/js/pages/Cabinet/Payments.tsx": [
+    "/build/assets/Payments-DLbV002u.js"
   ],
   "resources/js/pages/Cabinet/Photos.tsx": [
-    "/build/assets/Photos-C0ixnmbj.js"
+    "/build/assets/Photos-CvEaO2IZ.js"
   ],
   "resources/js/pages/Cabinet/Posts.tsx": [
-    "/build/assets/Posts-CTVSdaPS.js"
+    "/build/assets/Posts-cG8KTT_c.js"
   ],
   "resources/js/pages/Cabinet/Prices.tsx": [
-    "/build/assets/Prices-CbH_R-XH.js"
+    "/build/assets/Prices-apByHchg.js"
   ],
   "resources/js/pages/Cabinet/Promotions.tsx": [
-    "/build/assets/Promotions-g5jTtOEy.js"
+    "/build/assets/Promotions-hvo3uRm6.js"
   ],
   "resources/js/pages/Cabinet/Reviews.tsx": [
-    "/build/assets/Reviews-su3tXOZ1.js"
+    "/build/assets/Reviews-CT49vdSm.js"
   ],
   "resources/js/pages/Cabinet/Schedule.tsx": [
-    "/build/assets/Schedule-BEp8X5uy.js"
+    "/build/assets/Schedule-7meQxLRE.js"
+  ],
+  "resources/js/pages/Cabinet/Settings.tsx": [
+    "/build/assets/Settings-B4P14iAv.js"
+  ],
+  "resources/js/pages/Cabinet/Staff.tsx": [
+    "/build/assets/Staff-CLWY0E52.js"
   ],
   "resources/js/pages/Cabinet/Stats.tsx": [
-    "/build/assets/Stats-BdfiTKRb.js"
+    "/build/assets/Stats-DAkoD3_f.js"
   ],
   "resources/js/pages/Clinics/Index.tsx": [
-    "/build/assets/Index-FO8skkJB.js"
+    "/build/assets/Index-BZR9ydMG.js"
   ],
   "resources/js/pages/Clinics/Show.tsx": [
-    "/build/assets/Show-Yf04ZGuz.js"
+    "/build/assets/Show-CS-uZLlG.js"
   ],
   "resources/js/pages/Collections/Compare.tsx": [
-    "/build/assets/Compare-CpcMKPhO.js"
+    "/build/assets/Compare-n1cMMFD8.js"
   ],
   "resources/js/pages/Collections/Favorites.tsx": [
-    "/build/assets/Favorites-J6w_Gvnr.js"
+    "/build/assets/Favorites-CrB7rfQW.js"
   ],
   "resources/js/pages/Concerns/Show.tsx": [
-    "/build/assets/Show-B18XNlkJ.js"
+    "/build/assets/Show-CUPlB1Uu.js"
   ],
   "resources/js/pages/Directions/Index.tsx": [
-    "/build/assets/Index-BlutzO9j.js"
+    "/build/assets/Index-DBCP5Gdl.js"
   ],
   "resources/js/pages/Directions/Show.tsx": [
-    "/build/assets/Show-B28dxqbn.js"
+    "/build/assets/Show-dvYm55KL.js"
   ],
   "resources/js/pages/Doctors/Index.tsx": [
-    "/build/assets/Index-NXLQhi50.js"
+    "/build/assets/Index-Ce7e1Ftu.js"
   ],
   "resources/js/pages/Doctors/Show.tsx": [
-    "/build/assets/Show--TQPvm80.js"
+    "/build/assets/Show-Bp3ypQfK.js"
   ],
   "resources/js/pages/Error.tsx": [
-    "/build/assets/Error-CLbF-qRl.js"
+    "/build/assets/Error-DWqlU8Jf.js"
   ],
   "resources/js/pages/Home.tsx": [
-    "/build/assets/Home-BDN5bdTN.js"
+    "/build/assets/Home-Doh85Gow.js"
+  ],
+  "resources/js/pages/Max/Appointments.tsx": [
+    "/build/assets/Appointments-BcNihhNY.js"
+  ],
+  "resources/js/pages/Max/ClinicShow.tsx": [
+    "/build/assets/ClinicShow-C30zjIjV.js"
+  ],
+  "resources/js/pages/Max/Clinics.tsx": [
+    "/build/assets/Clinics-BQpDJP_y.js"
+  ],
+  "resources/js/pages/Max/Home.tsx": [
+    "/build/assets/Home-BKkptQ4-.js"
+  ],
+  "resources/js/pages/Offer/Claim.tsx": [
+    "/build/assets/Claim-Bgm_TckJ.js"
+  ],
+  "resources/js/pages/Offer/Show.tsx": [
+    "/build/assets/Show-R8MasmVK.js"
+  ],
+  "resources/js/pages/Offer/Unsubscribe.tsx": [
+    "/build/assets/Unsubscribe-BDAmvDpr.js"
   ],
   "resources/js/pages/Page.tsx": [
     "/build/assets/Page-hGncEqSS.js"
   ],
   "resources/js/pages/Prices/Index.tsx": [
-    "/build/assets/Index-D1Dzdplm.js"
+    "/build/assets/Index-BVG4FvnU.js"
   ],
   "resources/js/pages/Reviews/Index.tsx": [
-    "/build/assets/Index-BM0zN3Pq.js"
+    "/build/assets/Index-Y-UpGuuN.js"
   ],
   "resources/js/pages/Search/Index.tsx": [
-    "/build/assets/Index-CQpMgPM6.js"
+    "/build/assets/Index-BtYVn8zF.js"
   ],
   "resources/js/pages/Tz.tsx": [
     "/build/assets/Tz-Rs0ffHIw.js"

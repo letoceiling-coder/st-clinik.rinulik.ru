@@ -64,7 +64,6 @@ export default function DirectionShow({ specialty, services, clinics, clinics_to
                                             </span>
                                             <span className="price-row__meta text-sm text-muted">{s.clinics > 0 ? clinicsWord(s.clinics) : '—'}</span>
                                             <b className="price-row__price">{priceFrom(s.price_from)}</b>
-                                            <Icon name="chevron-right" size={18} />
                                         </Link>
                                     </li>
                                 ))}

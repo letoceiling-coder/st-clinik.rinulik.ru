@@ -137,5 +137,7 @@ class FoundationSeeder extends Seeder
                 'title_tpl' => $title, 'description_tpl' => $description, 'h1_tpl' => $h1, 'noindex' => $noindex,
             ]);
         }
+
+        $this->call(CardBonusTypeSeeder::class);
     }
 }

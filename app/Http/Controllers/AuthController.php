@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AnalyticsEvent;
 use App\Models\User;
+use App\Services\Analytics\AnalyticsTracker;
 use App\Services\Audit;
 use App\Services\Seo;
 use Illuminate\Http\RedirectResponse;
@@ -81,8 +83,10 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
         Audit::log('auth.register', $user);
+        app(AnalyticsTracker::class)->track(AnalyticsEvent::EVENT_REGISTER, ['user_id' => $user->id], $this->city()->slug);
+        $user->sendEmailVerificationNotification();
 
-        return redirect()->intended($this->home($user))->with('success', 'Добро пожаловать в '.config('app.name').'!');
+        return redirect()->route('verification.notice')->with('success', 'Добро пожаловать! Подтвердите e-mail, чтобы пользоваться личным кабинетом.');
     }
 
     public function logout(Request $request): RedirectResponse

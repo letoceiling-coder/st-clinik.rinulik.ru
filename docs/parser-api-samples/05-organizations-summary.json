@@ -1,0 +1,67 @@
+{
+    "total":  15,
+    "limit":  2,
+    "offset":  0,
+    "count":  2,
+    "hasMore":  true,
+    "nextOffset":  2,
+    "items":  [
+                  {
+                      "id":  "03bcef2f-2cdb-4e55-9142-1eaa185f99ba",
+                      "externalId":  "1013309399",
+                      "source":  "yandex",
+                      "name":  "Дом стоматологии",
+                      "city":  "Ставрополь",
+                      "region":  "городской округ Ставрополь",
+                      "category":  "стоматолог",
+                      "categories":  [
+                                         "Стоматологическая клиника",
+                                         "Детская стоматология"
+                                     ],
+                      "address":  "ул. Орджоникидзе, 1, Ставрополь",
+                      "phones":  [
+                                     "+78652220281",
+                                     "+78652257295",
+                                     "+78652288202"
+                                 ],
+                      "website":  "https://domstom-st.ru/",
+                      "rating":  5,
+                      "reviewCount":  161,
+                      "coordinates":  {
+                                          "lat":  45.050872,
+                                          "lon":  41.992565
+                                      },
+                      "sourceUrl":  "https://yandex.ru/maps/org/dom_stomatologii/1013309399/",
+                      "firstSeenAt":  "2026-10-18T10:51:06.491Z",
+                      "updatedAt":  "2026-10-18T10:51:06.491Z"
+                  },
+                  {
+                      "id":  "04e56a6e-5bc2-4bdf-a1c4-e9d5a378e419",
+                      "externalId":  "1744676953",
+                      "source":  "yandex",
+                      "name":  "Стоматология доктора Коннова",
+                      "city":  "Ставрополь",
+                      "region":  "городской округ Ставрополь",
+                      "category":  "стоматолог",
+                      "categories":  [
+                                         "Стоматологическая клиника",
+                                         "Зуботехническая лаборатория",
+                                         "Стоматологическая поликлиника"
+                                     ],
+                      "address":  "ул. 50 лет ВЛКСМ, 33, Ставрополь",
+                      "phones":  [
+                                     "+78652568609"
+                                 ],
+                      "website":  "https://doktorkonnov.ru/?utm_source=yandex_maps",
+                      "rating":  5,
+                      "reviewCount":  135,
+                      "coordinates":  {
+                                          "lat":  45.011057,
+                                          "lon":  41.920113
+                                      },
+                      "sourceUrl":  "https://yandex.ru/maps/org/stomatologiya_doktora_konnova/1744676953/",
+                      "firstSeenAt":  "2026-10-18T10:51:06.491Z",
+                      "updatedAt":  "2026-10-18T10:51:06.491Z"
+                  }
+              ]
+}

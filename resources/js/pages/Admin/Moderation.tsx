@@ -1,7 +1,7 @@
 import { router, useForm } from '@inertiajs/react';
 import { PageHead, StatusBadge } from '@/components/Dash';
 import { Button } from '@/components/ui/Button';
-import { TextArea } from '@/components/ui/Fields';
+import { Check, TextArea } from '@/components/ui/Fields';
 import { EmptyState } from '@/components/ui/Misc';
 
 interface Item {
@@ -9,10 +9,42 @@ interface Item {
     has_file?: boolean; image?: string | null; flags?: unknown; at?: string | null;
 }
 
-export default function Moderation({ queue, typeLabels }: { queue: Item[]; typeLabels: Record<string, string> }) {
+export default function Moderation({
+    queue,
+    typeLabels,
+    content_moderation_settings,
+}: {
+    queue: Item[];
+    typeLabels: Record<string, string>;
+    content_moderation_settings: { moderate_review_replies: boolean; moderate_promotions: boolean };
+}) {
+    const settings = useForm({ ...content_moderation_settings });
+
     return (
         <div className="stack-lg">
             <PageHead title="Очередь модерации" text={`${queue.length} объектов ждут решения.`} />
+            <form
+                className="card stack"
+                onSubmit={(e) => {
+                    e.preventDefault();
+                    settings.post('/admin/moderation/settings');
+                }}
+            >
+                <h2 className="h3">Настройки</h2>
+                <Check
+                    label="Модерировать ответы клиник на отзывы"
+                    checked={settings.data.moderate_review_replies}
+                    onChange={(e) => settings.setData('moderate_review_replies', e.target.checked)}
+                />
+                <Check
+                    label="Модерировать все рекламные заказы (включая буст)"
+                    checked={settings.data.moderate_promotions}
+                    onChange={(e) => settings.setData('moderate_promotions', e.target.checked)}
+                />
+                <Button type="submit" size="sm" loading={settings.processing}>
+                    Сохранить
+                </Button>
+            </form>
             {queue.length === 0 ? <EmptyState title="Очередь пуста" /> : queue.map((item) => <Card key={`${item.type}-${item.id}`} item={item} label={typeLabels[item.type] ?? item.type} />)}
         </div>
     );

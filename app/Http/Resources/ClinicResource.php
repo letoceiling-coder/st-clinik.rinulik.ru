@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Services\ClinicCardBonusService;
 use App\Support\ClinicCardPromos;
 use App\Support\Schedule;
 use Illuminate\Http\Request;
@@ -19,6 +20,8 @@ class ClinicResource extends JsonResource
         $popular = $priced->filter(fn ($s) => $s->service->is_popular);
         $popularIds = $popular->pluck('service_id');
         $top = $popular->concat($priced->reject(fn ($s) => $popularIds->contains($s->service_id)))->unique('service_id')->take(8);
+
+        $bonusService = app(ClinicCardBonusService::class);
 
         return [
             'id' => $c->id,
@@ -41,7 +44,8 @@ class ClinicResource extends JsonResource
             'is_24_7' => (bool) $c->is_24_7,
             'accepts_children' => (bool) $c->accepts_children,
             'children_age_from' => $c->children_age_from,
-            'same_day' => (bool) $c->same_day,
+            'same_day' => $bonusService->hasSameDayFeature($c),
+            'same_day_offer' => $bonusService->sameDayOfferDetail($c),
             'has_installment' => (bool) $c->has_installment,
             'installment_months' => $c->installment_months,
             'accepts_dms' => (bool) $c->accepts_dms,
@@ -69,9 +73,13 @@ class ClinicResource extends JsonResource
                 'photo_url' => $d->photo_path ? Storage::disk('public')->url($d->photo_path) : null,
             ])->values() : [],
             'photos' => $c->relationLoaded('photos') ? $c->photos->take(8)->map(fn ($p) => [
-                'kind' => $p->kind, 'caption' => $p->caption, 'art_seed' => $p->art_seed, 'url' => $p->path ? Storage::disk('public')->url($p->path) : null,
+                'kind' => $p->kind,
+                'caption' => $p->caption,
+                'art_seed' => $p->art_seed,
+                'url' => $p->path ? '/storage/'.$p->path : null,
             ])->values() : [],
             'promo_offers' => ClinicCardPromos::forClinic($c),
+            'card_premium' => ClinicCardPromos::isPremium($c),
         ];
     }
 }

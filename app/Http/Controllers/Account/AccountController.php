@@ -3,21 +3,32 @@
 namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\Controller;
+use App\Models\Appointment;
 use App\Models\Clinic;
 use App\Models\Doctor;
 use App\Models\HistoryEntry;
 use App\Models\Lead;
+use App\Models\NotificationDelivery;
 use App\Models\Review;
+use App\Models\User;
 use App\Models\UserCollection;
 use App\Models\UserNotification;
+use App\Notifications\PendingEmailNotification;
+use App\Repositories\Contracts\CatalogRepository;
 use App\Services\Audit;
-use App\Services\ReviewService;
+use App\Services\Auth\SocialAuthService;
+use App\Services\Broadcasts\ClinicFollowerService;
+use App\Services\Notifications\NotificationPreferenceService;
+use App\Services\Notifications\NotificationSubscriptionService;
+use App\Services\ProfileMetrics;
 use App\Services\SensitiveTextGuard;
 use App\Services\Seo;
+use App\Support\NotificationEvents;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Response;
 
@@ -38,6 +49,7 @@ class AccountController extends Controller
             'counts' => [
                 'leads' => Lead::where('user_id', $u->id)->count(),
                 'active_leads' => Lead::where('user_id', $u->id)->whereIn('status', ['new', 'confirmed'])->count(),
+                'appointments' => Appointment::where('user_id', $u->id)->active()->where('starts_at', '>=', now()->startOfDay())->count(),
                 'favorites' => UserCollection::where('user_id', $u->id)->where('kind', 'favorite')->count(),
                 'compare' => UserCollection::where('user_id', $u->id)->where('kind', 'compare')->count(),
                 'reviews' => Review::where('user_id', $u->id)->count(),
@@ -51,18 +63,138 @@ class AccountController extends Controller
 
     // --- profile --------------------------------------------------------
 
-    public function profile(Request $request, \App\Repositories\Contracts\CatalogRepository $catalog): Response
+    public function profile(Request $request, CatalogRepository $catalog, NotificationPreferenceService $preferences, NotificationSubscriptionService $subscriptions, ClinicFollowerService $clinicFollowers): Response
     {
         $u = $request->user();
 
+        $social = app(SocialAuthService::class);
+
         return $this->render('Account/Profile', 'Профиль', [
             'profile' => [
-                'name' => $u->name, 'email' => $u->email, 'phone' => $u->phone, 'city_id' => $u->city_id,
+                'name' => $u->name, 'email' => $u->email, 'pending_email' => $u->pending_email, 'phone' => $u->phone, 'city_id' => $u->city_id,
                 'notify_email' => $u->notify_email, 'notify_leads' => $u->notify_leads,
                 'consent_at' => $u->consent_at?->toDateString(), 'consent_version' => $u->consent_version,
+                'has_password' => filled($u->password),
+                'placeholder_email' => $u->usesPlaceholderEmail(),
             ],
+            'social_accounts' => collect($social->accountsFor($u))->map(fn ($a) => [
+                'provider' => $a->provider,
+                'name' => $a->name,
+                'email' => $a->email,
+                'linked_at' => $a->linked_at?->toDateTimeString(),
+                'can_unlink' => $social->canUnlink($u, $a->provider),
+            ])->values(),
             'cities' => $catalog->cities()->map(fn ($c) => ['id' => $c->id, 'name' => $c->name])->values(),
+            'notification_preferences' => $preferences->matrixFor($u),
+            'web_push_subscribed' => $subscriptions->hasActiveWebPush($u),
+            'notification_channel_labels' => [
+                'in_app' => 'На сайте',
+                'email' => 'Email',
+                'max' => 'MAX',
+                'web_push' => 'Браузер',
+            ],
+            'clinic_follows' => $clinicFollowers->listForUser($u),
+            'recent_deliveries' => NotificationDelivery::query()
+                ->where('user_id', $u->id)
+                ->orderByDesc('id')
+                ->limit(15)
+                ->get()
+                ->map(fn (NotificationDelivery $d) => [
+                    'channel' => $d->channel,
+                    'event_label' => NotificationEvents::label($d->event_key),
+                    'status' => $d->status,
+                    'at' => ($d->sent_at ?? $d->created_at)?->format('d.m.Y H:i'),
+                ]),
         ]);
+    }
+
+    public function updateNotificationPreferences(Request $request, NotificationPreferenceService $preferences): RedirectResponse
+    {
+        $data = $request->validate([
+            'preferences' => ['required', 'array'],
+            'preferences.*.key' => ['required', 'string', 'max:64'],
+            'preferences.*.channels' => ['array'],
+            'preferences.*.channels.*' => ['string', 'max:24'],
+        ]);
+
+        foreach ($data['preferences'] as $row) {
+            $preferences->update($request->user(), (string) $row['key'], $row['channels'] ?? []);
+        }
+
+        return back()->with('success', 'Настройки уведомлений сохранены.');
+    }
+
+    public function requestEmailChange(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        abort_if($user->role !== 'user', 403);
+
+        $needsPassword = ! ($user->usesPlaceholderEmail() && ! filled($user->password));
+
+        $rules = [
+            'email' => [
+                'required',
+                'email',
+                'max:120',
+                'unique:users,email',
+                function (string $attribute, mixed $value, \Closure $fail) use ($user): void {
+                    if (! $user->usesPlaceholderEmail() && strtolower((string) $value) === strtolower((string) $user->email)) {
+                        $fail('Новый e-mail совпадает с текущим.');
+                    }
+                },
+            ],
+        ];
+        if ($needsPassword) {
+            $rules['password'] = ['required', 'current_password'];
+        }
+
+        $data = $request->validate($rules, [
+            'email.unique' => 'Этот e-mail уже занят.',
+            'password.current_password' => 'Пароль указан неверно.',
+        ]);
+
+        $newEmail = strtolower($data['email']);
+        $user->update(['pending_email' => $newEmail]);
+
+        Notification::route('mail', $newEmail)->notify(new PendingEmailNotification($user, $newEmail));
+
+        return back()->with('success', 'Мы отправили ссылку для подтверждения на новый адрес.');
+    }
+
+    public function confirmEmailChange(Request $request, int $id): RedirectResponse
+    {
+        if (! $request->hasValidSignature()) {
+            abort(403);
+        }
+
+        $user = User::query()->findOrFail($id);
+
+        $hash = $request->string('hash')->toString();
+        $pending = $user->pending_email;
+        abort_if($pending === null || ! hash_equals(sha1($pending), $hash), 403);
+
+        if (User::query()->where('email', $pending)->where('id', '!=', $user->id)->exists()) {
+            $user->update(['pending_email' => null]);
+
+            return redirect()->route('login')->withErrors(['email' => 'Этот e-mail уже занят другим аккаунтом.']);
+        }
+
+        $user->forceFill([
+            'email' => $pending,
+            'pending_email' => null,
+            'email_verified_at' => now(),
+        ])->save();
+
+        Audit::log('account.email_changed', $user);
+
+        return redirect()->route('account.profile')->with('success', 'E-mail обновлён.');
+    }
+
+    public function unlinkSocial(Request $request, string $provider, SocialAuthService $social): RedirectResponse
+    {
+        $social->unlink($request->user(), $provider);
+
+        return back()->with('success', 'Вход отключён.');
     }
 
     public function updateProfile(Request $request): RedirectResponse
@@ -82,12 +214,20 @@ class AccountController extends Controller
 
     public function updatePassword(Request $request): RedirectResponse
     {
-        $data = $request->validate([
-            'current_password' => 'required|current_password',
+        $user = $request->user();
+        $rules = [
             'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
-        ], ['current_password.current_password' => 'Текущий пароль указан неверно.', 'password.confirmed' => 'Пароли не совпадают.']);
+        ];
+        if (filled($user->password)) {
+            $rules['current_password'] = 'required|current_password';
+        }
 
-        $request->user()->update(['password' => $data['password']]);
+        $data = $request->validate($rules, [
+            'current_password.current_password' => 'Текущий пароль указан неверно.',
+            'password.confirmed' => 'Пароли не совпадают.',
+        ]);
+
+        $user->update(['password' => $data['password']]);
         Audit::log('account.password_changed', $request->user());
 
         return back()->with('success', 'Пароль изменён.');
@@ -133,7 +273,10 @@ class AccountController extends Controller
     {
         abort_unless($lead->user_id === $request->user()->id, 403);
         abort_unless(in_array($lead->status, ['new', 'confirmed'], true), 422);
-        $lead->update(['status' => 'cancelled']);
+        DB::transaction(function () use ($lead): void {
+            $lead->update(['status' => 'cancelled']);
+            $lead->appointment()->whereNotIn('status', ['cancelled', 'completed'])->update(['status' => 'cancelled']);
+        });
 
         return back()->with('success', 'Заявка отменена.');
     }
@@ -225,7 +368,7 @@ class AccountController extends Controller
                 'is_verified_visit' => $r->is_verified_visit, 'visit_date' => $r->visit_date?->toDateString(),
                 'created_at' => $r->created_at?->toDateString(),
                 'clinic' => $r->clinic ? ['name' => $r->clinic->name, 'slug' => $r->clinic->slug] : null,
-                'reply' => $r->reply_text,
+                'reply' => $r->replyIsPublic() ? $r->reply_text : null,
             ]);
 
         return $this->render('Account/Reviews', 'Мои отзывы', ['reviews' => $rows]);
@@ -251,7 +394,7 @@ class AccountController extends Controller
         return back()->with('success', 'Отзыв отправлен на повторную проверку.');
     }
 
-    public function deleteReview(Request $request, Review $review, \App\Services\ProfileMetrics $metrics): RedirectResponse
+    public function deleteReview(Request $request, Review $review, ProfileMetrics $metrics): RedirectResponse
     {
         abort_unless($review->user_id === $request->user()->id, 403);
         $clinic = $review->clinic;

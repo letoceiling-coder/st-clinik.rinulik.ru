@@ -1,0 +1,46 @@
+{
+    "workers":  [
+                    {
+                        "id":  "win-home-1",
+                        "hostname":  "win-home-1",
+                        "capabilities":  [
+                                             "browser.scrape",
+                                             "browser.navigate",
+                                             "browser.session",
+                                             "task:yandex.orgs",
+                                             "task:browser.agent",
+                                             "task:organizations.agent",
+                                             "task:avito.agent",
+                                             "task:site.audit",
+                                             "task:site.audit.prompt",
+                                             "task:page.html"
+                                         ],
+                        "version":  "1.13.0",
+                        "busy":  false,
+                        "connected":  true,
+                        "currentTaskId":  null,
+                        "lastSeenAt":  "2026-10-25T20:27:27.190Z",
+                        "lastError":  null
+                    },
+                    {
+                        "id":  "pc-2",
+                        "hostname":  "pc-2",
+                        "capabilities":  [
+                                             "browser.scrape",
+                                             "browser.navigate",
+                                             "browser.session",
+                                             "task:yandex.orgs",
+                                             "task:browser.agent",
+                                             "task:organizations.agent",
+                                             "task:site.audit",
+                                             "task:site.audit.prompt"
+                                         ],
+                        "version":  "1.8.0",
+                        "busy":  false,
+                        "connected":  true,
+                        "currentTaskId":  null,
+                        "lastSeenAt":  "2026-10-25T20:27:26.848Z",
+                        "lastError":  null
+                    }
+                ]
+}

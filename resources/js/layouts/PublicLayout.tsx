@@ -13,7 +13,9 @@ import { useCollections, useGuestSync } from '@/lib/collections';
 import { cx } from '@/lib/format';
 import { useClientSeo } from '@/lib/seo';
 import type { SharedProps } from '@/lib/types';
+import AssistantWidget from '@/components/AssistantWidget';
 import InstallAppButton from '@/components/InstallAppButton';
+import CityPrompt from '@/components/CityPrompt';
 import CityPicker from './CityPicker';
 import Logo from './Logo';
 
@@ -309,6 +311,7 @@ export default function PublicLayout({ children, bare }: { children: ReactNode; 
             </Drawer>
 
             <CookieBanner />
+            <CityPrompt />
             <ToastHost />
         </LeadProvider>
     );

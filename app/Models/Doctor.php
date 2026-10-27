@@ -58,4 +58,19 @@ class Doctor extends Model
     {
         return $this->hasMany(Review::class);
     }
+
+    public function schedules(): HasMany
+    {
+        return $this->hasMany(DoctorSchedule::class)->orderBy('weekday');
+    }
+
+    public function scheduleExceptions(): HasMany
+    {
+        return $this->hasMany(ScheduleException::class)->orderBy('date_from');
+    }
+
+    public function appointments(): HasMany
+    {
+        return $this->hasMany(Appointment::class);
+    }
 }

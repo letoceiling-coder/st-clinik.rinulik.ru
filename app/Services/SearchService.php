@@ -37,7 +37,7 @@ class SearchService
     private function matchTokens(Builder $query, array $tokens, string $column = 'search_text'): Builder
     {
         foreach ($tokens as $token) {
-            $query->where($column, 'like', '%'.$token.'%');
+            $query->whereLike($column, '%'.$token.'%');
         }
 
         return $query;

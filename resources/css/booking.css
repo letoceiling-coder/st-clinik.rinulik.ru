@@ -1,0 +1,235 @@
+.book {
+    display: grid;
+    gap: var(--space-8);
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 880px;
+    margin-inline: auto;
+    padding-block: var(--space-8) var(--space-16);
+}
+
+.book__head h1 {
+    margin: 0 0 var(--space-2);
+}
+
+.book__steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    gap: var(--space-2);
+}
+
+.book__step {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-16);
+    background: var(--color-surface);
+    text-align: left;
+    cursor: pointer;
+}
+
+.book__step:disabled {
+    cursor: default;
+    opacity: 0.55;
+}
+
+.book__step.is-done,
+.book__step.is-current {
+    opacity: 1;
+}
+
+.book__step.is-current {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-soft);
+}
+
+.book__step-n {
+    font-size: var(--fs-xs);
+    color: var(--color-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.book__step-t {
+    font-weight: 600;
+    font-size: var(--fs-sm);
+    overflow-wrap: anywhere;
+}
+
+.book__choice {
+    display: grid;
+    gap: var(--space-3);
+    grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 640px) {
+    .book__choice--2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.book-card {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-3);
+    align-items: center;
+    min-width: 0;
+    padding: var(--space-4);
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius-20);
+    background: var(--color-surface);
+    text-align: left;
+    cursor: pointer;
+}
+
+.book-card.is-on {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-soft);
+}
+
+.book-card__photo {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-16);
+    overflow: hidden;
+    background: var(--color-surface-muted);
+}
+
+.book-card__photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.book-card b {
+    display: block;
+    overflow-wrap: anywhere;
+}
+
+.book-days {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: var(--space-2);
+}
+
+.book-day {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+    padding: var(--space-2) 2px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-12);
+    background: var(--color-surface);
+    text-align: center;
+    cursor: pointer;
+}
+
+.book-day:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.book-day.is-on {
+    border-color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+}
+
+.book-day__w,
+.book-day__n {
+    font-variant-numeric: tabular-nums;
+}
+
+.book-day__n {
+    font-weight: 600;
+}
+
+.book-day__c {
+    font-size: var(--fs-xs);
+    color: var(--color-muted);
+}
+
+.book-slots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+.book-slot {
+    min-width: 72px;
+    padding: 10px 12px;
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    background: var(--color-surface);
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.book-slot.is-on {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+    color: var(--color-on-primary, #fff);
+}
+
+.book-sum {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-5);
+    border-radius: var(--radius-20);
+    background: var(--color-surface-muted);
+}
+
+.book-sum dt {
+    font-size: var(--fs-xs);
+    color: var(--color-muted);
+}
+
+.book-sum dd {
+    margin: 0;
+    font-weight: 600;
+}
+
+.appt-card {
+    display: grid;
+    gap: var(--space-5);
+}
+
+.appt-card__when {
+    font-size: var(--fs-xl);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.doc-sched {
+    display: grid;
+    gap: var(--space-6);
+}
+
+.doc-sched__days {
+    display: grid;
+    gap: var(--space-3);
+}
+
+.doc-sched__day {
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: var(--space-3);
+    align-items: end;
+}
+
+.doc-sched__times {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: var(--space-2);
+    min-width: 0;
+}
+
+@media (max-width: 640px) {
+    .book-days {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .doc-sched__day {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

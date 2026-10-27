@@ -4,6 +4,9 @@ import { CompareButton, FavoriteButton } from '@/components/CollectionButtons';
 import DoctorCard from '@/components/DoctorCard';
 import Icon from '@/components/Icon';
 import { useLead } from '@/components/LeadContext';
+import { AnalyticsEvents, trackAnalyticsEvent } from '@/lib/analytics';
+import { useCity } from '@/lib/city';
+import { useEffect } from 'react';
 import { DoctorArt } from '@/components/PhotoArt';
 import ReviewCard from '@/components/ReviewCard';
 import { Pagination, Alert, Badge, Breadcrumbs, EmptyState } from '@/components/ui/Misc';
@@ -23,7 +26,12 @@ interface Props {
 
 export default function DoctorShow({ doctor, clinic, prices, reviews, distribution, colleagues, breadcrumbs }: Props) {
     const lead = useLead();
+    const { slug: citySlug } = useCity();
     const total = Object.values(distribution).reduce((a, b) => a + b, 0);
+
+    useEffect(() => {
+        trackAnalyticsEvent(AnalyticsEvents.doctorView, { doctor_id: doctor.id, slug: doctor.slug, clinic_id: clinic?.id }, citySlug);
+    }, [doctor.id, doctor.slug, clinic?.id, citySlug]);
 
     const open = () =>
         clinic &&
@@ -97,6 +105,9 @@ export default function DoctorShow({ doctor, clinic, prices, reviews, distributi
                         <>
                             <Button size="lg" block onClick={open}>
                                 Записаться к врачу
+                            </Button>
+                            <Button variant="ghost" block onClick={() => lead.callback({ slug: clinic.slug, name: clinic.name, phone: clinic.phone, doctorId: doctor.id, doctors: [{ id: doctor.id, name: doctor.name }], source: 'doctor_callback' })}>
+                                Перезвоните мне
                             </Button>
                             <div className="booking__row">
                                 <CompareButton type="doctor" id={doctor.id} name={doctor.name} />

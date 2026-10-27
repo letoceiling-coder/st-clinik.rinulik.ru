@@ -1,6 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
-import Icon from '@/components/Icon';
 import { SearchInput } from '@/components/ui/Fields';
 import { Alert, Breadcrumbs, EmptyState } from '@/components/ui/Misc';
 import { useCity } from '@/lib/city';
@@ -65,7 +64,6 @@ export default function PricesIndex({ groups, breadcrumbs }: { groups: Group[]; 
                                             </span>
                                             <span className="price-row__meta text-sm text-muted">{s.clinics > 0 ? clinicsWord(s.clinics) : '—'}</span>
                                             <b className="price-row__price">{priceFrom(s.price_from)}</b>
-                                            <Icon name="chevron-right" size={18} />
                                         </Link>
                                     </li>
                                 ))}

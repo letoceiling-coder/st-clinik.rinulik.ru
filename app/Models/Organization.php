@@ -8,7 +8,21 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Organization extends Model
 {
+    public const STATUS_ACTIVE = 'active';
+
+    public const STATUS_BLOCKED = 'blocked';
+
+    /** @var list<string> */
+    public const STATUSES = [self::STATUS_ACTIVE, self::STATUS_BLOCKED];
+
     protected $guarded = [];
+
+    protected function casts(): array
+    {
+        return [
+            'license_date' => 'date',
+        ];
+    }
 
     public function owner(): BelongsTo
     {

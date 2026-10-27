@@ -1,5 +1,7 @@
 import { Link, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
+import { SocialOAuthButtons } from '@/components/auth/SocialOAuthButtons';
+import { AnalyticsEvents, trackAnalyticsEvent } from '@/lib/analytics';
 import { Button } from '@/components/ui/Button';
 import { Check, TextField } from '@/components/ui/Fields';
 
@@ -8,7 +10,10 @@ export default function Register() {
 
     const submit = (e: FormEvent) => {
         e.preventDefault();
-        form.post('/register', { onFinish: () => form.reset('password', 'password_confirmation') });
+        form.post('/register', {
+            onSuccess: () => trackAnalyticsEvent(AnalyticsEvents.register),
+            onFinish: () => form.reset('password', 'password_confirmation'),
+        });
     };
 
     return (
@@ -42,7 +47,12 @@ export default function Register() {
             <Button type="submit" block size="lg" loading={form.processing}>
                 Создать аккаунт
             </Button>
+            <SocialOAuthButtons />
             <p className="text-sm text-center">
+                <Link href="/register/clinic" className="link">
+                    Регистрация клиники
+                </Link>
+                {' · '}
                 Уже есть аккаунт?{' '}
                 <Link href="/login" className="link">
                     Войти

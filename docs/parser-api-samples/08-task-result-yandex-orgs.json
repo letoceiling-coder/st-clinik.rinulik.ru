@@ -1,0 +1,109 @@
+{
+    "id":  "f7771841-d21d-47e2-a349-1f08a3c8969d",
+    "type":  "yandex.orgs",
+    "status":  "completed",
+    "input":  {
+                  "city":  "Ставрополь",
+                  "category":  "стоматология",
+                  "maxResults":  3,
+                  "outputFormat":  "json",
+                  "includePhotos":  false
+              },
+    "result":  {
+                   "query":  {
+                                 "city":  "Ставрополь",
+                                 "category":  "стоматология",
+                                 "maxPages":  5,
+                                 "maxResults":  3,
+                                 "outputFormat":  "json",
+                                 "includePhotos":  false,
+                                 "downloadPhotos":  false,
+                                 "maxPhotoDownloads":  5,
+                                 "useManualYandexProfile":  false
+                             },
+                   "partial":  false,
+                   "organizations":  [
+                                         {
+                                             "name":  "Эсте Дент",
+                                             "hours":  "Закрыто до завтра",
+                                             "phones":  [
+
+                                                        ],
+                                             "address":  "ул. 50 лет ВЛКСМ, 95, Ставропольэтаж цокольный",
+                                             "website":  "https://t.me/estedentstav",
+                                             "photoUrls":  [
+                                                               "https://avatars.mds.yandex.net/get-altay/4001569/2a00000174f8461c96562011efc03d8aa391/S",
+                                                               "https://avatars.mds.yandex.net/get-altay/19593321/2a0000019e3f8d379f9e53ed4bb16db186fa/XXL_height",
+                                                               "https://avatars.mds.yandex.net/get-altay/11244149/2a0000018c93588d5b2b73a74f4fe52cb4fd/XXL_height",
+                                                               "https://avatars.mds.yandex.net/get-sprav-posts/20137753/2a000001a0f806c4cadb83ccbe1fcddde0fb/XL"
+                                                           ],
+                                             "sourceUrl":  "https://yandex.ru/maps/org/este_dent/1614741114/?ll=41.916370%2C45.002008\u0026z=16",
+                                             "categories":  [
+
+                                                            ],
+                                             "externalId":  "1614741114",
+                                             "coordinates":  {
+                                                                 "lat":  45.001645,
+                                                                 "lon":  41.916174
+                                                             }
+                                         },
+                                         {
+                                             "name":  "ДК",
+                                             "hours":  "Закрыто до вторника",
+                                             "phones":  [
+                                                            "+78652317257"
+                                                        ],
+                                             "address":  "ул. Мира, 285, Ставропольэтаж цокольный",
+                                             "website":  "https://dk-clinica.ru/stomatologiya",
+                                             "photoUrls":  [
+                                                               "https://avatars.mds.yandex.net/get-altay/19546938/2a0000019dde700b6a4a940275247874d359/S",
+                                                               "https://avatars.mds.yandex.net/get-altay/15394162/2a0000019c758c2465fd565b2566b0ef94e0/XXL_height",
+                                                               "https://avatars.mds.yandex.net/get-altay/20011141/2a0000019c758c5b7a1f0654d563cbf5e987/XXL_height",
+                                                               "https://avatars.mds.yandex.net/get-altay/19541413/2a0000019dbf57f52a71dc90364d5cadd0fd/XXL_height"
+                                                           ],
+                                             "sourceUrl":  "https://yandex.ru/maps/org/dk/239442305739/?ll=41.978381%2C45.038700\u0026z=16",
+                                             "categories":  [
+
+                                                            ],
+                                             "externalId":  "239442305739",
+                                             "coordinates":  {
+                                                                 "lat":  45.038891,
+                                                                 "lon":  41.978918
+                                                             }
+                                         },
+                                         {
+                                             "name":  "ДК",
+                                             "hours":  "Закрыто до завтра",
+                                             "phones":  [
+                                                            "+78652317257"
+                                                        ],
+                                             "address":  "ул. Пирогова, 5/1, Ставрополь",
+                                             "website":  "https://dk-clinica.ru/stomatologiya",
+                                             "photoUrls":  [
+                                                               "https://avatars.mds.yandex.net/get-altay/19546938/2a0000019dde700b6a4a940275247874d359/S",
+                                                               "https://avatars.mds.yandex.net/get-altay/19720204/2a0000019dbf4e406e0398b8a84be76637e9/XXL_height",
+                                                               "https://avatars.mds.yandex.net/get-altay/19613367/2a0000019dbf4e4cd63530b6797097a54459/XXL_height",
+                                                               "https://avatars.mds.yandex.net/get-altay/1970665/2a0000016ff04980c28bcaab03d2eeab5208/XXL_height",
+                                                               "https://avatars.mds.yandex.net/get-altay/18785127/2a0000019d86e8787326c8d54983b7f4955a/S"
+                                                           ],
+                                             "sourceUrl":  "https://yandex.ru/maps/org/dk/1761037489/?ll=41.915275%2C45.018946\u0026z=16",
+                                             "categories":  [
+
+                                                            ],
+                                             "externalId":  "1761037489",
+                                             "coordinates":  {
+                                                                 "lat":  45.018902,
+                                                                 "lon":  41.915354
+                                                             }
+                                         }
+                                     ],
+                   "deduplicatedCount":  3
+               },
+    "error":  null,
+    "progress":  100,
+    "createdAt":  "2026-10-25T20:28:28.534Z",
+    "updatedAt":  "2026-10-25T20:29:06.134Z",
+    "startedAt":  "2026-10-25T20:28:28.558Z",
+    "completedAt":  "2026-10-25T20:29:06.130Z",
+    "workerId":  "pc-2"
+}

@@ -8,6 +8,7 @@ use App\Models\ClinicPropertyType;
 use App\Models\District;
 use App\Models\Specialty;
 use App\Services\Audit;
+use App\Services\Monetization\ClinicSubscriptionService;
 use App\Services\ProfileMetrics;
 use App\Support\Schedule;
 use App\Support\Text;
@@ -75,6 +76,16 @@ class BranchController extends CabinetController
     public function store(Request $request): RedirectResponse
     {
         $org = $request->attributes->get('org');
+        $branchCount = Clinic::query()->where('organization_id', $org->id)->count();
+        $reference = Clinic::query()->where('organization_id', $org->id)->first();
+        if ($reference) {
+            $limitCheck = app(ClinicSubscriptionService::class)
+                ->canAddBranch($reference, $branchCount);
+            if (! $limitCheck['ok']) {
+                return back()->with('error', $limitCheck['message']);
+            }
+        }
+
         $data = $this->validated($request);
 
         $clinic = new Clinic($this->fields($data));
@@ -84,6 +95,7 @@ class BranchController extends CabinetController
         $clinic->art_seed = random_int(1, 12);
         $clinic->save();
         $clinic->specialties()->sync($data['specialty_ids'] ?? []);
+        app(ClinicSubscriptionService::class)->assignDefaultIfNeeded($clinic);
         app(ProfileMetrics::class)->recalcClinic($clinic);
 
         Audit::log('branch.created', $clinic);

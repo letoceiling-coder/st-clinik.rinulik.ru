@@ -1,7 +1,7 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { useEffect, useId, useState, type MouseEvent } from 'react';
 import { cx, doctorsWord, phoneHref, plural, priceFrom, reviewsWord } from '@/lib/format';
-import type { ClinicCardData } from '@/lib/types';
+import type { ClinicCardData, SharedProps } from '@/lib/types';
 import { CompareButton, FavoriteButton } from './CollectionButtons';
 import Icon, { type IconName } from './Icon';
 import { useLead } from './LeadContext';
@@ -9,6 +9,7 @@ import ClinicCardGallery from './ClinicCardGallery';
 import { DoctorArt } from './PhotoArt';
 import { Button, LinkButton } from './ui/Button';
 import { Badge } from './ui/Misc';
+import { Modal } from './ui/Overlay';
 
 function ClinicCardPrices({
     clinic,
@@ -145,6 +146,9 @@ function DoctorAvatarStack({
 }
 
 function promoOfferIcon(offer: ClinicCardData['promo_offers'][number]): IconName {
+    if (offer.icon && offer.icon in { user: 1, card: 1, percent: 1, sparkle: 1, flash: 1 }) {
+        return offer.icon as IconName;
+    }
     if (offer.id === 'free-consult' || offer.slug?.includes('konsultaciya')) {
         return 'user';
     }
@@ -169,7 +173,17 @@ function promoOfferIcon(offer: ClinicCardData['promo_offers'][number]): IconName
     return 'sparkle';
 }
 
-function ClinicCardPromoStrip({ offers, layout }: { offers: ClinicCardData['promo_offers']; layout: 'row' | 'tile' }) {
+function ClinicCardPromoStrip({
+    offers,
+    layout,
+    onSelect,
+    premiumGrid,
+}: {
+    offers: ClinicCardData['promo_offers'];
+    layout: 'row' | 'tile';
+    onSelect: (offer: ClinicCardData['promo_offers'][number]) => void;
+    premiumGrid?: boolean;
+}) {
     if (!offers?.length) {
         return null;
     }
@@ -178,15 +192,21 @@ function ClinicCardPromoStrip({ offers, layout }: { offers: ClinicCardData['prom
 
     return (
         <div
-            className={cx('clinic-card__promos', layout === 'tile' && 'clinic-card__promos--tile')}
+            className={cx(
+                'clinic-card__promos',
+                layout === 'tile' && 'clinic-card__promos--tile',
+                premiumGrid && 'clinic-card__promos--premium-grid',
+            )}
             aria-label="Акции и бонусы"
             data-count={visible.length}
         >
             <ul className="clinic-card__promos-list">
                 {visible.map((offer) => (
                     <li key={offer.id}>
-                        <Icon name={promoOfferIcon(offer)} size={14} aria-hidden />
-                        <span>{offer.title}</span>
+                        <button type="button" className="clinic-card__promo-btn" onClick={() => onSelect(offer)}>
+                            <Icon name={promoOfferIcon(offer)} size={14} aria-hidden />
+                            <span>{offer.title}</span>
+                        </button>
                     </li>
                 ))}
             </ul>
@@ -194,9 +214,26 @@ function ClinicCardPromoStrip({ offers, layout }: { offers: ClinicCardData['prom
     );
 }
 
-export function ClinicFeatures({ clinic, limit = 5 }: { clinic: ClinicCardData; limit?: number }) {
-    const items: { icon: Parameters<typeof Icon>[0]['name']; label: string }[] = [];
-    if (clinic.same_day) items.push({ icon: 'flash', label: 'Запись на сегодня' });
+export function ClinicFeatures({
+    clinic,
+    limit = 5,
+    onOfferClick,
+}: {
+    clinic: ClinicCardData;
+    limit?: number;
+    onOfferClick?: (offer: ClinicCardData['promo_offers'][number]) => void;
+}) {
+    const items: { icon: Parameters<typeof Icon>[0]['name']; label: string; offer?: ClinicCardData['promo_offers'][number] }[] = [];
+    if (clinic.same_day) {
+        const detail = clinic.same_day_offer;
+        items.push({
+            icon: 'flash',
+            label: detail?.title ?? 'Запись на сегодня',
+            offer: detail
+                ? { id: detail.code, code: detail.code, title: detail.title, description: detail.description, slug: null, icon: 'flash' }
+                : undefined,
+        });
+    }
     if (clinic.has_installment) items.push({ icon: 'percent', label: clinic.installment_months ? `Рассрочка до ${clinic.installment_months} мес.` : 'Рассрочка' });
     if (clinic.accepts_dms) items.push({ icon: 'shield', label: 'ДМС' });
     if (clinic.has_sedation) items.push({ icon: 'moon', label: 'Седация' });
@@ -207,8 +244,17 @@ export function ClinicFeatures({ clinic, limit = 5 }: { clinic: ClinicCardData; 
         <ul className="feature-list" aria-label="Особенности клиники">
             {items.slice(0, limit).map((i) => (
                 <li key={i.label}>
-                    <Icon name={i.icon} size={15} />
-                    {i.label}
+                    {i.offer && onOfferClick ? (
+                        <button type="button" className="feature-list__btn" onClick={() => onOfferClick(i.offer!)}>
+                            <Icon name={i.icon} size={15} />
+                            {i.label}
+                        </button>
+                    ) : (
+                        <>
+                            <Icon name={i.icon} size={15} />
+                            {i.label}
+                        </>
+                    )}
                 </li>
             ))}
         </ul>
@@ -227,9 +273,17 @@ export default function ClinicCard({
     interactive?: boolean;
 }) {
     const lead = useLead();
+    const { display } = usePage<SharedProps>().props;
+    const premiumSkinClass = display?.premium_clinic_card_class ?? 'clinic-card--premium-ivory';
+    const premiumVariant = display?.premium_clinic_card_variant ?? 'ivory_gold';
     const isTile = layout === 'tile';
     const href = `/clinics/${clinic.slug}`;
+    const isPremium = Boolean(clinic.card_premium);
+    const premiumLightLayout = premiumVariant === 'ivory_gold' || premiumVariant === 'avito_blue';
+    const premiumPromoGrid = isPremium && premiumLightLayout;
+    const premiumBookArrow = isPremium && premiumLightLayout;
     const [pricesOpen, setPricesOpen] = useState(false);
+    const [promoDetail, setPromoDetail] = useState<ClinicCardData['promo_offers'][number] | null>(null);
     const open = () =>
         lead.open({ slug: clinic.slug, name: clinic.name, phone: clinic.phone, source: 'catalog' });
 
@@ -240,6 +294,7 @@ export default function ClinicCard({
                 isTile && 'clinic-card--tile',
                 interactive && 'clinic-card--interactive',
                 pricesOpen && 'clinic-card--prices-open',
+                isPremium && premiumSkinClass,
             )}
             aria-labelledby={`clinic-${clinic.id}`}
         >
@@ -251,13 +306,36 @@ export default function ClinicCard({
                         {clinic.is_24_7 ? <Badge tone="dark">24/7</Badge> : null}
                         {clinic.accepts_children ? <Badge tone="primary">{clinic.children_age_from ? `Дети с ${clinic.children_age_from}` : 'Дети'}</Badge> : null}
                     </div>
+                    {isPremium ? (
+                        <div className="clinic-card__premium-badge" aria-label="Премиальное размещение">
+                            <span className="clinic-card__premium-badge-main">
+                                <Icon name="crown" size={13} aria-hidden />
+                                <span>Премиум</span>
+                            </span>
+                            <span className="clinic-card__premium-badge-sub">Премиум-размещение</span>
+                        </div>
+                    ) : null}
                 </div>
-                {!isTile ? <ClinicCardPromoStrip offers={clinic.promo_offers ?? []} layout={layout} /> : null}
+                {!isTile ? (
+                    <ClinicCardPromoStrip
+                        offers={clinic.promo_offers ?? []}
+                        layout={layout}
+                        onSelect={setPromoDetail}
+                        premiumGrid={premiumPromoGrid}
+                    />
+                ) : null}
             </div>
             <FavoriteButton type="clinic" id={clinic.id} name={clinic.name} />
 
             <div className="clinic-card__body">
-                {isTile ? <ClinicCardPromoStrip offers={clinic.promo_offers ?? []} layout={layout} /> : null}
+                {isTile ? (
+                    <ClinicCardPromoStrip
+                        offers={clinic.promo_offers ?? []}
+                        layout={layout}
+                        onSelect={setPromoDetail}
+                        premiumGrid={premiumPromoGrid}
+                    />
+                ) : null}
                 <div className="clinic-card__summary">
                     <div className="clinic-card__head">
                         <h3 id={`clinic-${clinic.id}`} className="clinic-card__title">
@@ -283,7 +361,7 @@ export default function ClinicCard({
                     <div className="clinic-card__flags">
                         {clinic.is_promoted ? (
                             <Badge tone="warning" icon="sparkle">
-                                Рекомендуем
+                                Реклама
                             </Badge>
                         ) : null}
                         {clinic.is_verified ? (
@@ -322,7 +400,7 @@ export default function ClinicCard({
                 />
 
                 <div className="clinic-card__extras">
-                    <ClinicFeatures clinic={clinic} limit={isTile ? 3 : 5} />
+                    <ClinicFeatures clinic={clinic} limit={isTile ? 3 : 5} onOfferClick={setPromoDetail} />
 
                     {!isTile && clinic.doctors_preview.length > 0 ? (
                         <div className="clinic-card__doctors">
@@ -348,12 +426,24 @@ export default function ClinicCard({
                                 <Icon name="phone" size={20} />
                             </a>
                         ) : null}
-                        <Button size={isTile ? 'sm' : 'md'} onClick={open}>
+                        <Button
+                            size={isTile ? 'sm' : 'md'}
+                            onClick={open}
+                            iconRight={premiumBookArrow ? 'arrow-right' : undefined}
+                        >
                             Записаться
                         </Button>
                     </div>
                 </div>
             </div>
+
+            <Modal open={promoDetail !== null} onClose={() => setPromoDetail(null)} title={promoDetail?.title ?? 'Акция'}>
+                <p className="text-muted">{promoDetail?.description || 'Подробности уточняйте при записи в клинику.'}</p>
+                <div className="row row--wrap" style={{ marginTop: 16 }}>
+                    <Button type="button" onClick={() => { setPromoDetail(null); open(); }}>Записаться</Button>
+                    <LinkButton href={href} variant="outline" onClick={() => setPromoDetail(null)}>О клинике</LinkButton>
+                </div>
+            </Modal>
         </article>
     );
 }

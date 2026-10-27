@@ -4,7 +4,7 @@
 return [
     ['verified', 'Клиника проверена', 'Возможности', 'boolean', 'is_verified', null, 10, true, false],
     ['is_24_7', 'Круглосуточно', 'Возможности', 'boolean', 'is_24_7', null, 20, true, false],
-    ['same_day', 'Запись на сегодня', 'Возможности', 'boolean', 'same_day', null, 30, true, false],
+    ['same_day', 'Запись на сегодня', 'Возможности', 'same_day', 'same_day', null, 30, true, false],
     ['detskaya', 'Детская стоматология', 'Направление', 'specialty', null, 'detskaya', 40, true, false],
     ['installment', 'Рассрочка', 'Оплата', 'boolean', 'has_installment', null, 50, true, true],
     ['partial_payment', 'Оплата частями', 'Оплата', 'boolean', 'has_partial_payment', null, 60, true, true],

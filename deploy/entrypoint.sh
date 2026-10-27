@@ -8,6 +8,12 @@ if [ ! -f .env ]; then
     exit 1
 fi
 
+# queue / scheduler share the image but must not run migrations or touch the public volume.
+if [ "${CONTAINER_ROLE:-app}" != "app" ]; then
+    php artisan config:cache
+    exec docker-php-entrypoint "$@"
+fi
+
 if ! grep -q '^APP_KEY=base64:' .env; then
     php artisan key:generate --force
 fi

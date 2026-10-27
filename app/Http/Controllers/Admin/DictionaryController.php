@@ -7,16 +7,19 @@ use App\Models\ClinicPropertyType;
 use App\Models\CmsPage;
 use App\Models\Concern;
 use App\Models\District;
+use App\Models\Region;
 use App\Models\SeoTemplate;
 use App\Models\Service;
 use App\Models\Specialty;
 use App\Repositories\Contracts\CatalogRepository;
 use App\Services\Audit;
 use App\Services\Seo;
+use App\Support\SpecialtyCover;
 use App\Support\Text;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Response;
 
@@ -33,20 +36,35 @@ class DictionaryController extends AdminController
     {
         $specialtyOptions = fn () => Specialty::orderBy('name')->get(['id', 'name'])->map(fn ($s) => ['value' => $s->id, 'label' => $s->name])->all();
 
+        $regionOptions = fn () => Region::orderBy('name')->get(['id', 'name'])->map(fn ($r) => ['value' => $r->id, 'label' => $r->name])->all();
+
         return [
+            'regions' => [
+                'title' => 'Регионы', 'perm' => 'admin.dictionaries', 'model' => Region::class, 'search' => ['name'],
+                'columns' => ['name', 'slug', 'is_active'], 'order' => ['sort', 'asc'],
+                'fields' => [
+                    ['name' => 'name', 'label' => 'Название', 'type' => 'text', 'required' => true],
+                    ['name' => 'slug', 'label' => 'Slug', 'type' => 'text'],
+                    ['name' => 'sort', 'label' => 'Порядок', 'type' => 'number'],
+                    ['name' => 'is_active', 'label' => 'Активен', 'type' => 'checkbox'],
+                ],
+                'rules' => ['name' => 'required|string|max:120', 'slug' => self::SLUG, 'sort' => 'nullable|integer|min:0|max:9999', 'is_active' => 'boolean'],
+                'in_use' => fn (Region $r) => $r->cities()->exists() ? 'В регионе есть города — сначала перенесите их.' : null,
+            ],
             'cities' => [
                 'title' => 'Города', 'perm' => 'admin.dictionaries', 'model' => City::class, 'search' => ['name', 'region'],
-                'columns' => ['name', 'region', 'population', 'is_active'], 'order' => ['sort', 'asc'],
+                'columns' => ['name', 'region_id', 'population', 'is_active'], 'order' => ['sort', 'asc'],
                 'fields' => [
                     ['name' => 'name', 'label' => 'Название', 'type' => 'text', 'required' => true],
                     ['name' => 'name_in', 'label' => 'Предложный падеж («в Москве»)', 'type' => 'text'],
                     ['name' => 'slug', 'label' => 'Slug (URL)', 'type' => 'text', 'help' => 'Латиницей; если пусто — сформируется автоматически.'],
-                    ['name' => 'region', 'label' => 'Регион', 'type' => 'text'],
+                    ['name' => 'region_id', 'label' => 'Регион', 'type' => 'select', 'options' => $regionOptions()],
+                    ['name' => 'region', 'label' => 'Регион (текст, legacy)', 'type' => 'text'],
                     ['name' => 'population', 'label' => 'Население', 'type' => 'number'],
                     ['name' => 'sort', 'label' => 'Порядок', 'type' => 'number'],
                     ['name' => 'is_active', 'label' => 'Показывать', 'type' => 'checkbox'],
                 ],
-                'rules' => ['name' => 'required|string|max:120', 'name_in' => 'nullable|string|max:120', 'slug' => self::SLUG, 'region' => 'nullable|string|max:120', 'population' => 'nullable|integer|min:0', 'sort' => 'nullable|integer|min:0|max:9999', 'is_active' => 'boolean'],
+                'rules' => ['name' => 'required|string|max:120', 'name_in' => 'nullable|string|max:120', 'slug' => self::SLUG, 'region_id' => 'nullable|exists:regions,id', 'region' => 'nullable|string|max:120', 'population' => 'nullable|integer|min:0', 'sort' => 'nullable|integer|min:0|max:9999', 'is_active' => 'boolean'],
                 'in_use' => fn (City $c) => $c->clinics()->exists() ? 'В городе есть клиники — сначала перенесите или удалите их.' : null,
             ],
             'districts' => [
@@ -61,11 +79,19 @@ class DictionaryController extends AdminController
             ],
             'specialties' => [
                 'title' => 'Направления', 'perm' => 'admin.dictionaries', 'model' => Specialty::class, 'search' => ['name'],
-                'columns' => ['name', 'short', 'is_active'], 'order' => ['sort', 'asc'],
+                'columns' => [
+                    ['name' => 'cover_url', 'label' => 'Фото', 'type' => 'image'],
+                    'name', 'short', 'is_active',
+                ],
+                'order' => ['sort', 'asc'],
+                'present' => fn (Specialty $s) => ['cover_url' => SpecialtyCover::url($s->cover_path)],
+                'files' => [
+                    'cover' => ['column' => 'cover_path', 'directory' => 'specialty-covers', 'rules' => 'nullable|image|max:5120'],
+                ],
                 'fields' => [
                     ['name' => 'name', 'label' => 'Название', 'type' => 'text', 'required' => true],
-                    ['name' => 'slug', 'label' => 'Slug (URL)', 'type' => 'text'],
-                    ['name' => 'icon', 'label' => 'Иконка', 'type' => 'text', 'help' => 'Ключ иконки интерфейса, например tooth, implant, braces.'],
+                    ['name' => 'slug', 'label' => 'URL (slug)', 'type' => 'slug', 'help' => 'При создании формируется автоматически из названия с проверкой уникальности.'],
+                    ['name' => 'cover', 'label' => 'Обложка для карточки', 'type' => 'image', 'help' => 'JPG или PNG до 5 МБ. Показывается в карусели «Направления стоматологии» на главной.'],
                     ['name' => 'short', 'label' => 'Короткое описание', 'type' => 'text'],
                     ['name' => 'description', 'label' => 'Описание', 'type' => 'textarea'],
                     ['name' => 'when_to_apply', 'label' => 'Когда обращаются', 'type' => 'textarea'],
@@ -73,7 +99,7 @@ class DictionaryController extends AdminController
                     ['name' => 'sort', 'label' => 'Порядок', 'type' => 'number'],
                     ['name' => 'is_active', 'label' => 'Показывать', 'type' => 'checkbox'],
                 ],
-                'rules' => ['name' => 'required|string|max:120', 'slug' => self::SLUG, 'icon' => 'nullable|string|max:40', 'short' => 'nullable|string|max:200', 'description' => 'nullable|string|max:3000', 'when_to_apply' => 'nullable|string|max:3000', 'restrictions' => 'nullable|string|max:3000', 'sort' => 'nullable|integer|min:0|max:9999', 'is_active' => 'boolean'],
+                'rules' => ['name' => 'required|string|max:120', 'slug' => self::SLUG, 'short' => 'nullable|string|max:200', 'description' => 'nullable|string|max:3000', 'when_to_apply' => 'nullable|string|max:3000', 'restrictions' => 'nullable|string|max:3000', 'sort' => 'nullable|integer|min:0|max:9999', 'is_active' => 'boolean'],
                 'in_use' => fn (Specialty $s) => ($s->services()->exists() || $s->doctors()->exists() || $s->clinics()->exists()) ? 'Направление используется (услуги, врачи или клиники). Скройте его вместо удаления.' : null,
             ],
             'services' => [
@@ -101,6 +127,7 @@ class DictionaryController extends AdminController
                     ['name' => 'group', 'label' => 'Группа в фильтре', 'type' => 'text', 'help' => 'Например: Оплата, Оборудование, Возможности.'],
                     ['name' => 'filter_kind', 'label' => 'Тип фильтра', 'type' => 'select', 'required' => true, 'options' => [
                         ['value' => 'boolean', 'label' => 'Флаг клиники (boolean)'],
+                        ['value' => 'same_day', 'label' => 'Запись на сегодня (флаг + календарь на карточке)'],
                         ['value' => 'specialty', 'label' => 'Направление (specialty slug)'],
                         ['value' => 'sort', 'label' => 'Сортировка'],
                         ['value' => 'achievement', 'label' => 'Есть достижения'],
@@ -187,16 +214,21 @@ class DictionaryController extends AdminController
         $model = $def['model'];
 
         $page = $model::query()
-            ->when($q !== '', fn ($b) => $b->where(fn ($w) => collect($def['search'])->each(fn ($col) => $w->orWhere($col, 'like', "%$q%"))))
+            ->when($q !== '', fn ($b) => $b->where(fn ($w) => collect($def['search'])->each(fn ($col) => $w->orWhereLike($col, "%$q%"))))
             ->orderBy(...$def['order'])->paginate(25)->withQueryString();
 
         $names = collect($def['fields'])->pluck('name')->all();
         $syncs = $def['sync'] ?? [];
 
-        $rows = $page->through(function (Model $m) use ($names, $syncs) {
+        $present = $def['present'] ?? null;
+
+        $rows = $page->through(function (Model $m) use ($names, $syncs, $present) {
             $row = ['id' => $m->getKey()];
             foreach ($names as $n) {
                 $row[$n] = isset($syncs[$n]) ? $m->{$syncs[$n]}()->pluck('id')->values() : $m->getAttribute($n);
+            }
+            if ($present) {
+                $row = array_merge($row, $present($m));
             }
 
             return $row;
@@ -209,6 +241,9 @@ class DictionaryController extends AdminController
             'resource' => $resource,
             'title' => $def['title'],
             'columns' => collect($def['columns'])->map(function ($c) use ($def) {
+                if (is_array($c)) {
+                    return $c;
+                }
                 $f = collect($def['fields'])->firstWhere('name', $c);
 
                 return ['name' => $c, 'label' => $f['label'] ?? $c, 'type' => $f['type'] ?? 'text'];
@@ -274,6 +309,8 @@ class DictionaryController extends AdminController
             $data['slug'] = $this->uniqueSlug($def['model'], $data['slug'], $model->getKey(), $data['city_id'] ?? null);
         }
 
+        $this->handleUploads($request, $def, $model, $data);
+
         $model->fill($data)->save();
         foreach ($sync as $relation => $ids) {
             $model->{$relation}()->sync($ids);
@@ -304,5 +341,39 @@ class DictionaryController extends AdminController
         ClinicPropertyType::flushCache();
         app(CatalogRepository::class)->flush();
         Seo::flush();
+    }
+
+    /** @param array<string,mixed> $def */
+    /** @param array<string,mixed> $data */
+    private function handleUploads(Request $request, array $def, Model $model, array &$data): void
+    {
+        foreach ($def['files'] ?? [] as $field => $cfg) {
+            $column = $cfg['column'] ?? $field.'_path';
+
+            if ($request->boolean('remove_'.$field)) {
+                $this->deleteStoredPath($model->getAttribute($column));
+                $data[$column] = null;
+
+                continue;
+            }
+
+            if (! $request->hasFile($field)) {
+                continue;
+            }
+
+            Validator::make($request->all(), [
+                $field => $cfg['rules'] ?? 'nullable|image|max:5120',
+            ])->validate();
+
+            $this->deleteStoredPath($model->getAttribute($column));
+            $data[$column] = $request->file($field)->store($cfg['directory'] ?? $field.'s', $cfg['disk'] ?? 'public');
+        }
+    }
+
+    private function deleteStoredPath(mixed $path): void
+    {
+        if (is_string($path) && $path !== '') {
+            Storage::disk('public')->delete($path);
+        }
     }
 }

@@ -1,6 +1,7 @@
 import { router, usePage } from '@inertiajs/react';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
+import { AnalyticsEvents, trackAnalyticsEvent } from '@/lib/analytics';
 import { cx } from '@/lib/format';
 import type { SharedProps } from '@/lib/types';
 import Icon, { type IconName } from './Icon';
@@ -92,6 +93,7 @@ export default function SearchBox({
         if (!query) return;
         setOpen(false);
         onDone?.();
+        trackAnalyticsEvent(AnalyticsEvents.search, { q: query }, city?.slug ?? null);
         router.get('/search', { q: query });
     };
 

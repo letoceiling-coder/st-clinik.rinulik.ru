@@ -11,6 +11,22 @@ final class Schedule
         return array_keys(self::DAYS)[(int) now()->format('N') - 1];
     }
 
+    public static function weekdayKey(\DateTimeInterface $date): string
+    {
+        return array_keys(self::DAYS)[(int) $date->format('N') - 1];
+    }
+
+    public static function timeToMinutes(string $time): int
+    {
+        if ($time === '24:00') {
+            return 24 * 60;
+        }
+
+        [$hours, $minutes] = array_map('intval', explode(':', $time));
+
+        return $hours * 60 + $minutes;
+    }
+
     public static function hours(?array $day): string
     {
         if (! $day) {

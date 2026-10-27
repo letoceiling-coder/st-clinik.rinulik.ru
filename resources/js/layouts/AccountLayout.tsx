@@ -5,14 +5,15 @@ import { cx } from '@/lib/format';
 import type { SharedProps } from '@/lib/types';
 import PublicLayout from './PublicLayout';
 
-const ITEMS: { href: string; label: string; icon: IconName; exact?: boolean }[] = [
+const ITEMS: { href: string; label: string; icon: IconName; exact?: boolean; shortLabel?: string }[] = [
     { href: '/account', label: 'Обзор', icon: 'home', exact: true },
-    { href: '/account/leads', label: 'Заявки и записи', icon: 'calendar' },
+    { href: '/account/appointments', label: 'Мои записи', shortLabel: 'Записи', icon: 'calendar' },
+    { href: '/account/leads', label: 'Заявки на звонок', shortLabel: 'Заявки', icon: 'phone' },
     { href: '/account/favorites', label: 'Избранное', icon: 'heart' },
     { href: '/account/compare', label: 'Сравнение', icon: 'scale' },
-    { href: '/account/history', label: 'История просмотров', icon: 'clock' },
-    { href: '/account/reviews', label: 'Мои отзывы', icon: 'thumb' },
-    { href: '/account/notifications', label: 'Уведомления', icon: 'bell' },
+    { href: '/account/history', label: 'История просмотров', shortLabel: 'История', icon: 'clock' },
+    { href: '/account/reviews', label: 'Мои отзывы', shortLabel: 'Отзывы', icon: 'thumb' },
+    { href: '/account/notifications', label: 'Уведомления', shortLabel: 'Уведомл.', icon: 'bell' },
     { href: '/account/profile', label: 'Профиль', icon: 'settings' },
 ];
 
@@ -36,7 +37,16 @@ export default function AccountLayout({ children }: { children: ReactNode }) {
                             return (
                                 <Link key={i.href} href={i.href} className={cx('account__link', active && 'is-active')} aria-current={active ? 'page' : undefined}>
                                     <Icon name={i.icon} size={20} />
-                                    <span>{i.label}</span>
+                                    <span className="account__link-label">
+                                        {i.shortLabel ? (
+                                            <>
+                                                <span className="account__link-label-full">{i.label}</span>
+                                                <span className="account__link-label-short">{i.shortLabel}</span>
+                                            </>
+                                        ) : (
+                                            i.label
+                                        )}
+                                    </span>
                                     {i.href === '/account/notifications' && auth.user?.unread ? <span className="count-badge count-badge--inline">{auth.user.unread}</span> : null}
                                 </Link>
                             );

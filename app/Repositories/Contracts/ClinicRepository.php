@@ -22,6 +22,9 @@ interface ClinicRepository
     /** @return Collection<int,Clinic> */
     public function top(int $cityId, int $limit = 6): Collection;
 
+    /** Клиники для блока на главной (сначала с отзывами, единая сортировка для подгрузки). */
+    public function rankedForHome(int $cityId, int $limit, int $offset = 0): Collection;
+
     /** @return Collection<int,Clinic> */
     public function similar(Clinic $clinic, int $limit = 4): Collection;
 
