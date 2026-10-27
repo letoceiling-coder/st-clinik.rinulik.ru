@@ -5,7 +5,7 @@ import { D as Modal, i as useCity, m as SectionHead, v as Check } from "../app.j
 import { t as ClinicCard } from "./ClinicCard-Bllv53MX.js";
 import { t as DoctorCard } from "./DoctorCard-BEvXP41U.js";
 import { t as AdSlot } from "./AdSlot-CNgFa8UC.js";
-import { t as YandexMap } from "./YandexMap-C6dAMdKT.js";
+import { t as YandexMap } from "./YandexMap-CVmtcJ5u.js";
 import { t as ReviewCard } from "./ReviewCard-DG9IImq4.js";
 import { n as SpecialtyCircles, t as ConcernChips } from "./Tiles-D7oUyG79.js";
 import { Link, router } from "@inertiajs/react";
@@ -590,4 +590,4 @@ function Home({ home_map_active, home_map_clinics, stats, concerns, popular_serv
 //#endregion
 export { Home as default };
 
-//# sourceMappingURL=Home-eTqYBo2-.js.map
+//# sourceMappingURL=Home-CnC52e86.js.map

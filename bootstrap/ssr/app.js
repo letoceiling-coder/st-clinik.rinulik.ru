@@ -1516,6 +1516,441 @@ function useClientSeo() {
 	]);
 }
 //#endregion
+//#region resources/js/components/AssistantLeadPanel.tsx
+function xsrfToken$2() {
+	const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+	return match ? decodeURIComponent(match[1]) : "";
+}
+function slugFromClinicUrl(url) {
+	return url.match(/\/clinics\/([^/?#]+)/)?.[1] ?? null;
+}
+function clinicChoicesFromMessages(messages) {
+	const map = /* @__PURE__ */ new Map();
+	for (const msg of messages) for (const link of msg.links ?? []) {
+		const slug = slugFromClinicUrl(link.url);
+		if (slug && !map.has(slug)) map.set(slug, link.label);
+	}
+	return [...map.entries()].map(([slug, label]) => ({
+		slug,
+		label
+	}));
+}
+function AssistantLeadPanel({ conversationId, clinics, onClose, onSuccess }) {
+	const { auth } = usePage().props;
+	const [clinic, setClinic] = useState(clinics[0]?.slug ?? "");
+	const [name, setName] = useState(auth.user?.name ?? "");
+	const [phone, setPhone] = useState("");
+	const [comment, setComment] = useState("");
+	const [consent, setConsent] = useState(false);
+	const [broadcast, setBroadcast] = useState(false);
+	const [busy, setBusy] = useState(false);
+	const [error, setError] = useState(null);
+	const clinicOptions = useMemo(() => clinics, [clinics]);
+	const submit = async (e) => {
+		e.preventDefault();
+		if (!conversationId) {
+			setError("Сначала задайте вопрос ассистенту, чтобы начать диалог.");
+			return;
+		}
+		if (!broadcast && !clinic) {
+			setError("Выберите клинику из списка или отметьте «Любая клиника города».");
+			return;
+		}
+		setBusy(true);
+		setError(null);
+		try {
+			const res = await fetch("/api/v1/assistant/lead", {
+				method: "POST",
+				credentials: "same-origin",
+				headers: {
+					Accept: "application/json",
+					"Content-Type": "application/json",
+					"X-XSRF-TOKEN": xsrfToken$2()
+				},
+				body: JSON.stringify({
+					conversation_id: conversationId,
+					clinic: broadcast ? clinic || void 0 : clinic,
+					broadcast,
+					name,
+					phone,
+					comment: comment || void 0,
+					consent: consent ? true : void 0
+				})
+			});
+			const data = await res.json();
+			if (!res.ok) {
+				const first = data.errors ? Object.values(data.errors).flat()[0] : data.message;
+				throw new Error(first ?? "Не удалось отправить заявку");
+			}
+			onSuccess(data.message ?? "Заявка отправлена.");
+			onClose();
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Ошибка сети");
+		} finally {
+			setBusy(false);
+		}
+	};
+	return /* @__PURE__ */ jsxs("form", {
+		className: "assistant-lead",
+		onSubmit: (e) => void submit(e),
+		children: [
+			/* @__PURE__ */ jsx("p", {
+				className: "text-sm text-muted",
+				children: "Клиника перезвонит для подтверждения. Для выбора времени сразу — онлайн-запись в карточке клиники."
+			}),
+			/* @__PURE__ */ jsx(Check, {
+				label: "Любая подходящая клиника города (заявку получат несколько клиник)",
+				checked: broadcast,
+				onChange: (e) => setBroadcast(e.target.checked)
+			}),
+			clinicOptions.length && !broadcast ? /* @__PURE__ */ jsx(SelectField, {
+				label: "Клиника",
+				value: clinic,
+				onChange: (e) => setClinic(e.target.value),
+				required: true,
+				children: clinicOptions.map((c) => /* @__PURE__ */ jsx("option", {
+					value: c.slug,
+					children: c.label
+				}, c.slug))
+			}) : !broadcast ? /* @__PURE__ */ jsx(TextField, {
+				label: "Slug клиники",
+				value: clinic,
+				onChange: (e) => setClinic(e.target.value),
+				placeholder: "из ссылки каталога",
+				required: true
+			}) : null,
+			/* @__PURE__ */ jsx(TextField, {
+				label: "Имя",
+				value: name,
+				onChange: (e) => setName(e.target.value),
+				required: true,
+				autoComplete: "name"
+			}),
+			/* @__PURE__ */ jsx(PhoneField, {
+				label: "Телефон",
+				value: phone,
+				onChange: (e) => setPhone(e.target.value),
+				required: true
+			}),
+			/* @__PURE__ */ jsx(TextArea, {
+				label: "Комментарий",
+				value: comment,
+				onChange: (e) => setComment(e.target.value),
+				rows: 2,
+				maxLength: 300
+			}),
+			/* @__PURE__ */ jsx(Check, {
+				label: broadcast ? "Согласие: контакты будут переданы нескольким клиникам города для обратного звонка" : "Согласие на обработку персональных данных",
+				checked: consent,
+				onChange: (e) => setConsent(e.target.checked)
+			}),
+			error ? /* @__PURE__ */ jsx("p", {
+				className: "text-sm assistant-lead__error",
+				children: error
+			}) : null,
+			/* @__PURE__ */ jsxs("div", {
+				className: "assistant-lead__actions",
+				children: [/* @__PURE__ */ jsx(Button, {
+					type: "button",
+					variant: "ghost",
+					size: "sm",
+					onClick: onClose,
+					children: "Отмена"
+				}), /* @__PURE__ */ jsx(Button, {
+					type: "submit",
+					size: "sm",
+					disabled: busy || !consent,
+					children: "Отправить"
+				})]
+			})
+		]
+	});
+}
+//#endregion
+//#region resources/js/lib/assistant-stream.ts
+function parseSseBlock(block) {
+	const lines = block.split("\n");
+	let event = "message";
+	let data = "";
+	for (const line of lines) if (line.startsWith("event:")) event = line.slice(6).trim();
+	else if (line.startsWith("data:")) data += line.slice(5).trim();
+	if (data === "") return null;
+	return {
+		event,
+		data
+	};
+}
+async function postAssistantMessageStream(url, body, headers, onChunk) {
+	const res = await fetch(url, {
+		method: "POST",
+		credentials: "same-origin",
+		headers: {
+			Accept: "text/event-stream",
+			"Content-Type": "application/json",
+			...headers
+		},
+		body: JSON.stringify(body)
+	});
+	if (!res.ok) {
+		const err = await res.json().catch(() => ({}));
+		throw new Error(err.message ?? "Не удалось отправить сообщение");
+	}
+	const reader = res.body?.getReader();
+	if (!reader) throw new Error("Поток недоступен");
+	const decoder = new TextDecoder();
+	let buffer = "";
+	let donePayload = null;
+	while (true) {
+		const { done, value } = await reader.read();
+		if (done) break;
+		buffer += decoder.decode(value, { stream: true });
+		const parts = buffer.split("\n\n");
+		buffer = parts.pop() ?? "";
+		for (const part of parts) {
+			const parsed = parseSseBlock(part.trim());
+			if (!parsed) continue;
+			const json = JSON.parse(parsed.data);
+			if (parsed.event === "chunk" && typeof json.text === "string") onChunk(json.text);
+			if (parsed.event === "done") donePayload = json;
+			if (parsed.event === "error") throw new Error(typeof json.message === "string" ? json.message : "Ошибка ассистента");
+		}
+	}
+	if (!donePayload) throw new Error("Ответ оборвался");
+	return donePayload;
+}
+//#endregion
+//#region resources/js/components/AssistantWidget.tsx
+function xsrfToken$1() {
+	const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+	return match ? decodeURIComponent(match[1]) : "";
+}
+function AssistantWidget() {
+	const { assistant } = usePage().props;
+	const streamResponses = assistant?.stream_responses !== false;
+	const [open, setOpen] = useState(false);
+	const [messages, setMessages] = useState([]);
+	const [input, setInput] = useState("");
+	const [busy, setBusy] = useState(false);
+	const [conversationId, setConversationId] = useState(null);
+	const [isMock, setIsMock] = useState(true);
+	const [showLead, setShowLead] = useState(false);
+	const listRef = useRef(null);
+	const [quickReplies, setQuickReplies] = useState([]);
+	const clinicChoices = useMemo(() => clinicChoicesFromMessages(messages), [messages]);
+	useEffect(() => {
+		if (open && messages.length === 0 && assistant?.greeting) setMessages([{
+			role: "assistant",
+			text: assistant.greeting
+		}]);
+	}, [
+		open,
+		assistant?.greeting,
+		messages.length
+	]);
+	useEffect(() => {
+		listRef.current?.scrollTo({
+			top: listRef.current.scrollHeight,
+			behavior: "smooth"
+		});
+	}, [
+		messages,
+		open,
+		showLead
+	]);
+	const send = useCallback(async (text) => {
+		const trimmed = text.trim();
+		if (!trimmed || busy) return;
+		setInput("");
+		setShowLead(false);
+		setMessages((m) => [...m, {
+			role: "user",
+			text: trimmed
+		}]);
+		setBusy(true);
+		try {
+			const headers = { "X-XSRF-TOKEN": xsrfToken$1() };
+			if (streamResponses) {
+				setMessages((m) => [...m, {
+					role: "assistant",
+					text: ""
+				}]);
+				const data = await postAssistantMessageStream("/api/v1/assistant/message/stream", {
+					message: trimmed,
+					conversation_id: conversationId
+				}, headers, (piece) => {
+					setMessages((m) => {
+						const copy = [...m];
+						const last = copy[copy.length - 1];
+						if (last?.role === "assistant") copy[copy.length - 1] = {
+							...last,
+							text: last.text + piece
+						};
+						return copy;
+					});
+				});
+				if (data.conversation_id) setConversationId(data.conversation_id);
+				if (typeof data.mock === "boolean") setIsMock(data.mock);
+				setMessages((m) => {
+					const copy = [...m];
+					const last = copy[copy.length - 1];
+					if (last?.role === "assistant") copy[copy.length - 1] = {
+						...last,
+						text: data.reply ?? last.text,
+						links: data.links
+					};
+					return copy;
+				});
+				if (data.suggestions?.length) setQuickReplies(data.suggestions);
+			} else {
+				const res = await fetch("/api/v1/assistant/message", {
+					method: "POST",
+					credentials: "same-origin",
+					headers: {
+						Accept: "application/json",
+						"Content-Type": "application/json",
+						...headers
+					},
+					body: JSON.stringify({
+						message: trimmed,
+						conversation_id: conversationId
+					})
+				});
+				const data = await res.json();
+				if (!res.ok) throw new Error(data.message ?? "Не удалось отправить сообщение");
+				if (data.conversation_id) setConversationId(data.conversation_id);
+				if (typeof data.mock === "boolean") setIsMock(data.mock);
+				setMessages((m) => [...m, {
+					role: "assistant",
+					text: data.reply ?? "…",
+					links: data.links
+				}]);
+				if (data.suggestions?.length) setQuickReplies(data.suggestions);
+			}
+		} catch (e) {
+			setMessages((m) => [...m, {
+				role: "assistant",
+				text: e instanceof Error ? e.message : "Ошибка сети. Попробуйте позже."
+			}]);
+		} finally {
+			setBusy(false);
+		}
+	}, [
+		busy,
+		conversationId,
+		streamResponses
+	]);
+	if (!assistant?.enabled) return null;
+	return /* @__PURE__ */ jsxs(Fragment, { children: [!open ? /* @__PURE__ */ jsx("button", {
+		type: "button",
+		className: "assistant-fab",
+		"aria-label": "Открыть ассистента",
+		onClick: () => {
+			setOpen(true);
+			trackAnalyticsEvent(AnalyticsEvents.assistantOpen);
+		},
+		children: /* @__PURE__ */ jsx(Icon, {
+			name: "send",
+			size: 26
+		})
+	}) : null, /* @__PURE__ */ jsxs("div", {
+		className: cx("assistant-panel", open && "is-open"),
+		role: "dialog",
+		"aria-label": "AI-ассистент",
+		children: [
+			/* @__PURE__ */ jsxs("header", {
+				className: "assistant-panel__head",
+				children: [/* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx("strong", { children: "AI-ассистент" }), /* @__PURE__ */ jsxs("p", {
+					className: "text-xs text-muted",
+					children: [isMock ? "Каталог + шаблоны" : "OpenRouter", " · без диагнозов"]
+				})] }), /* @__PURE__ */ jsxs("div", {
+					className: "assistant-panel__head-actions",
+					children: [/* @__PURE__ */ jsx("button", {
+						type: "button",
+						className: "assistant-chip assistant-chip--head",
+						disabled: busy,
+						onClick: () => setShowLead((v) => !v),
+						children: "Заявка"
+					}), /* @__PURE__ */ jsx("button", {
+						type: "button",
+						className: "icon-link",
+						"aria-label": "Закрыть",
+						onClick: () => setOpen(false),
+						children: /* @__PURE__ */ jsx(Icon, {
+							name: "x",
+							size: 22
+						})
+					})]
+				})]
+			}),
+			/* @__PURE__ */ jsxs("div", {
+				className: "assistant-panel__messages",
+				ref: listRef,
+				children: [messages.map((m, i) => /* @__PURE__ */ jsxs("div", {
+					className: cx("assistant-bubble", m.role === "user" && "is-user"),
+					children: [/* @__PURE__ */ jsx("p", {
+						className: "assistant-bubble__text",
+						children: m.text
+					}), m.links?.length ? /* @__PURE__ */ jsx("ul", {
+						className: "assistant-bubble__links",
+						children: m.links.map((l) => /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsx("a", {
+							href: l.url,
+							target: "_blank",
+							rel: "noreferrer",
+							children: l.label
+						}) }, l.url))
+					}) : null]
+				}, i)), busy ? /* @__PURE__ */ jsx("p", {
+					className: "text-sm text-muted assistant-typing",
+					children: "Печатает…"
+				}) : null]
+			}),
+			showLead ? /* @__PURE__ */ jsx(AssistantLeadPanel, {
+				conversationId,
+				clinics: clinicChoices,
+				onClose: () => setShowLead(false),
+				onSuccess: (text) => setMessages((m) => [...m, {
+					role: "assistant",
+					text
+				}])
+			}) : null,
+			!showLead && assistant.disclaimer ? /* @__PURE__ */ jsx("p", {
+				className: "assistant-panel__note text-xs text-muted",
+				children: assistant.disclaimer
+			}) : null,
+			!showLead && quickReplies.length ? /* @__PURE__ */ jsx("div", {
+				className: "assistant-panel__chips",
+				children: quickReplies.slice(0, 4).map((s) => /* @__PURE__ */ jsx("button", {
+					type: "button",
+					className: "assistant-chip",
+					disabled: busy,
+					onClick: () => void send(s),
+					children: s
+				}, s))
+			}) : null,
+			!showLead ? /* @__PURE__ */ jsxs("form", {
+				className: "assistant-panel__form",
+				onSubmit: (e) => {
+					e.preventDefault();
+					send(input);
+				},
+				children: [/* @__PURE__ */ jsx("input", {
+					type: "text",
+					value: input,
+					onChange: (e) => setInput(e.target.value),
+					placeholder: "Спросите о клиниках или записи…",
+					maxLength: 2e3,
+					disabled: busy
+				}), /* @__PURE__ */ jsx(Button, {
+					type: "submit",
+					size: "sm",
+					disabled: busy || !input.trim(),
+					children: "Отправить"
+				})]
+			}) : null
+		]
+	})] });
+}
+//#endregion
 //#region resources/js/components/InstallAppButton.tsx
 /** variant="menu" — строка в мобильном меню вместо иконки в шапке. */
 function InstallAppButton({ className, variant = "icon" }) {
@@ -1658,7 +2093,7 @@ function CitySelectModal({ open, onClose, cities, currentSlug, onPick, title = "
 }
 //#endregion
 //#region resources/js/components/CityPrompt.tsx
-function xsrfToken$2() {
+function xsrfToken() {
 	const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
 	return match ? decodeURIComponent(match[1]) : "";
 }
@@ -1706,7 +2141,7 @@ function CityPrompt() {
 					headers: {
 						Accept: "application/json",
 						"Content-Type": "application/json",
-						"X-XSRF-TOKEN": xsrfToken$2()
+						"X-XSRF-TOKEN": xsrfToken()
 					},
 					body: JSON.stringify({
 						lat: pos.coords.latitude,
@@ -2541,6 +2976,7 @@ function PublicLayout({ children, bare }) {
 		}),
 		/* @__PURE__ */ jsx(CookieBanner, {}),
 		/* @__PURE__ */ jsx(CityPrompt, {}),
+		/* @__PURE__ */ jsx(AssistantWidget, {}),
 		/* @__PURE__ */ jsx(ToastHost, {})
 	] });
 }
@@ -3607,441 +4043,6 @@ function CabinetLayout({ children }) {
 	});
 }
 //#endregion
-//#region resources/js/components/AssistantLeadPanel.tsx
-function xsrfToken$1() {
-	const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
-	return match ? decodeURIComponent(match[1]) : "";
-}
-function slugFromClinicUrl(url) {
-	return url.match(/\/clinics\/([^/?#]+)/)?.[1] ?? null;
-}
-function clinicChoicesFromMessages(messages) {
-	const map = /* @__PURE__ */ new Map();
-	for (const msg of messages) for (const link of msg.links ?? []) {
-		const slug = slugFromClinicUrl(link.url);
-		if (slug && !map.has(slug)) map.set(slug, link.label);
-	}
-	return [...map.entries()].map(([slug, label]) => ({
-		slug,
-		label
-	}));
-}
-function AssistantLeadPanel({ conversationId, clinics, onClose, onSuccess }) {
-	const { auth } = usePage().props;
-	const [clinic, setClinic] = useState(clinics[0]?.slug ?? "");
-	const [name, setName] = useState(auth.user?.name ?? "");
-	const [phone, setPhone] = useState("");
-	const [comment, setComment] = useState("");
-	const [consent, setConsent] = useState(false);
-	const [broadcast, setBroadcast] = useState(false);
-	const [busy, setBusy] = useState(false);
-	const [error, setError] = useState(null);
-	const clinicOptions = useMemo(() => clinics, [clinics]);
-	const submit = async (e) => {
-		e.preventDefault();
-		if (!conversationId) {
-			setError("Сначала задайте вопрос ассистенту, чтобы начать диалог.");
-			return;
-		}
-		if (!broadcast && !clinic) {
-			setError("Выберите клинику из списка или отметьте «Любая клиника города».");
-			return;
-		}
-		setBusy(true);
-		setError(null);
-		try {
-			const res = await fetch("/api/v1/assistant/lead", {
-				method: "POST",
-				credentials: "same-origin",
-				headers: {
-					Accept: "application/json",
-					"Content-Type": "application/json",
-					"X-XSRF-TOKEN": xsrfToken$1()
-				},
-				body: JSON.stringify({
-					conversation_id: conversationId,
-					clinic: broadcast ? clinic || void 0 : clinic,
-					broadcast,
-					name,
-					phone,
-					comment: comment || void 0,
-					consent: consent ? true : void 0
-				})
-			});
-			const data = await res.json();
-			if (!res.ok) {
-				const first = data.errors ? Object.values(data.errors).flat()[0] : data.message;
-				throw new Error(first ?? "Не удалось отправить заявку");
-			}
-			onSuccess(data.message ?? "Заявка отправлена.");
-			onClose();
-		} catch (err) {
-			setError(err instanceof Error ? err.message : "Ошибка сети");
-		} finally {
-			setBusy(false);
-		}
-	};
-	return /* @__PURE__ */ jsxs("form", {
-		className: "assistant-lead",
-		onSubmit: (e) => void submit(e),
-		children: [
-			/* @__PURE__ */ jsx("p", {
-				className: "text-sm text-muted",
-				children: "Клиника перезвонит для подтверждения. Для выбора времени сразу — онлайн-запись в карточке клиники."
-			}),
-			/* @__PURE__ */ jsx(Check, {
-				label: "Любая подходящая клиника города (заявку получат несколько клиник)",
-				checked: broadcast,
-				onChange: (e) => setBroadcast(e.target.checked)
-			}),
-			clinicOptions.length && !broadcast ? /* @__PURE__ */ jsx(SelectField, {
-				label: "Клиника",
-				value: clinic,
-				onChange: (e) => setClinic(e.target.value),
-				required: true,
-				children: clinicOptions.map((c) => /* @__PURE__ */ jsx("option", {
-					value: c.slug,
-					children: c.label
-				}, c.slug))
-			}) : !broadcast ? /* @__PURE__ */ jsx(TextField, {
-				label: "Slug клиники",
-				value: clinic,
-				onChange: (e) => setClinic(e.target.value),
-				placeholder: "из ссылки каталога",
-				required: true
-			}) : null,
-			/* @__PURE__ */ jsx(TextField, {
-				label: "Имя",
-				value: name,
-				onChange: (e) => setName(e.target.value),
-				required: true,
-				autoComplete: "name"
-			}),
-			/* @__PURE__ */ jsx(PhoneField, {
-				label: "Телефон",
-				value: phone,
-				onChange: (e) => setPhone(e.target.value),
-				required: true
-			}),
-			/* @__PURE__ */ jsx(TextArea, {
-				label: "Комментарий",
-				value: comment,
-				onChange: (e) => setComment(e.target.value),
-				rows: 2,
-				maxLength: 300
-			}),
-			/* @__PURE__ */ jsx(Check, {
-				label: broadcast ? "Согласие: контакты будут переданы нескольким клиникам города для обратного звонка" : "Согласие на обработку персональных данных",
-				checked: consent,
-				onChange: (e) => setConsent(e.target.checked)
-			}),
-			error ? /* @__PURE__ */ jsx("p", {
-				className: "text-sm assistant-lead__error",
-				children: error
-			}) : null,
-			/* @__PURE__ */ jsxs("div", {
-				className: "assistant-lead__actions",
-				children: [/* @__PURE__ */ jsx(Button, {
-					type: "button",
-					variant: "ghost",
-					size: "sm",
-					onClick: onClose,
-					children: "Отмена"
-				}), /* @__PURE__ */ jsx(Button, {
-					type: "submit",
-					size: "sm",
-					disabled: busy || !consent,
-					children: "Отправить"
-				})]
-			})
-		]
-	});
-}
-//#endregion
-//#region resources/js/lib/assistant-stream.ts
-function parseSseBlock(block) {
-	const lines = block.split("\n");
-	let event = "message";
-	let data = "";
-	for (const line of lines) if (line.startsWith("event:")) event = line.slice(6).trim();
-	else if (line.startsWith("data:")) data += line.slice(5).trim();
-	if (data === "") return null;
-	return {
-		event,
-		data
-	};
-}
-async function postAssistantMessageStream(url, body, headers, onChunk) {
-	const res = await fetch(url, {
-		method: "POST",
-		credentials: "same-origin",
-		headers: {
-			Accept: "text/event-stream",
-			"Content-Type": "application/json",
-			...headers
-		},
-		body: JSON.stringify(body)
-	});
-	if (!res.ok) {
-		const err = await res.json().catch(() => ({}));
-		throw new Error(err.message ?? "Не удалось отправить сообщение");
-	}
-	const reader = res.body?.getReader();
-	if (!reader) throw new Error("Поток недоступен");
-	const decoder = new TextDecoder();
-	let buffer = "";
-	let donePayload = null;
-	while (true) {
-		const { done, value } = await reader.read();
-		if (done) break;
-		buffer += decoder.decode(value, { stream: true });
-		const parts = buffer.split("\n\n");
-		buffer = parts.pop() ?? "";
-		for (const part of parts) {
-			const parsed = parseSseBlock(part.trim());
-			if (!parsed) continue;
-			const json = JSON.parse(parsed.data);
-			if (parsed.event === "chunk" && typeof json.text === "string") onChunk(json.text);
-			if (parsed.event === "done") donePayload = json;
-			if (parsed.event === "error") throw new Error(typeof json.message === "string" ? json.message : "Ошибка ассистента");
-		}
-	}
-	if (!donePayload) throw new Error("Ответ оборвался");
-	return donePayload;
-}
-//#endregion
-//#region resources/js/components/AssistantWidget.tsx
-function xsrfToken() {
-	const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
-	return match ? decodeURIComponent(match[1]) : "";
-}
-function AssistantWidget() {
-	const { assistant } = usePage().props;
-	const streamResponses = assistant?.stream_responses !== false;
-	const [open, setOpen] = useState(false);
-	const [messages, setMessages] = useState([]);
-	const [input, setInput] = useState("");
-	const [busy, setBusy] = useState(false);
-	const [conversationId, setConversationId] = useState(null);
-	const [isMock, setIsMock] = useState(true);
-	const [showLead, setShowLead] = useState(false);
-	const listRef = useRef(null);
-	const [quickReplies, setQuickReplies] = useState([]);
-	const clinicChoices = useMemo(() => clinicChoicesFromMessages(messages), [messages]);
-	useEffect(() => {
-		if (open && messages.length === 0 && assistant?.greeting) setMessages([{
-			role: "assistant",
-			text: assistant.greeting
-		}]);
-	}, [
-		open,
-		assistant?.greeting,
-		messages.length
-	]);
-	useEffect(() => {
-		listRef.current?.scrollTo({
-			top: listRef.current.scrollHeight,
-			behavior: "smooth"
-		});
-	}, [
-		messages,
-		open,
-		showLead
-	]);
-	const send = useCallback(async (text) => {
-		const trimmed = text.trim();
-		if (!trimmed || busy) return;
-		setInput("");
-		setShowLead(false);
-		setMessages((m) => [...m, {
-			role: "user",
-			text: trimmed
-		}]);
-		setBusy(true);
-		try {
-			const headers = { "X-XSRF-TOKEN": xsrfToken() };
-			if (streamResponses) {
-				setMessages((m) => [...m, {
-					role: "assistant",
-					text: ""
-				}]);
-				const data = await postAssistantMessageStream("/api/v1/assistant/message/stream", {
-					message: trimmed,
-					conversation_id: conversationId
-				}, headers, (piece) => {
-					setMessages((m) => {
-						const copy = [...m];
-						const last = copy[copy.length - 1];
-						if (last?.role === "assistant") copy[copy.length - 1] = {
-							...last,
-							text: last.text + piece
-						};
-						return copy;
-					});
-				});
-				if (data.conversation_id) setConversationId(data.conversation_id);
-				if (typeof data.mock === "boolean") setIsMock(data.mock);
-				setMessages((m) => {
-					const copy = [...m];
-					const last = copy[copy.length - 1];
-					if (last?.role === "assistant") copy[copy.length - 1] = {
-						...last,
-						text: data.reply ?? last.text,
-						links: data.links
-					};
-					return copy;
-				});
-				if (data.suggestions?.length) setQuickReplies(data.suggestions);
-			} else {
-				const res = await fetch("/api/v1/assistant/message", {
-					method: "POST",
-					credentials: "same-origin",
-					headers: {
-						Accept: "application/json",
-						"Content-Type": "application/json",
-						...headers
-					},
-					body: JSON.stringify({
-						message: trimmed,
-						conversation_id: conversationId
-					})
-				});
-				const data = await res.json();
-				if (!res.ok) throw new Error(data.message ?? "Не удалось отправить сообщение");
-				if (data.conversation_id) setConversationId(data.conversation_id);
-				if (typeof data.mock === "boolean") setIsMock(data.mock);
-				setMessages((m) => [...m, {
-					role: "assistant",
-					text: data.reply ?? "…",
-					links: data.links
-				}]);
-				if (data.suggestions?.length) setQuickReplies(data.suggestions);
-			}
-		} catch (e) {
-			setMessages((m) => [...m, {
-				role: "assistant",
-				text: e instanceof Error ? e.message : "Ошибка сети. Попробуйте позже."
-			}]);
-		} finally {
-			setBusy(false);
-		}
-	}, [
-		busy,
-		conversationId,
-		streamResponses
-	]);
-	if (!assistant?.enabled) return null;
-	return /* @__PURE__ */ jsxs(Fragment, { children: [!open ? /* @__PURE__ */ jsx("button", {
-		type: "button",
-		className: "assistant-fab",
-		"aria-label": "Открыть ассистента",
-		onClick: () => {
-			setOpen(true);
-			trackAnalyticsEvent(AnalyticsEvents.assistantOpen);
-		},
-		children: /* @__PURE__ */ jsx(Icon, {
-			name: "send",
-			size: 26
-		})
-	}) : null, /* @__PURE__ */ jsxs("div", {
-		className: cx("assistant-panel", open && "is-open"),
-		role: "dialog",
-		"aria-label": "AI-ассистент",
-		children: [
-			/* @__PURE__ */ jsxs("header", {
-				className: "assistant-panel__head",
-				children: [/* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx("strong", { children: "AI-ассистент" }), /* @__PURE__ */ jsxs("p", {
-					className: "text-xs text-muted",
-					children: [isMock ? "Каталог + шаблоны" : "OpenRouter", " · без диагнозов"]
-				})] }), /* @__PURE__ */ jsxs("div", {
-					className: "assistant-panel__head-actions",
-					children: [/* @__PURE__ */ jsx("button", {
-						type: "button",
-						className: "assistant-chip assistant-chip--head",
-						disabled: busy,
-						onClick: () => setShowLead((v) => !v),
-						children: "Заявка"
-					}), /* @__PURE__ */ jsx("button", {
-						type: "button",
-						className: "icon-link",
-						"aria-label": "Закрыть",
-						onClick: () => setOpen(false),
-						children: /* @__PURE__ */ jsx(Icon, {
-							name: "x",
-							size: 22
-						})
-					})]
-				})]
-			}),
-			/* @__PURE__ */ jsxs("div", {
-				className: "assistant-panel__messages",
-				ref: listRef,
-				children: [messages.map((m, i) => /* @__PURE__ */ jsxs("div", {
-					className: cx("assistant-bubble", m.role === "user" && "is-user"),
-					children: [/* @__PURE__ */ jsx("p", {
-						className: "assistant-bubble__text",
-						children: m.text
-					}), m.links?.length ? /* @__PURE__ */ jsx("ul", {
-						className: "assistant-bubble__links",
-						children: m.links.map((l) => /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsx("a", {
-							href: l.url,
-							target: "_blank",
-							rel: "noreferrer",
-							children: l.label
-						}) }, l.url))
-					}) : null]
-				}, i)), busy ? /* @__PURE__ */ jsx("p", {
-					className: "text-sm text-muted assistant-typing",
-					children: "Печатает…"
-				}) : null]
-			}),
-			showLead ? /* @__PURE__ */ jsx(AssistantLeadPanel, {
-				conversationId,
-				clinics: clinicChoices,
-				onClose: () => setShowLead(false),
-				onSuccess: (text) => setMessages((m) => [...m, {
-					role: "assistant",
-					text
-				}])
-			}) : null,
-			!showLead && assistant.disclaimer ? /* @__PURE__ */ jsx("p", {
-				className: "assistant-panel__note text-xs text-muted",
-				children: assistant.disclaimer
-			}) : null,
-			!showLead && quickReplies.length ? /* @__PURE__ */ jsx("div", {
-				className: "assistant-panel__chips",
-				children: quickReplies.slice(0, 4).map((s) => /* @__PURE__ */ jsx("button", {
-					type: "button",
-					className: "assistant-chip",
-					disabled: busy,
-					onClick: () => void send(s),
-					children: s
-				}, s))
-			}) : null,
-			!showLead ? /* @__PURE__ */ jsxs("form", {
-				className: "assistant-panel__form",
-				onSubmit: (e) => {
-					e.preventDefault();
-					send(input);
-				},
-				children: [/* @__PURE__ */ jsx("input", {
-					type: "text",
-					value: input,
-					onChange: (e) => setInput(e.target.value),
-					placeholder: "Спросите о клиниках или записи…",
-					maxLength: 2e3,
-					disabled: busy
-				}), /* @__PURE__ */ jsx(Button, {
-					type: "submit",
-					size: "sm",
-					disabled: busy || !input.trim(),
-					children: "Отправить"
-				})]
-			}) : null
-		]
-	})] });
-}
-//#endregion
 //#region resources/js/layouts/MaxLayout.tsx
 function useActive() {
 	const { url } = usePage();
@@ -4292,8 +4293,8 @@ var renderPromise = createInertiaApp({
 			"./pages/Cabinet/Settings.tsx": () => import("./assets/Settings-D41ZNso_.js"),
 			"./pages/Cabinet/Staff.tsx": () => import("./assets/Staff-BeI7giNm.js"),
 			"./pages/Cabinet/Stats.tsx": () => import("./assets/Stats-CCUNBmTr.js"),
-			"./pages/Clinics/Index.tsx": () => import("./assets/Index-U-MGzMYr.js"),
-			"./pages/Clinics/Show.tsx": () => import("./assets/Show-BPs4Rftp.js"),
+			"./pages/Clinics/Index.tsx": () => import("./assets/Index-DSYaWbv-.js"),
+			"./pages/Clinics/Show.tsx": () => import("./assets/Show-ezmFWqQ9.js"),
 			"./pages/Collections/Compare.tsx": () => import("./assets/Compare-CgEBXJup.js"),
 			"./pages/Collections/Favorites.tsx": () => import("./assets/Favorites-C1JWKTJr.js"),
 			"./pages/Concerns/Show.tsx": () => import("./assets/Show-BvNPHBA4.js"),
@@ -4302,11 +4303,11 @@ var renderPromise = createInertiaApp({
 			"./pages/Doctors/Index.tsx": () => import("./assets/Index-C4_w1uDh.js"),
 			"./pages/Doctors/Show.tsx": () => import("./assets/Show-yJQYkyin.js"),
 			"./pages/Error.tsx": () => import("./assets/Error-C19RiLUQ.js"),
-			"./pages/Home.tsx": () => import("./assets/Home-eTqYBo2-.js"),
+			"./pages/Home.tsx": () => import("./assets/Home-CnC52e86.js"),
 			"./pages/Max/Appointments.tsx": () => import("./assets/Appointments-C9ExK5Ov.js"),
-			"./pages/Max/ClinicShow.tsx": () => import("./assets/ClinicShow-CIhSbh4U.js"),
-			"./pages/Max/Clinics.tsx": () => import("./assets/Clinics-CVyLsVAf.js"),
-			"./pages/Max/Home.tsx": () => import("./assets/Home-BGK9aqox.js"),
+			"./pages/Max/ClinicShow.tsx": () => import("./assets/ClinicShow-DgpzqJuZ.js"),
+			"./pages/Max/Clinics.tsx": () => import("./assets/Clinics-733uBG2L.js"),
+			"./pages/Max/Home.tsx": () => import("./assets/Home-D1ZtsOvk.js"),
 			"./pages/Offer/Claim.tsx": () => import("./assets/Claim-Bg-kW8bw.js"),
 			"./pages/Offer/Show.tsx": () => import("./assets/Show-DhCd3JpW.js"),
 			"./pages/Offer/Unsubscribe.tsx": () => import("./assets/Unsubscribe-DcJQ2KHf.js"),

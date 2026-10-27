@@ -297,6 +297,7 @@ export default function PublicLayout({ children, bare }: { children: ReactNode; 
 
             <CookieBanner />
             <CityPrompt />
+            <AssistantWidget />
             <ToastHost />
         </LeadProvider>
     );

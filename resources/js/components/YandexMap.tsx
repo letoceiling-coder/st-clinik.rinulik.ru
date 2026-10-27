@@ -124,16 +124,29 @@ export default function YandexMap({
                     map.geoObjects.add(placemark);
                 });
 
-                if (valid.length > 1 && !activeSlug) {
-                    const lats = valid.map((p) => p.lat);
-                    const lngs = valid.map((p) => p.lng);
-                    map.setBounds(
-                        [
-                            [Math.min(...lats), Math.min(...lngs)],
-                            [Math.max(...lats), Math.max(...lngs)],
-                        ],
-                        { checkZoomRange: true, zoomMargin: 40 },
-                    );
+                const host = hostRef.current;
+                const isVisible = (): boolean => host.offsetWidth > 0 && host.offsetHeight > 0;
+
+                /** Центр и масштаб по меткам. Считается только для видимой карты: в скрытом блоке размер нулевой. */
+                const applyView = (): void => {
+                    if (valid.length > 1 && !activeSlug) {
+                        const lats = valid.map((p) => p.lat);
+                        const lngs = valid.map((p) => p.lng);
+                        map.setBounds(
+                            [
+                                [Math.min(...lats), Math.min(...lngs)],
+                                [Math.max(...lats), Math.max(...lngs)],
+                            ],
+                            { checkZoomRange: true, zoomMargin: 40 },
+                        );
+                    } else {
+                        map.setCenter(center, zoom);
+                    }
+                };
+
+                let wasVisible = isVisible();
+                if (wasVisible) {
+                    applyView();
                 }
 
                 const fitMap = (): void => {
@@ -144,7 +157,13 @@ export default function YandexMap({
                 window.setTimeout(fitMap, 350);
 
                 const onResize = (): void => {
+                    const visible = isVisible();
                     fitMap();
+                    if (visible && !wasVisible) {
+                        // Карту раскрыли («Показать карту»): пересчитываем вид под реальный размер.
+                        applyView();
+                    }
+                    wasVisible = visible;
                 };
                 window.addEventListener('resize', onResize);
 

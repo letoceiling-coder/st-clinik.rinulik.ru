@@ -234,7 +234,7 @@
     "/build/assets/Catalog-DYilOPhT.js"
   ],
   "resources/js/components/HeroServiceFinder.tsx": [
-    "/build/assets/Home-eTqYBo2-.js"
+    "/build/assets/Home-CnC52e86.js"
   ],
   "resources/js/components/Icon.tsx": [
     "/build/assets/Icon-DQahs-u2.js"
@@ -406,7 +406,7 @@
     "/build/assets/ReviewCard-DG9IImq4.js"
   ],
   "resources/js/components/ReviewForm.tsx": [
-    "/build/assets/Show-BPs4Rftp.js"
+    "/build/assets/Show-ezmFWqQ9.js"
   ],
   "resources/js/components/SearchBox.tsx": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -441,7 +441,7 @@
     "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/components/ServicePickerModal.tsx": [
-    "/build/assets/Home-eTqYBo2-.js"
+    "/build/assets/Home-CnC52e86.js"
   ],
   "resources/js/components/Tiles.tsx": [
     "/build/assets/Tiles-D7oUyG79.js"
@@ -479,7 +479,7 @@
     "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/components/YandexMap.tsx": [
-    "/build/assets/YandexMap-C6dAMdKT.js"
+    "/build/assets/YandexMap-CVmtcJ5u.js"
   ],
   "resources/js/components/auth/SocialOAuthButtons.tsx": [
     "/build/assets/SocialOAuthButtons-BfmrBF_z.js"
@@ -1418,10 +1418,10 @@
     "/build/assets/Stats-CCUNBmTr.js"
   ],
   "resources/js/pages/Clinics/Index.tsx": [
-    "/build/assets/Index-U-MGzMYr.js"
+    "/build/assets/Index-DSYaWbv-.js"
   ],
   "resources/js/pages/Clinics/Show.tsx": [
-    "/build/assets/Show-BPs4Rftp.js"
+    "/build/assets/Show-ezmFWqQ9.js"
   ],
   "resources/js/pages/Collections/Compare.tsx": [
     "/build/assets/Compare-CgEBXJup.js"
@@ -1448,19 +1448,19 @@
     "/build/assets/Error-C19RiLUQ.js"
   ],
   "resources/js/pages/Home.tsx": [
-    "/build/assets/Home-eTqYBo2-.js"
+    "/build/assets/Home-CnC52e86.js"
   ],
   "resources/js/pages/Max/Appointments.tsx": [
     "/build/assets/Appointments-C9ExK5Ov.js"
   ],
   "resources/js/pages/Max/ClinicShow.tsx": [
-    "/build/assets/ClinicShow-CIhSbh4U.js"
+    "/build/assets/ClinicShow-DgpzqJuZ.js"
   ],
   "resources/js/pages/Max/Clinics.tsx": [
-    "/build/assets/Clinics-CVyLsVAf.js"
+    "/build/assets/Clinics-733uBG2L.js"
   ],
   "resources/js/pages/Max/Home.tsx": [
-    "/build/assets/Home-BGK9aqox.js"
+    "/build/assets/Home-D1ZtsOvk.js"
   ],
   "resources/js/pages/Offer/Claim.tsx": [
     "/build/assets/Claim-Bg-kW8bw.js"

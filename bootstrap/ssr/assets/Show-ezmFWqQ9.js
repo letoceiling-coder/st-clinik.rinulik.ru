@@ -5,7 +5,7 @@ import { C as TextArea, O as AnalyticsEvents, S as SelectField, d as EmptyState,
 import { n as FavoriteButton, t as CompareButton } from "./CollectionButtons-Ckr5F4uw.js";
 import { r as ClinicFeatures, t as ClinicCard } from "./ClinicCard-Bllv53MX.js";
 import { t as DoctorCard } from "./DoctorCard-BEvXP41U.js";
-import { t as YandexMap } from "./YandexMap-C6dAMdKT.js";
+import { t as YandexMap } from "./YandexMap-CVmtcJ5u.js";
 import { a as ScheduleView, i as RatingSummary, n as PriceTable, o as documentTitle, r as PriceTableGrouped, t as Gallery } from "./ClinicParts-D6Ha8UE_.js";
 import { t as ReviewCard } from "./ReviewCard-DG9IImq4.js";
 import { t as ConcernChips } from "./Tiles-D7oUyG79.js";
@@ -948,4 +948,4 @@ function ClinicShow({ clinic, reviews, review_filters, distribution, similar, co
 //#endregion
 export { ClinicShow as default };
 
-//# sourceMappingURL=Show-BPs4Rftp.js.map
+//# sourceMappingURL=Show-ezmFWqQ9.js.map

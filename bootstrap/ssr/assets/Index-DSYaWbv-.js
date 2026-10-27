@@ -4,7 +4,7 @@ import { d as EmptyState, i as useCity, p as Pagination, u as Breadcrumbs } from
 import { n as ClinicCardSkeleton, t as ClinicCard } from "./ClinicCard-Bllv53MX.js";
 import { t as AdSlot } from "./AdSlot-CNgFa8UC.js";
 import { n as useCatalog, t as CatalogLayout } from "./Catalog-DYilOPhT.js";
-import { t as YandexMap } from "./YandexMap-C6dAMdKT.js";
+import { t as YandexMap } from "./YandexMap-CVmtcJ5u.js";
 import { usePage } from "@inertiajs/react";
 import { useState } from "react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
@@ -110,4 +110,4 @@ function ClinicsIndex({ clinics, recommended_clinics, banner_catalog, map_clinic
 //#endregion
 export { ClinicsIndex as default };
 
-//# sourceMappingURL=Index-U-MGzMYr.js.map
+//# sourceMappingURL=Index-DSYaWbv-.js.map

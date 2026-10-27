@@ -72,14 +72,21 @@ function YandexMap({ points, className, height, zoom = 11, activeSlug }) {
 				});
 				map.geoObjects.add(placemark);
 			});
-			if (valid.length > 1 && !activeSlug) {
-				const lats = valid.map((p) => p.lat);
-				const lngs = valid.map((p) => p.lng);
-				map.setBounds([[Math.min(...lats), Math.min(...lngs)], [Math.max(...lats), Math.max(...lngs)]], {
-					checkZoomRange: true,
-					zoomMargin: 40
-				});
-			}
+			const host = hostRef.current;
+			const isVisible = () => host.offsetWidth > 0 && host.offsetHeight > 0;
+			/** Центр и масштаб по меткам. Считается только для видимой карты: в скрытом блоке размер нулевой. */
+			const applyView = () => {
+				if (valid.length > 1 && !activeSlug) {
+					const lats = valid.map((p) => p.lat);
+					const lngs = valid.map((p) => p.lng);
+					map.setBounds([[Math.min(...lats), Math.min(...lngs)], [Math.max(...lats), Math.max(...lngs)]], {
+						checkZoomRange: true,
+						zoomMargin: 40
+					});
+				} else map.setCenter(center, zoom);
+			};
+			let wasVisible = isVisible();
+			if (wasVisible) applyView();
 			const fitMap = () => {
 				map.container.fitToViewport();
 			};
@@ -87,7 +94,10 @@ function YandexMap({ points, className, height, zoom = 11, activeSlug }) {
 			requestAnimationFrame(fitMap);
 			window.setTimeout(fitMap, 350);
 			const onResize = () => {
+				const visible = isVisible();
 				fitMap();
+				if (visible && !wasVisible) applyView();
+				wasVisible = visible;
 			};
 			window.addEventListener("resize", onResize);
 			const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(onResize) : null;
@@ -151,4 +161,4 @@ function YandexMap({ points, className, height, zoom = 11, activeSlug }) {
 //#endregion
 export { YandexMap as t };
 
-//# sourceMappingURL=YandexMap-C6dAMdKT.js.map
+//# sourceMappingURL=YandexMap-CVmtcJ5u.js.map
