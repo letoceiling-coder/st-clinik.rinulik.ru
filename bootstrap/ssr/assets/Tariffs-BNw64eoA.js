@@ -1,10 +1,74 @@
 import { n as Button } from "./Button-B5alqlNe.js";
-import { C as TextArea, l as Badge, v as Check, w as TextField } from "../app.js";
+import { C as TextArea, S as SelectField, l as Badge, v as Check, w as TextField } from "../app.js";
 import { r as PageHead } from "./Dash-1ijSGeUC.js";
 import { router, useForm } from "@inertiajs/react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 //#region resources/js/pages/Admin/Tariffs.tsx
-function Tariffs({ tariffs, feature_labels }) {
+function TrialPanel({ trial, tariffs }) {
+	const form = useForm({
+		enabled: trial.enabled,
+		days: trial.days,
+		tariff_id: trial.tariff_id ?? ""
+	});
+	return /* @__PURE__ */ jsxs("form", {
+		className: "card stack",
+		onSubmit: (e) => {
+			e.preventDefault();
+			form.put("/admin/tariffs/trial", { preserveScroll: true });
+		},
+		children: [
+			/* @__PURE__ */ jsxs("div", {
+				className: "row row--between row--wrap",
+				children: [/* @__PURE__ */ jsx("h2", {
+					className: "card-title",
+					children: "Пробный период по КП"
+				}), /* @__PURE__ */ jsxs("span", {
+					className: "text-sm text-muted",
+					children: ["Сейчас на пробном периоде: ", trial.active]
+				})]
+			}),
+			/* @__PURE__ */ jsx("p", {
+				className: "text-sm text-muted",
+				children: "Клиника, подключившаяся по коммерческому предложению, принимает соглашение и отправляет карточку на проверку. После одобрения модератором включается выбранный тариф на указанный срок. Один пробный период на организацию, ИНН и номер клиники."
+			}),
+			/* @__PURE__ */ jsx(Check, {
+				label: "Предлагать пробный период",
+				checked: form.data.enabled,
+				onChange: (e) => form.setData("enabled", e.target.checked)
+			}),
+			/* @__PURE__ */ jsxs("div", {
+				className: "form-grid",
+				children: [/* @__PURE__ */ jsx(TextField, {
+					label: "Длительность, дней",
+					type: "number",
+					min: 1,
+					max: 365,
+					value: String(form.data.days),
+					onChange: (e) => form.setData("days", Number(e.target.value)),
+					error: form.errors.days
+				}), /* @__PURE__ */ jsxs(SelectField, {
+					label: "Тариф на время пробного периода",
+					value: String(form.data.tariff_id),
+					onChange: (e) => form.setData("tariff_id", e.target.value === "" ? "" : Number(e.target.value)),
+					error: form.errors.tariff_id,
+					children: [/* @__PURE__ */ jsx("option", {
+						value: "",
+						children: "Самый полный активный тариф"
+					}), tariffs.filter((t) => t.is_active).map((t) => /* @__PURE__ */ jsx("option", {
+						value: t.id,
+						children: t.name
+					}, t.id))]
+				})]
+			}),
+			/* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsx(Button, {
+				type: "submit",
+				loading: form.processing,
+				children: "Сохранить"
+			}) })
+		]
+	});
+}
+function Tariffs({ tariffs, feature_labels, trial }) {
 	const create = useForm({
 		name: "",
 		price: 0,
@@ -17,9 +81,9 @@ function Tariffs({ tariffs, feature_labels }) {
 	return /* @__PURE__ */ jsxs(Fragment, { children: [/* @__PURE__ */ jsx(PageHead, { title: "Тарифы" }), /* @__PURE__ */ jsxs("div", {
 		className: "stack",
 		children: [
-			/* @__PURE__ */ jsx("h1", {
-				className: "page-title",
-				children: "Тарифы клиник"
+			/* @__PURE__ */ jsx(TrialPanel, {
+				trial,
+				tariffs
 			}),
 			/* @__PURE__ */ jsx("div", {
 				className: "stack",
@@ -222,4 +286,4 @@ function TariffEditor({ tariff, feature_labels }) {
 //#endregion
 export { Tariffs as default };
 
-//# sourceMappingURL=Tariffs-CIsIdMpZ.js.map
+//# sourceMappingURL=Tariffs-BNw64eoA.js.map

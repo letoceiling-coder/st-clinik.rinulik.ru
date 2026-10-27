@@ -17,6 +17,15 @@ class Tariff extends Model
 
     public const FEATURE_ADVERTISING = 'advertising';
 
+    /** @var array<string, string> */
+    public const FEATURE_LABELS = [
+        self::FEATURE_ONLINE_BOOKING => 'Онлайн-запись',
+        self::FEATURE_STATISTICS => 'Статистика',
+        self::FEATURE_PROMOTIONS => 'Продвижение',
+        self::FEATURE_ASSISTANT_LEADS => 'Лиды ассистента',
+        self::FEATURE_ADVERTISING => 'Реклама',
+    ];
+
     protected $guarded = [];
 
     protected function casts(): array

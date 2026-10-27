@@ -75,14 +75,15 @@ class RegisterClinicController extends Controller
         if (! empty($data['offer_token'])) {
             $offer = Offer::findByToken($data['offer_token']);
             abort_unless($offer, 404);
-            $claims->claim($offer, $user, $request);
+            // Клиника передаётся только после подтверждения email и принятия соглашения на странице подключения.
             event(new Registered($user));
             Auth::login($user);
             $request->session()->regenerate();
-            Audit::log('auth.register_clinic_claim', $offer, ['user_id' => $user->id]);
+            $request->session()->put('url.intended', route('offer.claim.show', ['token' => $data['offer_token']]));
+            Audit::log('auth.register_clinic_offer', $offer, ['user_id' => $user->id]);
 
-            return redirect()->route('cabinet.dashboard')
-                ->with('success', 'Аккаунт создан, черновик привязан к организации.');
+            return redirect()->route('verification.notice')
+                ->with('success', 'Аккаунт создан. Подтвердите e-mail — после этого вы вернётесь к подключению клиники.');
         }
 
         $organization = Organization::query()->create([

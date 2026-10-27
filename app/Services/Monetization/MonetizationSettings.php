@@ -56,6 +56,24 @@ class MonetizationSettings
         return (string) $this->all()['expire_action'];
     }
 
+    public function trialEnabled(): bool
+    {
+        return (bool) $this->all()['trial_enabled'] && $this->trialDays() > 0;
+    }
+
+    public function trialDays(): int
+    {
+        return max(0, min(365, (int) $this->all()['trial_days']));
+    }
+
+    /** Тариф пробного периода; null — самый дорогой активный тариф. */
+    public function trialTariffId(): ?int
+    {
+        $id = $this->all()['trial_tariff_id'];
+
+        return $id ? (int) $id : null;
+    }
+
     /** @return array<string, mixed> */
     private function defaults(): array
     {
@@ -65,6 +83,9 @@ class MonetizationSettings
             'expire_action' => 'downgrade',
             'autorenew_enabled' => true,
             'autorenew_charge_days_before' => 1,
+            'trial_enabled' => true,
+            'trial_days' => 30,
+            'trial_tariff_id' => null,
         ];
     }
 }

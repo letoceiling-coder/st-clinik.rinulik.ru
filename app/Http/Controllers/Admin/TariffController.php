@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Models\ClinicSubscription;
 use App\Models\Tariff;
 use App\Services\Audit;
+use App\Services\Monetization\MonetizationSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -13,7 +14,7 @@ use Inertia\Response;
 
 class TariffController extends AdminController
 {
-    public function index(): Response
+    public function index(MonetizationSettings $settings): Response
     {
         $tariffs = Tariff::query()->orderBy('sort')->get()->map(fn (Tariff $t) => [
             'id' => $t->id,
@@ -40,7 +41,31 @@ class TariffController extends AdminController
         return $this->render('Admin/Tariffs', 'Тарифы', [
             'tariffs' => $tariffs,
             'feature_labels' => $this->featureLabels(),
+            'trial' => [
+                'enabled' => (bool) $settings->all()['trial_enabled'],
+                'days' => $settings->trialDays(),
+                'tariff_id' => $settings->trialTariffId(),
+                'active' => ClinicSubscription::query()->where('is_trial', true)->where('status', ClinicSubscription::STATUS_ACTIVE)->where('ends_at', '>', now())->count(),
+            ],
         ]);
+    }
+
+    /** Пробный период для клиник, подключившихся по КП. */
+    public function trial(Request $request, MonetizationSettings $settings): RedirectResponse
+    {
+        $data = $request->validate([
+            'enabled' => ['boolean'],
+            'days' => ['required', 'integer', 'min:1', 'max:365'],
+            'tariff_id' => ['nullable', 'integer', Rule::exists('tariffs', 'id')->where('is_active', true)],
+        ]);
+        $settings->save([
+            'trial_enabled' => (bool) ($data['enabled'] ?? false),
+            'trial_days' => (int) $data['days'],
+            'trial_tariff_id' => $data['tariff_id'] ?? null,
+        ]);
+        Audit::log('tariff.trial_updated', null, $data);
+
+        return back()->with('success', 'Настройки пробного периода сохранены.');
     }
 
     public function store(Request $request): RedirectResponse
@@ -72,13 +97,7 @@ class TariffController extends AdminController
     /** @return array<string, string> */
     private function featureLabels(): array
     {
-        return [
-            Tariff::FEATURE_ONLINE_BOOKING => 'Онлайн-запись',
-            Tariff::FEATURE_STATISTICS => 'Статистика',
-            Tariff::FEATURE_PROMOTIONS => 'Продвижение',
-            Tariff::FEATURE_ASSISTANT_LEADS => 'Лиды ассистента',
-            Tariff::FEATURE_ADVERTISING => 'Реклама',
-        ];
+        return Tariff::FEATURE_LABELS;
     }
 
     /** @return array<string, mixed> */

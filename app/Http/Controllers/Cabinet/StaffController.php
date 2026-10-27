@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Cabinet;
 
 use App\Models\OrganizationStaff;
 use App\Models\StaffInvitation;
+use App\Rules\RussianPhone;
 use App\Services\Organization\OrganizationStaffService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -57,13 +58,14 @@ class StaffController extends CabinetController
     {
         $org = $request->attributes->get('org');
         $data = $request->validate([
-            'email' => ['required', 'email', 'max:120'],
+            'email' => ['nullable', 'required_without:phone', 'email', 'max:120'],
+            'phone' => ['nullable', 'string', 'max:32', new RussianPhone],
             'role' => ['required', Rule::in(array_keys(OrganizationStaff::ROLES))],
-        ]);
+        ], ['email.required_without' => 'Укажите e-mail или телефон.']);
 
-        $invitation = $staffService->invite($org, $request->user(), $data['email'], $data['role']);
+        $invitation = $staffService->invite($org, $request->user(), $data['email'] ?? null, $data['phone'] ?? null, $data['role']);
 
-        return back()->with('success', 'Приглашение отправлено на '.$invitation->email.'.');
+        return back()->with('success', 'Приглашение отправлено на '.($invitation->email ?? $invitation->phone).'.');
     }
 
     public function revoke(Request $request, OrganizationStaff $staffMember, OrganizationStaffService $staffService): RedirectResponse

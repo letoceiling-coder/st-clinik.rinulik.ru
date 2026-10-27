@@ -1,4 +1,4 @@
-import ClinicShow from "./Show-CcC-lDLR.js";
+import ClinicShow from "./Show-BPs4Rftp.js";
 import { t as useMaxWebAppAuth } from "./max-web-app-BIxFfehh.js";
 import { jsx } from "react/jsx-runtime";
 //#region resources/js/pages/Max/ClinicShow.tsx
@@ -9,4 +9,4 @@ function MaxClinicShow(props) {
 //#endregion
 export { MaxClinicShow as default };
 
-//# sourceMappingURL=ClinicShow--351fGAZ.js.map
+//# sourceMappingURL=ClinicShow-CIhSbh4U.js.map

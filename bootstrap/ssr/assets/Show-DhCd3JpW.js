@@ -1,3 +1,4 @@
+import { t as Icon } from "./Icon-DQahs-u2.js";
 import { s as money } from "./format-BP5psl3Q.js";
 import { n as Button, t as AnchorButton } from "./Button-B5alqlNe.js";
 import { C as TextArea, b as PhoneField, s as Alert, v as Check, w as TextField } from "../app.js";
@@ -5,7 +6,7 @@ import { t as ClinicCard } from "./ClinicCard-Bllv53MX.js";
 import { Link, useForm, usePage } from "@inertiajs/react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 //#region resources/js/pages/Offer/Show.tsx
-function OfferShow({ offer, clinic, stats, tariffs, demo_url, claim_url, manager }) {
+function OfferShow({ offer, clinic, stats, tariffs, plans, prepared, extra_html, trial, preview_url, about_url, demo_url, claim_url, manager }) {
 	const { flash } = usePage().props;
 	const form = useForm({
 		name: "",
@@ -41,22 +42,43 @@ function OfferShow({ offer, clinic, stats, tariffs, demo_url, claim_url, manager
 						}),
 						/* @__PURE__ */ jsxs("div", {
 							className: "offer-hero__actions",
-							children: [demo_url ? /* @__PURE__ */ jsx(AnchorButton, {
-								href: demo_url,
-								size: "lg",
-								icon: "eye",
-								children: "Открыть демо-кабинет"
-							}) : null, claim_url ? /* @__PURE__ */ jsx(AnchorButton, {
+							children: [claim_url ? /* @__PURE__ */ jsx(AnchorButton, {
 								href: claim_url,
 								size: "lg",
-								variant: demo_url ? "outline" : "primary",
-								children: "Забрать черновик"
+								children: trial.enabled ? `Попробовать бесплатно ${trial.days} дней` : "Подключить клинику"
 							}) : /* @__PURE__ */ jsx(AnchorButton, {
 								href: "#connect",
 								size: "lg",
-								variant: demo_url ? "outline" : "primary",
 								children: "Подключиться"
-							})]
+							}), demo_url ? /* @__PURE__ */ jsx(AnchorButton, {
+								href: demo_url,
+								size: "lg",
+								variant: "outline",
+								icon: "eye",
+								children: "Демо-кабинет клиники"
+							}) : null]
+						}),
+						/* @__PURE__ */ jsxs("ul", {
+							className: "offer-links",
+							children: [/* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsxs("a", {
+								className: "link",
+								href: preview_url,
+								target: "_blank",
+								rel: "noopener",
+								children: [/* @__PURE__ */ jsx(Icon, {
+									name: "globe",
+									size: 16
+								}), " Как будет выглядеть страница клиники"]
+							}) }), /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsxs("a", {
+								className: "link",
+								href: about_url,
+								target: "_blank",
+								rel: "noopener",
+								children: [/* @__PURE__ */ jsx(Icon, {
+									name: "file",
+									size: 16
+								}), " Подробнее о сервисе и возможностях"]
+							}) })]
 						}),
 						/* @__PURE__ */ jsx("p", {
 							className: "text-xs text-muted",
@@ -114,12 +136,104 @@ function OfferShow({ offer, clinic, stats, tariffs, demo_url, claim_url, manager
 				className: "offer-body card",
 				dangerouslySetInnerHTML: { __html: offer.html }
 			}) : null,
+			extra_html ? /* @__PURE__ */ jsxs("section", {
+				className: "offer-extra card",
+				"aria-label": "Специальное предложение",
+				children: [/* @__PURE__ */ jsxs("span", {
+					className: "offer-extra__badge",
+					children: [/* @__PURE__ */ jsx(Icon, {
+						name: "sparkle",
+						size: 16
+					}), " Специально для вас"]
+				}), /* @__PURE__ */ jsx("div", {
+					className: "offer-body",
+					dangerouslySetInnerHTML: { __html: extra_html }
+				})]
+			}) : null,
+			/* @__PURE__ */ jsxs("section", {
+				className: "stack",
+				children: [
+					/* @__PURE__ */ jsx("h2", {
+						className: "offer-section-title",
+						children: "Мы уже подготовили вашу карточку"
+					}),
+					/* @__PURE__ */ jsx("p", {
+						className: "text-sm text-muted",
+						children: "Данные собраны из открытых источников. После подключения вы сможете проверить и дополнить их в кабинете."
+					}),
+					/* @__PURE__ */ jsx("ul", {
+						className: "offer-prepared",
+						children: prepared.map((item) => /* @__PURE__ */ jsxs("li", {
+							className: item.done ? "is-done" : "",
+							children: [/* @__PURE__ */ jsx(Icon, {
+								name: item.done ? "check-circle" : "plus",
+								size: 20
+							}), /* @__PURE__ */ jsxs("span", { children: [/* @__PURE__ */ jsx("b", { children: item.label }), /* @__PURE__ */ jsx("span", {
+								className: "text-sm text-muted",
+								children: item.done ? item.value ?? "заполнено" : "добавите в кабинете"
+							})] })]
+						}, item.label))
+					})
+				]
+			}),
+			plans.length > 0 ? /* @__PURE__ */ jsxs("section", {
+				className: "stack",
+				children: [
+					/* @__PURE__ */ jsx("h2", {
+						className: "offer-section-title",
+						children: "Тарифы"
+					}),
+					trial.enabled ? /* @__PURE__ */ jsxs("p", {
+						className: "text-sm",
+						children: [/* @__PURE__ */ jsxs("b", { children: [
+							"Первые ",
+							trial.days,
+							" дней — бесплатно"
+						] }), " с полным набором возможностей, без привязки карты."]
+					}) : null,
+					/* @__PURE__ */ jsx("div", {
+						className: "offer-tariffs",
+						children: plans.map((t) => /* @__PURE__ */ jsxs("div", {
+							className: "offer-tariff card",
+							children: [
+								/* @__PURE__ */ jsx("b", { children: t.name }),
+								t.description ? /* @__PURE__ */ jsx("p", {
+									className: "text-sm text-muted",
+									children: t.description
+								}) : null,
+								/* @__PURE__ */ jsxs("div", {
+									className: "offer-tariff__price",
+									children: [t.is_free ? "Бесплатно" : money(t.price), t.is_free ? null : /* @__PURE__ */ jsxs("span", {
+										className: "text-sm text-muted",
+										children: [
+											" / ",
+											t.days,
+											" дн."
+										]
+									})]
+								}),
+								/* @__PURE__ */ jsx("ul", {
+									className: "offer-tariff__list",
+									children: [...t.features, ...t.limits].map((f) => /* @__PURE__ */ jsxs("li", { children: [
+										/* @__PURE__ */ jsx(Icon, {
+											name: "check",
+											size: 16
+										}),
+										" ",
+										f
+									] }, f))
+								})
+							]
+						}, t.name))
+					})
+				]
+			}) : null,
 			tariffs.length > 0 ? /* @__PURE__ */ jsxs("section", {
 				className: "stack",
 				children: [
 					/* @__PURE__ */ jsx("h2", {
 						className: "offer-section-title",
-						children: "Тарифы продвижения"
+						children: "Продвижение в каталоге"
 					}),
 					/* @__PURE__ */ jsx("div", {
 						className: "offer-tariffs",
@@ -147,7 +261,7 @@ function OfferShow({ offer, clinic, stats, tariffs, demo_url, claim_url, manager
 					}),
 					/* @__PURE__ */ jsx("p", {
 						className: "text-xs text-muted",
-						children: "Базовое размещение карточки бесплатно. Цены указаны для вашего города."
+						children: "Дополнительные пакеты поднимают карточку в выдаче. Цены указаны для вашего города."
 					})
 				]
 			}) : null,
@@ -280,4 +394,4 @@ function Stat({ label, value, hint }) {
 //#endregion
 export { OfferShow as default };
 
-//# sourceMappingURL=Show-BZirUfAW.js.map
+//# sourceMappingURL=Show-DhCd3JpW.js.map

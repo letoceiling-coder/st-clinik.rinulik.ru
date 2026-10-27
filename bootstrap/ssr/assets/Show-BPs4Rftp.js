@@ -303,7 +303,8 @@ function PostCard({ post }) {
 		})]
 	});
 }
-function ClinicShow({ clinic, reviews, review_filters, distribution, similar, concerns, review_options, breadcrumbs, clinic_follow }) {
+function ClinicShow({ clinic, reviews, review_filters, distribution, similar, concerns, review_options, breadcrumbs, clinic_follow, preview = null }) {
+	const isPreview = preview !== null;
 	const lead = useLead();
 	const { url } = usePage();
 	const { slug: citySlug } = useCity();
@@ -393,7 +394,22 @@ function ClinicShow({ clinic, reviews, review_filters, distribution, similar, co
 	return /* @__PURE__ */ jsxs("div", {
 		className: "clinic-page",
 		children: [
-			/* @__PURE__ */ jsx(Breadcrumbs, { items: breadcrumbs }),
+			preview ? /* @__PURE__ */ jsxs("div", {
+				className: "container preview-banner",
+				role: "status",
+				children: [
+					/* @__PURE__ */ jsx(Icon, {
+						name: "eye",
+						size: 18
+					}),
+					/* @__PURE__ */ jsxs("span", { children: [/* @__PURE__ */ jsx("b", { children: "Предпросмотр." }), " Так страница клиники будет выглядеть для пациентов после подключения и проверки модератором. Запись и отзывы пока отключены."] }),
+					/* @__PURE__ */ jsx("a", {
+						className: "link",
+						href: preview.offer_url,
+						children: "Вернуться к предложению"
+					})
+				]
+			}) : /* @__PURE__ */ jsx(Breadcrumbs, { items: breadcrumbs }),
 			/* @__PURE__ */ jsxs("div", {
 				className: "container clinic-top",
 				children: [/* @__PURE__ */ jsxs("div", {
@@ -499,12 +515,14 @@ function ClinicShow({ clinic, reviews, review_filters, distribution, similar, co
 						/* @__PURE__ */ jsx(Button, {
 							size: "lg",
 							block: true,
+							disabled: isPreview,
 							onClick: () => open(),
 							children: "Записаться онлайн"
 						}),
 						/* @__PURE__ */ jsx(Button, {
 							variant: "ghost",
 							block: true,
+							disabled: isPreview,
 							onClick: () => lead.callback({
 								slug: clinic.slug,
 								name: clinic.name,
@@ -682,6 +700,7 @@ function ClinicShow({ clinic, reviews, review_filters, distribution, similar, co
 								}),
 								/* @__PURE__ */ jsx(Button, {
 									variant: "outline",
+									disabled: isPreview,
 									onClick: () => open(),
 									children: "Узнать стоимость"
 								})
@@ -770,7 +789,7 @@ function ClinicShow({ clinic, reviews, review_filters, distribution, similar, co
 								param: "reviews_page",
 								scrollTo: "#reviews"
 							})] }),
-							/* @__PURE__ */ jsx(ReviewForm, {
+							isPreview ? null : /* @__PURE__ */ jsx(ReviewForm, {
 								clinicSlug: clinic.slug,
 								doctors: review_options.doctors,
 								services: review_options.services
@@ -899,6 +918,7 @@ function ClinicShow({ clinic, reviews, review_filters, distribution, similar, co
 				className: "sticky-cta",
 				role: "region",
 				"aria-label": "Быстрая запись",
+				hidden: isPreview,
 				children: [/* @__PURE__ */ jsxs("div", {
 					className: "sticky-cta__info",
 					children: [/* @__PURE__ */ jsx("b", { children: priceFrom(clinic.min_price) }), /* @__PURE__ */ jsx("span", {
@@ -928,4 +948,4 @@ function ClinicShow({ clinic, reviews, review_filters, distribution, similar, co
 //#endregion
 export { ClinicShow as default };
 
-//# sourceMappingURL=Show-CcC-lDLR.js.map
+//# sourceMappingURL=Show-BPs4Rftp.js.map

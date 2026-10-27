@@ -15,12 +15,16 @@ use App\Models\OfferTemplateVersion;
 use App\Models\ParsedOrganization;
 use App\Models\StopListEntry;
 use App\Rules\RussianPhone;
+use App\Services\Assistant\AssistantBudgetExceeded;
 use App\Services\Audit;
+use App\Services\Offers\OfferCopywriter;
+use App\Services\Offers\OfferDispatchService;
 use App\Services\Offers\OfferRenderer;
 use App\Services\Offers\OfferService;
 use App\Services\Offers\OfferSettings;
 use App\Services\Parser\ParsedOrganizationImporter;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -59,7 +63,7 @@ class OfferController extends AdminController
         ]);
     }
 
-    public function show(Offer $offer): Response
+    public function show(Offer $offer, OfferDispatchService $dispatch, OfferCopywriter $copywriter): Response
     {
         $offer->load(['clinic.city:id,name', 'templateVersion.template:id,name', 'creator:id,name', 'demoLinks.visits', 'applications.processor:id,name']);
         $recipients = $offer->recipients()->with('campaign:id,name')->latest('id')->get();
@@ -115,6 +119,12 @@ class OfferController extends AdminController
                 'error' => $r->error,
                 'sent_at' => $r->sent_at?->format('d.m.Y H:i'),
             ])->values(),
+            'dispatch' => $dispatch->channels($offer),
+            'extra' => [
+                'text' => (string) ($offer->extra_note ?? ''),
+                'max' => OfferCopywriter::MAX_LENGTH,
+                'ai_available' => $copywriter->available(),
+            ],
             'sections' => DemoLink::SECTIONS,
             'offer_statuses' => Offer::STATUSES,
             'application_statuses' => OfferApplication::STATUSES,
@@ -142,6 +152,81 @@ class OfferController extends AdminController
         }
 
         return redirect()->route('admin.offers.show', $offer)->with('success', 'КП сформировано: ссылки и демо-кабинет готовы.');
+    }
+
+    /** КП для выбранных организаций парсера: черновики импортируются, уже существующие КП не дублируются. */
+    public function bulk(Request $request, OfferService $offers, ParsedOrganizationImporter $importer): RedirectResponse
+    {
+        $data = $request->validate([
+            'template_id' => ['required', 'integer', Rule::exists('offer_templates', 'id')->where('is_active', true)],
+            'ids' => ['required', 'array', 'min:1', 'max:100'],
+            'ids.*' => ['integer', 'exists:parsed_organizations,id'],
+        ]);
+        $template = OfferTemplate::query()->findOrFail($data['template_id']);
+        $created = 0;
+        $existing = 0;
+        $failed = [];
+
+        foreach (ParsedOrganization::query()->whereIn('id', $data['ids'])->get() as $parsed) {
+            try {
+                $clinic = $this->draftFor($parsed, $importer, $request);
+                $offer = $offers->createFor($clinic, $template, $request->user());
+                $offer->wasRecentlyCreated ? $created++ : $existing++;
+            } catch (RuntimeException $e) {
+                $failed[] = "«{$parsed->name}»: {$e->getMessage()}";
+            }
+        }
+        Audit::log('offers.bulk_created', null, ['created' => $created, 'existing' => $existing, 'failed' => count($failed)]);
+
+        $message = "Сформировано КП: {$created}".($existing ? ", уже были: {$existing}" : '').'. Отправьте их из карточек КП или через «Кампании КП».';
+
+        return redirect()->route('admin.offers.index')
+            ->with('success', $message)
+            ->with('error', $failed === [] ? null : 'Не удалось: '.implode('; ', array_slice($failed, 0, 5)).(count($failed) > 5 ? ' и ещё '.(count($failed) - 5) : ''));
+    }
+
+    /** Отправка КП в один канал из карточки КП. */
+    public function send(Request $request, Offer $offer, OfferDispatchService $dispatch): RedirectResponse
+    {
+        $data = $request->validate([
+            'channel' => ['required', 'string', Rule::in([...OfferDispatchService::AUTO, ...OfferDispatchService::MANUAL])],
+            'contact' => ['nullable', 'string', 'max:190'],
+        ]);
+
+        try {
+            $dispatch->send($offer, $data['channel'], $request->user(), $data['contact'] ?? null);
+        } catch (RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        $label = Campaign::CHANNELS[$data['channel']] ?? $data['channel'];
+
+        return back()->with('success', in_array($data['channel'], OfferDispatchService::AUTO, true)
+            ? "КП отправлено: {$label}."
+            : "Отмечено как отправленное вручную: {$label}.");
+    }
+
+    /** Дополнительный текст об акциях и спецпредложениях — попадает в КП во всех каналах. */
+    public function extra(Request $request, Offer $offer, OfferService $offers): RedirectResponse
+    {
+        $data = $request->validate(['extra_note' => ['nullable', 'string', 'max:'.OfferCopywriter::MAX_LENGTH]]);
+        $offers->setExtra($offer, $data['extra_note'] ?? null, $request->user());
+
+        return back()->with('success', 'Дополнительное предложение сохранено в КП.');
+    }
+
+    /** Подсказка от ИИ: улучшенный вариант доп. текста. Не сохраняется, пока менеджер его не примет. */
+    public function improve(Request $request, Offer $offer, OfferCopywriter $copywriter): JsonResponse
+    {
+        $data = $request->validate(['text' => ['required', 'string', 'max:2000']]);
+
+        try {
+            return response()->json(['text' => $copywriter->improve($offer, $data['text'])]);
+        } catch (AssistantBudgetExceeded) {
+            return response()->json(['message' => 'Исчерпан бюджет ИИ на сегодня.'], 429);
+        } catch (RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
     }
 
     public function customize(Request $request, Offer $offer, OfferService $offers): RedirectResponse
@@ -236,7 +321,11 @@ class OfferController extends AdminController
             'manager.name' => ['nullable', 'string', 'max:120'],
             'manager.phone' => ['nullable', 'string', 'max:32', new RussianPhone],
             'manager.email' => ['nullable', 'email', 'max:190'],
-        ], ['rules.send_to_hour.gt' => 'Окончание рабочего окна должно быть позже начала.']);
+            'ai.model' => ['nullable', 'string', 'max:120', 'regex:/^[a-z0-9._\-]+\/[a-z0-9._:\-]+$/i'],
+        ], [
+            'rules.send_to_hour.gt' => 'Окончание рабочего окна должно быть позже начала.',
+            'ai.model.regex' => 'Модель указывается в формате OpenRouter: provider/model, например deepseek/deepseek-chat.',
+        ]);
 
         $current = $settings->all();
         $settings->save([
@@ -252,6 +341,7 @@ class OfferController extends AdminController
             ],
             'rules' => array_map('intval', $data['rules']) + $current['rules'],
             'manager' => array_map(fn ($v) => (string) ($v ?? ''), ($data['manager'] ?? []) + $current['manager']),
+            'ai' => ['model' => (string) ($data['ai']['model'] ?? '') ?: 'deepseek/deepseek-chat'],
         ]);
         Audit::log('offers.settings_updated', null, ['by' => $request->user()->id]);
 

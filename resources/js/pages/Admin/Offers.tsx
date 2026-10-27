@@ -60,6 +60,7 @@ export interface Settings {
     demo: { expires_days: number; max_opens: number | null; max_devices: number | null; sections: string[]; show_tariffs: boolean; notify_manager: boolean; revoke_on_connect: boolean };
     rules: { min_days_between: number; daily_email: number; daily_sms: number; send_from_hour: number; send_to_hour: number };
     manager: { name: string; phone: string; email: string };
+    ai: { model: string };
 }
 
 interface Props {
@@ -446,6 +447,19 @@ function SettingsTab({ settings, sections }: { settings: Settings; sections: Rec
                         onChange={(e) => form.setData('manager', { ...form.data.manager, email: e.target.value })}
                         hint="Сюда придут письма об открытии демо"
                         error={err['manager.email']}
+                    />
+                </div>
+            </Panel>
+
+            <Panel title="ИИ для текстов КП">
+                <div className="offers-form-grid">
+                    <TextField
+                        label="Модель OpenRouter"
+                        value={form.data.ai?.model ?? ''}
+                        onChange={(e) => form.setData('ai', { model: e.target.value })}
+                        placeholder="deepseek/deepseek-chat"
+                        hint="Кнопка «Улучшить с ИИ» в карточке КП. Рекомендуем недорогие модели: deepseek/deepseek-chat, qwen/qwen-2.5-72b-instruct."
+                        error={err['ai.model']}
                     />
                 </div>
             </Panel>

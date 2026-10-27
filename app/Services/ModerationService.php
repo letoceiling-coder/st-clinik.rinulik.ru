@@ -8,6 +8,7 @@ use App\Models\ClinicPhoto;
 use App\Models\Doctor;
 use App\Models\Review;
 use App\Models\UserNotification;
+use App\Services\Monetization\ClinicTrialService;
 use App\Services\Organization\ClinicStaffNotifier;
 use App\Support\ClinicNotificationEvents;
 use InvalidArgumentException;
@@ -45,6 +46,9 @@ class ModerationService
 
         $clinic->update(['status' => $approve ? 'approved' : 'rejected', 'moderation_note' => $approve ? null : $note]);
         $this->metrics->recalcClinic($clinic);
+        if ($approve) {
+            app(ClinicTrialService::class)->activateIfRequested($clinic);
+        }
         $this->notifyOwner($clinic, $approve ? 'Филиал одобрен' : 'Филиал отклонён', $approve
             ? "«{$clinic->name}» прошёл модерацию. Опубликуйте карточку в кабинете, когда будете готовы."
             : "«{$clinic->name}» не прошёл модерацию. ".($note ?? ''));

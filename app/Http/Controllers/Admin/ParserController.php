@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Jobs\SyncParserOrganizationsJob;
 use App\Models\City;
+use App\Models\Clinic;
 use App\Models\Offer;
 use App\Models\OfferTemplate;
 use App\Models\OrganizationContact;
@@ -45,6 +46,9 @@ class ParserController extends AdminController
             'search_filters' => ParserTask::FILTERS,
             'task_statuses' => ParserTask::STATUSES,
             'limits' => fn () => $this->limits(),
+            'offer_templates' => fn () => $request->user()?->hasPermission('offers.manage')
+                ? OfferTemplate::query()->where('is_active', true)->orderBy('name')->get(['id', 'name'])
+                : [],
             'filters' => $request->only(['q', 'status', 'city', 'has', 'match', 'base_city']),
         ]);
     }
@@ -370,6 +374,9 @@ class ParserController extends AdminController
 
         $groupSizes = ParsedOrganization::query()->whereIn('group_key', $page->getCollection()->pluck('group_key')->filter()->unique())
             ->selectRaw('group_key, count(*) as c')->groupBy('group_key')->pluck('c', 'group_key');
+        $clinicIds = $page->getCollection()->pluck('clinic_id')->filter()->unique();
+        $draftIds = Clinic::query()->whereIn('id', $clinicIds)->where('status', 'draft')->pluck('id')->flip();
+        $offers = Offer::query()->whereIn('clinic_id', $clinicIds)->whereNull('revoked_at')->latest('id')->get(['id', 'clinic_id'])->keyBy('clinic_id');
 
         return $page->through(fn (ParsedOrganization $p) => [
             ...$this->row($p),
@@ -377,6 +384,8 @@ class ParserController extends AdminController
             'match' => $p->matchClinic ? ['id' => $p->matchClinic->id, 'name' => $p->matchClinic->name, 'reason' => $p->match_reason] : null,
             'network_size' => $p->group_key ? (int) ($groupSizes[$p->group_key] ?? 1) : 0,
             'importable' => $p->isImportable(),
+            'offerable' => ($p->isImportable() || ($p->clinic_id && isset($draftIds[$p->clinic_id]))) && ! isset($offers[$p->clinic_id ?? 0]),
+            'offer_id' => $p->clinic_id ? $offers[$p->clinic_id]?->id : null,
         ])->toArray();
     }
 

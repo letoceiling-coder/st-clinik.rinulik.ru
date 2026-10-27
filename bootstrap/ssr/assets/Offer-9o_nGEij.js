@@ -1,11 +1,233 @@
+import { t as Icon } from "./Icon-DQahs-u2.js";
 import { i as LinkButton, n as Button, t as AnchorButton } from "./Button-B5alqlNe.js";
-import { C as TextArea, _ as Tabs, l as Badge, s as Alert, v as Check, w as TextField } from "../app.js";
+import { C as TextArea, _ as Tabs, b as PhoneField, l as Badge, s as Alert, v as Check, w as TextField } from "../app.js";
 import { a as Panel, c as Table, r as PageHead } from "./Dash-1ijSGeUC.js";
 import { n as CopyLink, t as CopyButton } from "./CopyButton-Cei3m-mt.js";
-import { ApplicationsTab, OFFER_TONE, SectionPicker } from "./Offers-LTddIOmf.js";
+import { ApplicationsTab, OFFER_TONE, SectionPicker } from "./Offers-DkwPpmeN.js";
 import { Link, router, useForm } from "@inertiajs/react";
 import { useState } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
+//#region resources/js/components/offers/OfferSendPanels.tsx
+function xsrfToken() {
+	const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+	return match ? decodeURIComponent(match[1]) : "";
+}
+/** Дополнительный текст об акциях и спецпредложениях + подсказка ИИ (принимается вручную). */
+function ExtraPanel({ offerId, extra, disabled }) {
+	const form = useForm({ extra_note: extra.text });
+	const [suggestion, setSuggestion] = useState(null);
+	const [aiError, setAiError] = useState(null);
+	const [aiLoading, setAiLoading] = useState(false);
+	const improve = async () => {
+		setAiLoading(true);
+		setAiError(null);
+		try {
+			const response = await fetch(`/admin/offers/${offerId}/improve`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Accept: "application/json",
+					"X-XSRF-TOKEN": xsrfToken()
+				},
+				body: JSON.stringify({ text: form.data.extra_note })
+			});
+			const json = await response.json();
+			if (!response.ok || !json.text) throw new Error(json.message ?? "Не удалось получить вариант от ИИ.");
+			setSuggestion(json.text);
+		} catch (e) {
+			setAiError(e instanceof Error ? e.message : "Не удалось получить вариант от ИИ.");
+		} finally {
+			setAiLoading(false);
+		}
+	};
+	return /* @__PURE__ */ jsx(Panel, {
+		title: "Дополнительное предложение",
+		children: /* @__PURE__ */ jsxs("form", {
+			className: "stack",
+			onSubmit: (e) => {
+				e.preventDefault();
+				form.put(`/admin/offers/${offerId}/extra`, { preserveScroll: true });
+			},
+			children: [
+				/* @__PURE__ */ jsxs("p", {
+					className: "text-sm text-muted",
+					children: [
+						"Акции, бонусы, особые условия для этой клиники. Текст появится отдельным блоком на странице КП и подставится в письмо вместо ",
+						"{extra}",
+						"."
+					]
+				}),
+				/* @__PURE__ */ jsx(TextArea, {
+					label: "Текст предложения",
+					rows: 4,
+					maxLength: extra.max,
+					value: form.data.extra_note,
+					onChange: (e) => form.setData("extra_note", e.target.value),
+					error: form.errors.extra_note,
+					placeholder: "Например: при подключении до 30 ноября — 3 месяца тарифа «Профи» по цене двух и бесплатное оформление карточки.",
+					disabled
+				}),
+				aiError ? /* @__PURE__ */ jsx(Alert, {
+					tone: "warning",
+					children: aiError
+				}) : null,
+				suggestion !== null ? /* @__PURE__ */ jsxs("div", {
+					className: "offer-ai-suggestion",
+					children: [
+						/* @__PURE__ */ jsxs("span", {
+							className: "offer-ai-suggestion__label",
+							children: [/* @__PURE__ */ jsx(Icon, {
+								name: "sparkle",
+								size: 16
+							}), " Вариант от ИИ — проверьте факты перед сохранением"]
+						}),
+						/* @__PURE__ */ jsx("p", { children: suggestion }),
+						/* @__PURE__ */ jsxs("div", {
+							className: "row row--wrap",
+							children: [/* @__PURE__ */ jsx(Button, {
+								type: "button",
+								size: "sm",
+								onClick: () => {
+									form.setData("extra_note", suggestion);
+									setSuggestion(null);
+								},
+								children: "Подставить"
+							}), /* @__PURE__ */ jsx(Button, {
+								type: "button",
+								size: "sm",
+								variant: "ghost",
+								onClick: () => setSuggestion(null),
+								children: "Отклонить"
+							})]
+						})
+					]
+				}) : null,
+				/* @__PURE__ */ jsxs("div", {
+					className: "row row--wrap",
+					children: [/* @__PURE__ */ jsx(Button, {
+						type: "submit",
+						loading: form.processing,
+						disabled,
+						children: "Сохранить в КП"
+					}), extra.ai_available ? /* @__PURE__ */ jsx(Button, {
+						type: "button",
+						variant: "outline",
+						icon: "sparkle",
+						loading: aiLoading,
+						disabled: disabled || form.data.extra_note.trim() === "",
+						onClick: improve,
+						children: "Улучшить с ИИ"
+					}) : /* @__PURE__ */ jsx("span", {
+						className: "text-xs text-muted",
+						children: "ИИ недоступен: добавьте ключ OpenRouter в Интеграциях."
+					})]
+				})
+			]
+		})
+	});
+}
+/** Отправка КП одному получателю: показываются только каналы с подключённой интеграцией. */
+function DispatchPanel({ offerId, channels, statuses, disabled }) {
+	const [contacts, setContacts] = useState({});
+	const [busy, setBusy] = useState(null);
+	const send = (channel) => {
+		const verb = channel.mode === "auto" ? `Отправить КП: ${channel.label}?` : `Отметить, что КП отправлено вручную: ${channel.label}?`;
+		if (!window.confirm(verb)) return;
+		setBusy(channel.key);
+		router.post(`/admin/offers/${offerId}/send`, {
+			channel: channel.key,
+			contact: contacts[channel.key] ?? ""
+		}, {
+			preserveScroll: true,
+			onFinish: () => setBusy(null)
+		});
+	};
+	return /* @__PURE__ */ jsxs(Panel, {
+		title: "Отправка КП",
+		children: [
+			disabled ? /* @__PURE__ */ jsx(Alert, {
+				tone: "warning",
+				children: "КП отозвано или истекло — отправка недоступна."
+			}) : null,
+			/* @__PURE__ */ jsx("p", {
+				className: "text-sm text-muted",
+				children: "Email и SMS отправляются автоматически. Для мессенджеров и звонка откроется готовый текст — после отправки отметьте её здесь."
+			}),
+			/* @__PURE__ */ jsx("div", {
+				className: "offer-dispatch",
+				children: channels.map((c) => {
+					const needsContact = c.reason === "Нет подходящего контакта в карточке.";
+					const blocked = !c.available && !needsContact;
+					return /* @__PURE__ */ jsxs("div", {
+						className: `offer-dispatch__item card${blocked ? " is-off" : ""}`,
+						children: [
+							/* @__PURE__ */ jsxs("div", {
+								className: "row row--between",
+								children: [/* @__PURE__ */ jsx("b", { children: c.label }), /* @__PURE__ */ jsx(Badge, {
+									tone: c.mode === "auto" ? "info" : void 0,
+									children: c.mode === "auto" ? "авто" : "вручную"
+								})]
+							}),
+							c.contact ? /* @__PURE__ */ jsx("span", {
+								className: "text-sm",
+								children: c.contact
+							}) : null,
+							c.reason ? /* @__PURE__ */ jsx("span", {
+								className: "text-xs text-muted",
+								children: c.reason
+							}) : null,
+							needsContact && !disabled ? c.key === "email" ? /* @__PURE__ */ jsx(TextField, {
+								"aria-label": `Контакт для канала ${c.label}`,
+								placeholder: "email@clinic.ru",
+								type: "email",
+								value: contacts[c.key] ?? "",
+								onChange: (e) => setContacts((prev) => ({
+									...prev,
+									[c.key]: e.target.value
+								}))
+							}) : /* @__PURE__ */ jsx(PhoneField, {
+								"aria-label": `Номер для канала ${c.label}`,
+								autoComplete: "off",
+								value: contacts[c.key] ?? "",
+								onChange: (e) => setContacts((prev) => ({
+									...prev,
+									[c.key]: e.target.value
+								}))
+							}) : null,
+							c.last ? /* @__PURE__ */ jsxs("span", {
+								className: "text-xs text-muted",
+								children: [
+									"Последняя: ",
+									statuses[c.last.status] ?? c.last.status,
+									c.last.at ? `, ${c.last.at}` : ""
+								]
+							}) : null,
+							/* @__PURE__ */ jsxs("div", {
+								className: "row row--wrap",
+								children: [c.link && !disabled ? /* @__PURE__ */ jsx(AnchorButton, {
+									href: c.link,
+									target: "_blank",
+									rel: "noopener",
+									size: "sm",
+									variant: "outline",
+									icon: "external",
+									children: c.key === "phone" ? "Позвонить" : "Открыть"
+								}) : null, /* @__PURE__ */ jsx(Button, {
+									size: "sm",
+									disabled: disabled || blocked || needsContact && !(contacts[c.key] ?? "").trim(),
+									loading: busy === c.key,
+									onClick: () => send(c),
+									children: c.mode === "auto" ? "Отправить" : "Отметить отправку"
+								})]
+							})
+						]
+					}, c.key);
+				})
+			})
+		]
+	});
+}
+//#endregion
 //#region resources/js/pages/Admin/Offer.tsx
 var duration = (sec) => sec < 60 ? `${sec} с` : `${Math.round(sec / 60)} мин`;
 function AdminOffer(props) {
@@ -98,6 +320,17 @@ function AdminOffer(props) {
 						}) }) : null
 					]
 				})
+			}),
+			/* @__PURE__ */ jsx(ExtraPanel, {
+				offerId: offer.id,
+				extra: props.extra,
+				disabled: !offer.available
+			}),
+			/* @__PURE__ */ jsx(DispatchPanel, {
+				offerId: offer.id,
+				channels: props.dispatch,
+				statuses: recipient_statuses,
+				disabled: !offer.available
 			}),
 			/* @__PURE__ */ jsx(ContentPanel, { offer }),
 			/* @__PURE__ */ jsx(Panel, {
@@ -509,4 +742,4 @@ function DemoLinkItem({ link, sections }) {
 //#endregion
 export { AdminOffer as default };
 
-//# sourceMappingURL=Offer-BZtHmMUU.js.map
+//# sourceMappingURL=Offer-9o_nGEij.js.map

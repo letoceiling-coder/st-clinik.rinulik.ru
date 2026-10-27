@@ -16,15 +16,17 @@ function Payments({ subscription, tariffs, payments, autorenew_available }) {
 				children: "Тариф и платежи"
 			}),
 			subscription ? /* @__PURE__ */ jsxs(Alert, {
-				tone: "info",
+				tone: subscription.is_trial ? "success" : void 0,
 				children: [
-					"Тариф «",
+					subscription.is_trial ? "Пробный период: " : "",
+					"тариф «",
 					subscription.tariff,
 					"» до ",
 					subscription.ends_at,
 					" (осталось ",
 					subscription.days_left,
-					" дн.)"
+					" дн.)",
+					subscription.is_trial ? " По окончании выберите тариф ниже — автоматического списания не будет." : ""
 				]
 			}) : /* @__PURE__ */ jsx(Alert, {
 				tone: "warning",
@@ -105,4 +107,4 @@ function Payments({ subscription, tariffs, payments, autorenew_available }) {
 //#endregion
 export { Payments as default };
 
-//# sourceMappingURL=Payments-CYeqHMwV.js.map
+//# sourceMappingURL=Payments-K2T4aUED.js.map

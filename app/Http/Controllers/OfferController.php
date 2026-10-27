@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ClinicDetailResource;
 use App\Http\Resources\ClinicResource;
+use App\Http\Resources\ReviewResource;
 use App\Models\CampaignRecipient;
 use App\Models\Clinic;
 use App\Models\Offer;
@@ -10,8 +12,10 @@ use App\Models\ParsedOrganization;
 use App\Models\StopListEntry;
 use App\Models\User;
 use App\Models\UserNotification;
+use App\Repositories\Contracts\ReviewRepository;
 use App\Rules\RussianPhone;
 use App\Services\Audit;
+use App\Services\Monetization\MonetizationSettings;
 use App\Services\Offers\DemoSession;
 use App\Services\Offers\OfferRenderer;
 use App\Services\Offers\OfferService;
@@ -51,7 +55,60 @@ class OfferController extends Controller
         return redirect()->to($link->url());
     }
 
-    public function show(string $token, OfferService $offers, OfferRenderer $renderer, OrganizationClaimService $claims): Response
+    /**
+     * Что уже заполнено в карточке по данным парсера — показываем клинике, сколько работы сделано за неё.
+     *
+     * @return list<array{label: string, value: string|null, done: bool}>
+     */
+    private function prepared(Clinic $clinic, ?ParsedOrganization $parsed): array
+    {
+        $services = $clinic->clinicServices->count();
+        $photos = $clinic->photos->count();
+        $specialties = $clinic->specialties->count();
+
+        return [
+            ['label' => $clinic->lat !== null ? 'Адрес и точка на карте' : 'Адрес', 'value' => $clinic->address ?: null, 'done' => filled($clinic->address)],
+            ['label' => 'Телефон', 'value' => $clinic->phone, 'done' => filled($clinic->phone)],
+            ['label' => 'Сайт', 'value' => $clinic->website ? preg_replace('~^https?://~', '', $clinic->website) : null, 'done' => filled($clinic->website)],
+            ['label' => 'Режим работы', 'value' => $parsed?->hours, 'done' => ! empty($clinic->schedule)],
+            ['label' => 'Направления', 'value' => $specialties ? (string) $specialties : null, 'done' => $specialties > 0],
+            ['label' => 'Услуги и цены', 'value' => $services ? (string) $services : null, 'done' => $services > 0],
+            ['label' => 'Фотографии', 'value' => $photos ? (string) $photos : null, 'done' => $photos > 0],
+            ['label' => 'Врачи', 'value' => null, 'done' => $clinic->doctors()->exists()],
+        ];
+    }
+
+    /** Предпросмотр будущей страницы клиники (черновик не опубликован и не индексируется). */
+    public function preview(string $code, ReviewRepository $reviews): Response
+    {
+        $offer = Offer::query()->where('short_code', $code)->first();
+        abort_unless($offer && $offer->isAvailable(), 404);
+
+        $clinic = Clinic::query()->whereKey($offer->clinic_id)->with([
+            'organization:id,name,legal_name',
+            'city', 'district', 'specialties',
+            'doctors' => fn ($q) => $q->with('specialties:id,name,slug')->orderByDesc('rating'),
+            'photos' => fn ($q) => $q->where('status', '!=', 'rejected')->orderBy('sort'),
+            'documents' => fn ($q) => $q->where('status', 'approved'),
+            'clinicServices' => fn ($q) => $q->with('service.specialty:id,name,slug')->orderBy('price_from'),
+            'posts' => fn ($q) => $q->whereRaw('1 = 0'),
+        ])->firstOrFail();
+
+        return $this->page('Clinics/Show', [
+            'clinic' => ClinicDetailResource::make($clinic)->resolve(),
+            'reviews' => $this->paged($reviews->forClinic($clinic, 6), ReviewResource::class),
+            'review_filters' => [],
+            'distribution' => $reviews->distribution($clinic),
+            'similar' => [],
+            'concerns' => [],
+            'review_options' => ['doctors' => [], 'services' => []],
+            'breadcrumbs' => [['Главная', url('/')], [$clinic->city?->name ?? 'Город', url('/')], [$clinic->name, $offer->shortUrl()]],
+            'clinic_follow' => ['subscribed' => false, 'can_subscribe' => false],
+            'preview' => ['offer_url' => $offer->shortUrl()],
+        ], app(Seo::class)->private('Предпросмотр: '.$clinic->name));
+    }
+
+    public function show(string $token, OfferService $offers, OfferRenderer $renderer, OrganizationClaimService $claims, MonetizationSettings $monetization): Response
     {
         $offer = $this->offer($token);
         $offers->recordView($offer);
@@ -79,6 +136,12 @@ class OfferController extends Controller
                 'platform_views' => $vars['{platform.visitors_in_city}'],
             ],
             'tariffs' => $demo === null || $demo->show_tariffs ? $renderer->tariffList((int) $clinic->city_id) : [],
+            'plans' => $demo === null || $demo->show_tariffs ? $renderer->plans() : [],
+            'prepared' => $this->prepared($clinic, $parsed),
+            'extra_html' => filled($offer->extra_note) ? $renderer->toHtml((string) $offer->extra_note) : null,
+            'trial' => ['enabled' => $monetization->trialEnabled(), 'days' => $monetization->trialDays()],
+            'preview_url' => route('offer.preview', ['code' => $offer->short_code]),
+            'about_url' => route('alias.for-clinics'),
             'demo_url' => $demo !== null && $demo->unavailableReason() === null ? $demo->url() : null,
             'claim_url' => $claimPreview['claimable'] ? route('offer.claim.show', ['token' => $token]) : null,
             'manager' => array_filter(app(OfferSettings::class)->manager()),

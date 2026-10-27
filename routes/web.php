@@ -51,7 +51,7 @@ Route::get('/clinics/{slug}', [ClinicController::class, 'show'])->name('clinics.
 Route::get('/doctors/{slug}', [DoctorController::class, 'show'])->name('doctors.show');
 Route::get('/tz', [PageController::class, 'tz'])->name('tz');
 Route::get('/pages/{slug}', [PageController::class, 'show'])->name('pages.show');
-foreach (['privacy', 'consent', 'review-rules', 'terms', 'about', 'for-clinics'] as $alias) {
+foreach (['privacy', 'consent', 'review-rules', 'terms', 'about', 'for-clinics', 'clinic-agreement'] as $alias) {
     Route::get("/$alias", [PageController::class, 'show'])->defaults('slug', $alias)->name("alias.$alias");
 }
 
@@ -75,6 +75,7 @@ if (config('demo.enabled')) {
 Route::middleware('throttle:60,1')->group(function () {
     Route::get('/o/{code}', [OfferController::class, 'short'])->where('code', '[A-Za-z0-9]{10}')->name('offer.short');
     Route::get('/o/{code}/demo', [OfferController::class, 'shortDemo'])->where('code', '[A-Za-z0-9]{10}')->name('offer.demo');
+    Route::get('/o/{code}/preview', [OfferController::class, 'preview'])->where('code', '[A-Za-z0-9]{10}')->name('offer.preview');
     Route::get('/o/p/{recipient}', [OfferController::class, 'pixel'])->whereNumber('recipient')->name('offers.pixel');
     Route::get('/offer/{token}', [OfferController::class, 'show'])->where('token', '[A-Za-z0-9_-]{40,64}')->name('offer.show');
     Route::get('/demo/{token}', [OfferController::class, 'demo'])->where('token', '[A-Za-z0-9_-]{40,64}')->name('demo.open');
@@ -86,6 +87,7 @@ Route::middleware('throttle:60,1')->group(function () {
 Route::post('/offer/{token}/apply', [OfferController::class, 'apply'])->where('token', '[A-Za-z0-9_-]{40,64}')->middleware('throttle:leads')->name('offer.apply');
 Route::get('/offer/{token}/claim', [ClaimOfferController::class, 'show'])->where('token', '[A-Za-z0-9_-]{40,64}')->name('offer.claim.show');
 Route::post('/offer/{token}/claim', [ClaimOfferController::class, 'store'])->where('token', '[A-Za-z0-9_-]{40,64}')->middleware(['auth', 'throttle:auth'])->name('offer.claim.store');
+Route::post('/offer/{token}/claim/code', [ClaimOfferController::class, 'sendCode'])->where('token', '[A-Za-z0-9_-]{40,64}')->middleware(['auth', 'verified', 'throttle:3,10'])->name('offer.claim.code');
 Route::post('/demo-exit', [OfferController::class, 'leaveDemo'])->name('demo.leave');
 
 Route::post('/webhooks/max', MaxWebhookController::class)->name('webhooks.max');
@@ -431,6 +433,10 @@ Route::middleware(['auth', 'perm:admin.dashboard'])->prefix('admin')->name('admi
             Route::post('/{offer}/revoke', [Admin\OfferController::class, 'revoke'])->whereNumber('offer')->name('revoke');
             Route::post('/{offer}/connect', [Admin\OfferController::class, 'connect'])->whereNumber('offer')->name('connect');
             Route::post('/{offer}/demo', [Admin\OfferController::class, 'reissueDemo'])->whereNumber('offer')->name('demo.reissue');
+            Route::post('/bulk', [Admin\OfferController::class, 'bulk'])->middleware('throttle:10,1')->name('bulk');
+            Route::post('/{offer}/send', [Admin\OfferController::class, 'send'])->whereNumber('offer')->middleware('throttle:30,1')->name('send');
+            Route::put('/{offer}/extra', [Admin\OfferController::class, 'extra'])->whereNumber('offer')->name('extra');
+            Route::post('/{offer}/improve', [Admin\OfferController::class, 'improve'])->whereNumber('offer')->middleware('throttle:20,1')->name('improve');
         });
 
         Route::prefix('campaigns')->name('campaigns.')->group(function () {
@@ -477,6 +483,7 @@ Route::middleware(['auth', 'perm:admin.dashboard'])->prefix('admin')->name('admi
     Route::middleware('perm:admin.promotions')->group(function () {
         Route::get('/tariffs', [Admin\TariffController::class, 'index'])->name('tariffs.index');
         Route::post('/tariffs', [Admin\TariffController::class, 'store'])->name('tariffs.store');
+        Route::put('/tariffs/trial', [Admin\TariffController::class, 'trial'])->name('tariffs.trial');
         Route::put('/tariffs/{tariff}', [Admin\TariffController::class, 'update'])->name('tariffs.update')->whereNumber('tariff');
         Route::get('/finance', [Admin\FinanceController::class, 'index'])->name('finance.index');
         Route::put('/finance/settings', [Admin\FinanceController::class, 'updateSettings'])->name('finance.settings');

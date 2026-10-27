@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import ClinicCard from '@/components/ClinicCard';
 import { AnchorButton, Button } from '@/components/ui/Button';
 import { Check, PhoneField, TextArea, TextField } from '@/components/ui/Fields';
+import Icon from '@/components/Icon';
 import { Alert } from '@/components/ui/Misc';
 import { money } from '@/lib/format';
 import type { ClinicCardData, SharedProps } from '@/lib/types';
@@ -19,12 +20,18 @@ interface Props {
         platform_views: string;
     };
     tariffs: { name: string; description: string | null; price: number | null; days: number }[];
+    plans: { name: string; description: string | null; price: number; days: number; is_free: boolean; limits: string[]; features: string[] }[];
+    prepared: { label: string; value: string | null; done: boolean }[];
+    extra_html: string | null;
+    trial: { enabled: boolean; days: number };
+    preview_url: string;
+    about_url: string;
     demo_url: string | null;
     claim_url: string | null;
     manager: { name?: string; phone?: string; email?: string };
 }
 
-export default function OfferShow({ offer, clinic, stats, tariffs, demo_url, claim_url, manager }: Props) {
+export default function OfferShow({ offer, clinic, stats, tariffs, plans, prepared, extra_html, trial, preview_url, about_url, demo_url, claim_url, manager }: Props) {
     const { flash } = usePage<SharedProps>().props;
     const form = useForm({ name: '', phone: '', email: '', position: '', comment: '', consent: false });
     const submit = (e: FormEvent) => {
@@ -40,21 +47,33 @@ export default function OfferShow({ offer, clinic, stats, tariffs, demo_url, cla
                     <span className="offer-hero__eyebrow text-sm">Персональное предложение{stats.city ? ` · ${stats.city}` : ''}</span>
                     <h1 className="offer-hero__title">{offer.title}</h1>
                     <div className="offer-hero__actions">
-                        {demo_url ? (
-                            <AnchorButton href={demo_url} size="lg" icon="eye">
-                                Открыть демо-кабинет
-                            </AnchorButton>
-                        ) : null}
                         {claim_url ? (
-                            <AnchorButton href={claim_url} size="lg" variant={demo_url ? 'outline' : 'primary'}>
-                                Забрать черновик
+                            <AnchorButton href={claim_url} size="lg">
+                                {trial.enabled ? `Попробовать бесплатно ${trial.days} дней` : 'Подключить клинику'}
                             </AnchorButton>
                         ) : (
-                            <AnchorButton href="#connect" size="lg" variant={demo_url ? 'outline' : 'primary'}>
+                            <AnchorButton href="#connect" size="lg">
                                 Подключиться
                             </AnchorButton>
                         )}
+                        {demo_url ? (
+                            <AnchorButton href={demo_url} size="lg" variant="outline" icon="eye">
+                                Демо-кабинет клиники
+                            </AnchorButton>
+                        ) : null}
                     </div>
+                    <ul className="offer-links">
+                        <li>
+                            <a className="link" href={preview_url} target="_blank" rel="noopener">
+                                <Icon name="globe" size={16} /> Как будет выглядеть страница клиники
+                            </a>
+                        </li>
+                        <li>
+                            <a className="link" href={about_url} target="_blank" rel="noopener">
+                                <Icon name="file" size={16} /> Подробнее о сервисе и возможностях
+                            </a>
+                        </li>
+                    </ul>
                     <p className="text-xs text-muted">Демо-кабинет открывается без регистрации и только для просмотра — данные заявок в нём примерные.</p>
                 </div>
                 <div className="offer-hero__preview" aria-label="Так клиника выглядит в каталоге">
@@ -74,9 +93,64 @@ export default function OfferShow({ offer, clinic, stats, tariffs, demo_url, cla
 
             {offer.html ? <article className="offer-body card" dangerouslySetInnerHTML={{ __html: offer.html }} /> : null}
 
+            {extra_html ? (
+                <section className="offer-extra card" aria-label="Специальное предложение">
+                    <span className="offer-extra__badge">
+                        <Icon name="sparkle" size={16} /> Специально для вас
+                    </span>
+                    <div className="offer-body" dangerouslySetInnerHTML={{ __html: extra_html }} />
+                </section>
+            ) : null}
+
+            <section className="stack">
+                <h2 className="offer-section-title">Мы уже подготовили вашу карточку</h2>
+                <p className="text-sm text-muted">Данные собраны из открытых источников. После подключения вы сможете проверить и дополнить их в кабинете.</p>
+                <ul className="offer-prepared">
+                    {prepared.map((item) => (
+                        <li key={item.label} className={item.done ? 'is-done' : ''}>
+                            <Icon name={item.done ? 'check-circle' : 'plus'} size={20} />
+                            <span>
+                                <b>{item.label}</b>
+                                <span className="text-sm text-muted">{item.done ? (item.value ?? 'заполнено') : 'добавите в кабинете'}</span>
+                            </span>
+                        </li>
+                    ))}
+                </ul>
+            </section>
+
+            {plans.length > 0 ? (
+                <section className="stack">
+                    <h2 className="offer-section-title">Тарифы</h2>
+                    {trial.enabled ? (
+                        <p className="text-sm">
+                            <b>Первые {trial.days} дней — бесплатно</b> с полным набором возможностей, без привязки карты.
+                        </p>
+                    ) : null}
+                    <div className="offer-tariffs">
+                        {plans.map((t) => (
+                            <div key={t.name} className="offer-tariff card">
+                                <b>{t.name}</b>
+                                {t.description ? <p className="text-sm text-muted">{t.description}</p> : null}
+                                <div className="offer-tariff__price">
+                                    {t.is_free ? 'Бесплатно' : money(t.price)}
+                                    {t.is_free ? null : <span className="text-sm text-muted"> / {t.days} дн.</span>}
+                                </div>
+                                <ul className="offer-tariff__list">
+                                    {[...t.features, ...t.limits].map((f) => (
+                                        <li key={f}>
+                                            <Icon name="check" size={16} /> {f}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            ) : null}
+
             {tariffs.length > 0 ? (
                 <section className="stack">
-                    <h2 className="offer-section-title">Тарифы продвижения</h2>
+                    <h2 className="offer-section-title">Продвижение в каталоге</h2>
                     <div className="offer-tariffs">
                         {tariffs.map((t) => (
                             <div key={t.name} className="offer-tariff card">
@@ -89,7 +163,7 @@ export default function OfferShow({ offer, clinic, stats, tariffs, demo_url, cla
                             </div>
                         ))}
                     </div>
-                    <p className="text-xs text-muted">Базовое размещение карточки бесплатно. Цены указаны для вашего города.</p>
+                    <p className="text-xs text-muted">Дополнительные пакеты поднимают карточку в выдаче. Цены указаны для вашего города.</p>
                 </section>
             ) : null}
 

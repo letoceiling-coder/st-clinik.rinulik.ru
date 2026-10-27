@@ -44,7 +44,14 @@ class OfferSettings
                 'send_to_hour' => 19,
             ],
             'manager' => ['name' => '', 'phone' => '', 'email' => ''],
+            'ai' => ['model' => 'deepseek/deepseek-chat'],
         ];
+    }
+
+    /** Модель OpenRouter для улучшения текстов КП (уровень цен DeepSeek). */
+    public function aiModel(): string
+    {
+        return (string) ($this->all()['ai']['model'] ?? 'deepseek/deepseek-chat') ?: 'deepseek/deepseek-chat';
     }
 
     /** @return Settings */

@@ -95,18 +95,31 @@ class OfferService
     {
         $offer->update([
             'snapshot' => $this->renderer->render($content, $offer->clinic, $this->links($offer)),
+            'custom_content' => $content,
             'is_customized' => true,
         ]);
         Audit::log('offers.customized', $offer, ['by' => $by?->id]);
     }
 
-    /** @return array{offer_link: string, demo_link: string, unsubscribe_link: string} */
+    /** Дополнительный текст (акции, спецпредложения): сохраняется и подставляется в {extra} всех версий КП. */
+    public function setExtra(Offer $offer, ?string $text, ?User $by): void
+    {
+        $offer->extra_note = filled($text) ? trim((string) $text) : null;
+        $content = is_array($offer->custom_content) ? $offer->custom_content : $offer->templateVersion?->only(OfferTemplateVersion::CONTENT_FIELDS);
+        $offer->snapshot = $this->renderer->render((array) $content, $offer->clinic, $this->links($offer));
+        $offer->save();
+        Audit::log('offers.extra_updated', $offer, ['by' => $by?->id]);
+    }
+
+    /** @return array{offer_link: string, demo_link: string, preview_link: string, unsubscribe_link: string, extra: string} */
     public function links(Offer $offer): array
     {
         return [
             'offer_link' => $offer->shortUrl(),
             'demo_link' => route('offer.demo', ['code' => $offer->short_code]),
+            'preview_link' => route('offer.preview', ['code' => $offer->short_code]),
             'unsubscribe_link' => '{unsubscribe_link}',
+            'extra' => (string) ($offer->extra_note ?? ''),
         ];
     }
 

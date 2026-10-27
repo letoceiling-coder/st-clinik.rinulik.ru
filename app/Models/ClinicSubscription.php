@@ -23,6 +23,7 @@ class ClinicSubscription extends Model
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
             'auto_renew' => 'boolean',
+            'is_trial' => 'boolean',
             'reminder_days_sent' => 'array',
         ];
     }

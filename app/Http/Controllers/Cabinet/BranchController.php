@@ -9,6 +9,7 @@ use App\Models\District;
 use App\Models\Specialty;
 use App\Rules\RussianPhone;
 use App\Services\Audit;
+use App\Services\ModerationService;
 use App\Services\Monetization\ClinicSubscriptionService;
 use App\Services\ProfileMetrics;
 use App\Support\Schedule;
@@ -134,6 +135,19 @@ class BranchController extends CabinetController
         Audit::log('branch.submitted', $clinic);
 
         return back()->with('success', 'Филиал отправлен на модерацию. Обычно проверка занимает до 2 рабочих дней.');
+    }
+
+    /** Публикация одобренного модератором (или скрытого) филиала в каталоге. */
+    public function publish(Request $request, Clinic $clinic, ModerationService $moderation): RedirectResponse
+    {
+        $this->authorizeBranch($request, $clinic);
+        if (! in_array($clinic->status, ['approved', 'hidden'], true)) {
+            return back()->with('error', 'Опубликовать можно только филиал, одобренный модератором.');
+        }
+
+        $moderation->publishClinic($clinic);
+
+        return back()->with('success', 'Филиал опубликован в каталоге.');
     }
 
     // --- график ---------------------------------------------------------

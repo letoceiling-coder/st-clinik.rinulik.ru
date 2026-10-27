@@ -2,7 +2,7 @@ import { router, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { PageHead } from '@/components/Dash';
 import { Button } from '@/components/ui/Button';
-import { Check, TextArea, TextField } from '@/components/ui/Fields';
+import { Check, SelectField, TextArea, TextField } from '@/components/ui/Fields';
 import { Badge } from '@/components/ui/Misc';
 
 type TariffRow = {
@@ -23,7 +23,50 @@ type TariffRow = {
     clinics_count: number;
 };
 
-export default function Tariffs({ tariffs, feature_labels }: { tariffs: TariffRow[]; feature_labels: Record<string, string> }) {
+type TrialSettings = { enabled: boolean; days: number; tariff_id: number | null; active: number };
+
+function TrialPanel({ trial, tariffs }: { trial: TrialSettings; tariffs: TariffRow[] }) {
+    const form = useForm({ enabled: trial.enabled, days: trial.days, tariff_id: trial.tariff_id ?? '' });
+
+    return (
+        <form
+            className="card stack"
+            onSubmit={(e) => {
+                e.preventDefault();
+                form.put('/admin/tariffs/trial', { preserveScroll: true });
+            }}
+        >
+            <div className="row row--between row--wrap">
+                <h2 className="card-title">Пробный период по КП</h2>
+                <span className="text-sm text-muted">Сейчас на пробном периоде: {trial.active}</span>
+            </div>
+            <p className="text-sm text-muted">
+                Клиника, подключившаяся по коммерческому предложению, принимает соглашение и отправляет карточку на проверку. После одобрения модератором включается выбранный тариф на указанный срок. Один пробный период на организацию, ИНН и номер клиники.
+            </p>
+            <Check label="Предлагать пробный период" checked={form.data.enabled} onChange={(e) => form.setData('enabled', e.target.checked)} />
+            <div className="form-grid">
+                <TextField label="Длительность, дней" type="number" min={1} max={365} value={String(form.data.days)} onChange={(e) => form.setData('days', Number(e.target.value))} error={form.errors.days} />
+                <SelectField label="Тариф на время пробного периода" value={String(form.data.tariff_id)} onChange={(e) => form.setData('tariff_id', e.target.value === '' ? '' : Number(e.target.value))} error={form.errors.tariff_id}>
+                    <option value="">Самый полный активный тариф</option>
+                    {tariffs
+                        .filter((t) => t.is_active)
+                        .map((t) => (
+                            <option key={t.id} value={t.id}>
+                                {t.name}
+                            </option>
+                        ))}
+                </SelectField>
+            </div>
+            <div>
+                <Button type="submit" loading={form.processing}>
+                    Сохранить
+                </Button>
+            </div>
+        </form>
+    );
+}
+
+export default function Tariffs({ tariffs, feature_labels, trial }: { tariffs: TariffRow[]; feature_labels: Record<string, string>; trial: TrialSettings }) {
     const create = useForm({
         name: '',
         price: 0,
@@ -38,7 +81,7 @@ export default function Tariffs({ tariffs, feature_labels }: { tariffs: TariffRo
         <>
             <PageHead title="Тарифы" />
             <div className="stack">
-                <h1 className="page-title">Тарифы клиник</h1>
+                <TrialPanel trial={trial} tariffs={tariffs} />
                 <div className="stack">
                     {tariffs.map((t) => (
                         <TariffEditor key={t.id} tariff={t} feature_labels={feature_labels} />

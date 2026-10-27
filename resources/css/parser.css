@@ -280,6 +280,18 @@
     gap: var(--space-2);
     margin-left: auto;
 }
+.parser-bulk__offer {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+}
+.parser-bulk__offer .select {
+    min-width: 10rem;
+    max-width: 14rem;
+    min-height: 36px;
+    color: var(--color-text);
+}
 .parser-bulk .btn--outline,
 .parser-bulk .btn--ghost {
     border-color: rgb(255 255 255 / 0.28);

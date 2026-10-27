@@ -27,6 +27,8 @@ interface Props {
     review_options: { doctors: { id: number; name: string }[]; services: { id: number; name: string }[] };
     breadcrumbs: Crumb[];
     clinic_follow: { subscribed: boolean; can_subscribe: boolean };
+    /** Предпросмотр черновика из КП: запись и отзывы отключены. */
+    preview?: { offer_url: string } | null;
 }
 
 /** Индекс группы услуг; −1 — вкладка «Все». */
@@ -93,7 +95,8 @@ function PostCard({ post }: { post: ClinicPostData }) {
     );
 }
 
-export default function ClinicShow({ clinic, reviews, review_filters, distribution, similar, concerns, review_options, breadcrumbs, clinic_follow }: Props) {
+export default function ClinicShow({ clinic, reviews, review_filters, distribution, similar, concerns, review_options, breadcrumbs, clinic_follow, preview = null }: Props) {
+    const isPreview = preview !== null;
     const lead = useLead();
     const { url } = usePage();
     const { slug: citySlug } = useCity();
@@ -159,7 +162,19 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
 
     return (
         <div className="clinic-page">
-            <Breadcrumbs items={breadcrumbs} />
+            {preview ? (
+                <div className="container preview-banner" role="status">
+                    <Icon name="eye" size={18} />
+                    <span>
+                        <b>Предпросмотр.</b> Так страница клиники будет выглядеть для пациентов после подключения и проверки модератором. Запись и отзывы пока отключены.
+                    </span>
+                    <a className="link" href={preview.offer_url}>
+                        Вернуться к предложению
+                    </a>
+                </div>
+            ) : (
+                <Breadcrumbs items={breadcrumbs} />
+            )}
 
             <div className="container clinic-top">
                 <div className="clinic-top__main">
@@ -208,10 +223,10 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
                         <strong className="booking__price-value">{priceFrom(clinic.min_price)}</strong>
                         <span className="booking__price-note">Окончательную стоимость называет врач после осмотра.</span>
                     </div>
-                    <Button size="lg" block onClick={() => open()}>
+                    <Button size="lg" block disabled={isPreview} onClick={() => open()}>
                         Записаться онлайн
                     </Button>
-                    <Button variant="ghost" block onClick={() => lead.callback({ slug: clinic.slug, name: clinic.name, phone: clinic.phone, doctors: review_options.doctors, services: review_options.services, source: 'clinic_callback' })}>
+                    <Button variant="ghost" block disabled={isPreview} onClick={() => lead.callback({ slug: clinic.slug, name: clinic.name, phone: clinic.phone, doctors: review_options.doctors, services: review_options.services, source: 'clinic_callback' })}>
                         Перезвоните мне
                     </Button>
                     {clinic.phone ? (
@@ -337,7 +352,7 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
                                 <b>Прайс пока не опубликован</b>
                                 <span>Оставьте заявку — администратор клиники перезвонит и сориентирует по стоимости.</span>
                             </div>
-                            <Button variant="outline" onClick={() => open()}>
+                            <Button variant="outline" disabled={isPreview} onClick={() => open()}>
                                 Узнать стоимость
                             </Button>
                         </div>
@@ -409,7 +424,7 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
                             <Pagination page={reviews} only={['reviews', 'review_filters']} param="reviews_page" scrollTo="#reviews" />
                         </>
                     )}
-                    <ReviewForm clinicSlug={clinic.slug} doctors={review_options.doctors} services={review_options.services} />
+                    {isPreview ? null : <ReviewForm clinicSlug={clinic.slug} doctors={review_options.doctors} services={review_options.services} />}
                 </section>
 
                 <section id="contacts" className="block" aria-labelledby="contacts-h">
@@ -507,7 +522,7 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
                 ) : null}
             </div>
 
-            <div className="sticky-cta" role="region" aria-label="Быстрая запись">
+            <div className="sticky-cta" role="region" aria-label="Быстрая запись" hidden={isPreview}>
                 <div className="sticky-cta__info">
                     <b>{priceFrom(clinic.min_price)}</b>
                     <span className="sticky-cta__note">приём и диагностика</span>

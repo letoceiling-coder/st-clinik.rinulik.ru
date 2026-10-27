@@ -661,6 +661,20 @@ function SettingsTab({ settings, sections }) {
 					]
 				})
 			}),
+			/* @__PURE__ */ jsx(Panel, {
+				title: "ИИ для текстов КП",
+				children: /* @__PURE__ */ jsx("div", {
+					className: "offers-form-grid",
+					children: /* @__PURE__ */ jsx(TextField, {
+						label: "Модель OpenRouter",
+						value: form.data.ai?.model ?? "",
+						onChange: (e) => form.setData("ai", { model: e.target.value }),
+						placeholder: "deepseek/deepseek-chat",
+						hint: "Кнопка «Улучшить с ИИ» в карточке КП. Рекомендуем недорогие модели: deepseek/deepseek-chat, qwen/qwen-2.5-72b-instruct.",
+						error: err["ai.model"]
+					})
+				})
+			}),
 			/* @__PURE__ */ jsxs("div", {
 				className: "row offers-save",
 				children: [/* @__PURE__ */ jsx(Button, {
@@ -703,4 +717,4 @@ function SectionPicker({ sections, value, onChange, error }) {
 //#endregion
 export { APPLICATION_TONE, ApplicationsTab, OFFER_TONE, SectionPicker, AdminOffers as default };
 
-//# sourceMappingURL=Offers-LTddIOmf.js.map
+//# sourceMappingURL=Offers-DkwPpmeN.js.map

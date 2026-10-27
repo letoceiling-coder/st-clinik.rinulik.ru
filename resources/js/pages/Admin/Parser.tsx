@@ -28,6 +28,8 @@ interface OrgRow {
     match: { id: number; name: string; reason: string | null } | null;
     network_size: number;
     importable: boolean;
+    offerable: boolean;
+    offer_id: number | null;
 }
 
 interface TaskRow extends CollectInfo {
@@ -76,6 +78,7 @@ interface Props {
     search_filters: Record<string, string>;
     task_statuses: Record<string, string>;
     filters: { q?: string; status?: string; city?: string; has?: string; match?: string };
+    offer_templates: { id: number; name: string }[];
 }
 
 const ORG_TONE: Record<string, Tone> = { new: 'info', reviewed: 'primary', imported: 'success', duplicate: 'warning', ignored: undefined };
@@ -289,10 +292,13 @@ function TasksTab({ tasks, cities, search_filters, task_statuses, configured }: 
     );
 }
 
-function OrganizationsTab({ organizations, cities, statuses, filters }: Props & { organizations: Paginated<OrgRow> }) {
+function OrganizationsTab({ organizations, cities, statuses, filters, offer_templates }: Props & { organizations: Paginated<OrgRow> }) {
     const [selected, setSelected] = useState<number[]>([]);
     const [busy, setBusy] = useState(false);
-    const importable = organizations.data.filter((o) => o.importable).map((o) => o.id);
+    const [templateId, setTemplateId] = useState<number | ''>(offer_templates[0]?.id ?? '');
+    const importable = organizations.data.filter((o) => o.importable || o.offerable).map((o) => o.id);
+    const selectedImportable = organizations.data.filter((o) => o.importable && selected.includes(o.id)).map((o) => o.id);
+    const selectedOfferable = organizations.data.filter((o) => o.offerable && selected.includes(o.id)).map((o) => o.id);
     const allSelected = importable.length > 0 && importable.every((id) => selected.includes(id));
 
     const toggle = (id: number) => setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
@@ -339,7 +345,7 @@ function OrganizationsTab({ organizations, cities, statuses, filters }: Props & 
                 {importable.length > 0 ? (
                     <Check label={`Выбрать все на странице (${importable.length})`} checked={allSelected} onChange={() => setSelected(allSelected ? [] : importable)} />
                 ) : (
-                    <span className="text-sm text-muted">На странице нет карточек для импорта</span>
+                    <span className="text-sm text-muted">На странице нет карточек для импорта или КП</span>
                 )}
                 <span className="text-sm text-muted">
                     Найдено: {organizations.total}
@@ -368,7 +374,7 @@ function OrganizationsTab({ organizations, cities, statuses, filters }: Props & 
                                 <input
                                     type="checkbox"
                                     aria-label={`Выбрать «${o.name}»`}
-                                    disabled={!o.importable}
+                                    disabled={!o.importable && !o.offerable}
                                     checked={selected.includes(o.id)}
                                     onChange={() => toggle(o.id)}
                                 />
@@ -405,6 +411,11 @@ function OrganizationsTab({ organizations, cities, statuses, filters }: Props & 
                                 ) : null}
                             </div>
                             <div className="parser-item__actions">
+                                {o.offer_id ? (
+                                    <LinkButton href={`/admin/offers/${o.offer_id}`} size="sm" variant="ghost">
+                                        КП
+                                    </LinkButton>
+                                ) : null}
                                 <LinkButton href={`/admin/parser/organizations/${o.id}`} size="sm" variant="outline">
                                     Открыть
                                 </LinkButton>
@@ -423,9 +434,32 @@ function OrganizationsTab({ organizations, cities, statuses, filters }: Props & 
                         </button>
                     </div>
                     <div className="parser-bulk__actions">
-                        <Button size="sm" loading={busy} onClick={() => bulk('/admin/parser/organizations/import', { photos: true }, `Импортировать ${selected.length} карточек в черновики клиник?`)}>
-                            Импортировать
-                        </Button>
+                        {selectedOfferable.length > 0 && offer_templates.length > 0 ? (
+                            <span className="parser-bulk__offer">
+                                <select aria-label="Шаблон КП" className="select select--sm" value={templateId} onChange={(e) => setTemplateId(Number(e.target.value))}>
+                                    {offer_templates.map((t) => (
+                                        <option key={t.id} value={t.id}>
+                                            {t.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <Button
+                                    size="sm"
+                                    icon="file"
+                                    loading={busy}
+                                    onClick={() =>
+                                        bulk('/admin/offers/bulk', { ids: selectedOfferable, template_id: templateId }, `Сформировать КП для ${selectedOfferable.length} клиник? Новые карточки будут импортированы в черновики.`)
+                                    }
+                                >
+                                    Сформировать КП ({selectedOfferable.length})
+                                </Button>
+                            </span>
+                        ) : null}
+                        {selectedImportable.length > 0 ? (
+                            <Button size="sm" variant="outline" loading={busy} onClick={() => bulk('/admin/parser/organizations/import', { ids: selectedImportable, photos: true }, `Импортировать ${selectedImportable.length} карточек в черновики клиник?`)}>
+                                Импортировать ({selectedImportable.length})
+                            </Button>
+                        ) : null}
                         <Button size="sm" variant="outline" disabled={busy} onClick={() => bulk('/admin/parser/organizations/status', { status: 'reviewed' }, 'Отметить выбранные как проверенные?')}>
                             Проверены
                         </Button>

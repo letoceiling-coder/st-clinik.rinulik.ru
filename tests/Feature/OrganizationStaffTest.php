@@ -98,7 +98,7 @@ class OrganizationStaffTest extends TestCase
         ])->assertForbidden();
     }
 
-    public function test_user_can_claim_offer_draft_on_registration(): void
+    public function test_registration_from_offer_requires_email_confirmation_before_claim(): void
     {
         Notification::fake();
         $offer = $this->draftOffer();
@@ -111,12 +111,11 @@ class OrganizationStaffTest extends TestCase
             'password_confirmation' => 'Password1',
             'consent' => true,
             'offer_token' => $offer->token(),
-        ])->assertRedirect(route('cabinet.dashboard'));
+        ])->assertRedirect(route('verification.notice'))
+            ->assertSessionHas('url.intended', route('offer.claim.show', ['token' => $offer->token()]));
 
-        $user = User::query()->where('email', 'claim@example.test')->firstOrFail();
-        $org = $offer->fresh()->clinic->organization;
-        $this->assertSame($user->id, $org->owner_id);
-        $this->assertSame('connected', $offer->fresh()->status);
+        $this->assertNull($offer->fresh()->clinic->organization->owner_id);
+        $this->assertSame('ready', $offer->fresh()->status);
     }
 
     public function test_authenticated_user_can_claim_offer_with_confirmation(): void
@@ -126,6 +125,8 @@ class OrganizationStaffTest extends TestCase
 
         $this->actingAs($user)->post(route('offer.claim.store', ['token' => $offer->token()]), [
             'confirm' => '1',
+            'agreement' => '1',
+            'publish' => '1',
         ])->assertRedirect(route('cabinet.dashboard'));
 
         $this->assertSame('clinic_owner', $user->fresh()->role);

@@ -280,7 +280,7 @@ class CampaignService
         return (string) $sent?->getMessageId();
     }
 
-    private function contactFor(Clinic $clinic, string $channel): ?string
+    public function contactFor(Clinic $clinic, string $channel): ?string
     {
         $contacts = OrganizationContact::query()->where('clinic_id', $clinic->id)->where('do_not_contact', false)
             ->whereIn('type', self::CONTACT_TYPES[$channel] ?? [])->orderByDesc('is_verified')->orderBy('id')->get();

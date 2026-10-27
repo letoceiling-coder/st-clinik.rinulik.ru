@@ -14,7 +14,7 @@ export default function Payments({
     payments,
     autorenew_available,
 }: {
-    subscription: { tariff: string; ends_at: string; days_left: number; auto_renew: boolean; can_autorenew: boolean } | null;
+    subscription: { tariff: string; ends_at: string; days_left: number; auto_renew: boolean; can_autorenew: boolean; is_trial: boolean } | null;
     tariffs: Tariff[];
     payments: PaymentRow[];
     autorenew_available: boolean;
@@ -28,8 +28,9 @@ export default function Payments({
             <div className="stack">
                 <h1 className="page-title">Тариф и платежи</h1>
                 {subscription ? (
-                    <Alert tone="info">
-                        Тариф «{subscription.tariff}» до {subscription.ends_at} (осталось {subscription.days_left} дн.)
+                    <Alert tone={subscription.is_trial ? 'success' : undefined}>
+                        {subscription.is_trial ? 'Пробный период: ' : ''}тариф «{subscription.tariff}» до {subscription.ends_at} (осталось {subscription.days_left} дн.)
+                        {subscription.is_trial ? ' По окончании выберите тариф ниже — автоматического списания не будет.' : ''}
                     </Alert>
                 ) : (
                     <Alert tone="warning">Нет активной подписки. Выберите тариф для публикации и расширенных функций.</Alert>

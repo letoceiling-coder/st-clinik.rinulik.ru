@@ -16,7 +16,7 @@ class EmailVerificationController extends Controller
     public function notice(Request $request): Response|RedirectResponse
     {
         if ($request->user()?->hasVerifiedEmail()) {
-            return redirect()->route('account.overview');
+            return redirect()->intended(route('account.overview'));
         }
 
         $user = $request->user();
@@ -32,7 +32,8 @@ class EmailVerificationController extends Controller
     {
         $request->fulfill();
 
-        return redirect()->route('account.overview')->with('success', 'E-mail подтверждён.');
+        // После подтверждения возвращаем туда, откуда пришли (например, к подключению клиники по КП).
+        return redirect()->intended(route('account.overview'))->with('success', 'E-mail подтверждён.');
     }
 
     public function send(Request $request): RedirectResponse

@@ -21,6 +21,9 @@ class Organization extends Model
     {
         return [
             'license_date' => 'date',
+            'agreement_accepted_at' => 'datetime',
+            'trial_requested_at' => 'datetime',
+            'trial_used_at' => 'datetime',
         ];
     }
 

@@ -51,7 +51,8 @@ class PaymentController extends CabinetController
             'subscription' => $subscription ? [
                 'tariff' => $subscription->tariff?->name,
                 'ends_at' => $subscription->ends_at->format('d.m.Y'),
-                'days_left' => max(0, now()->diffInDays($subscription->ends_at, false)),
+                'days_left' => (int) max(0, ceil(now()->diffInDays($subscription->ends_at, false))),
+                'is_trial' => (bool) $subscription->is_trial,
                 'auto_renew' => $subscription->auto_renew,
                 'can_autorenew' => filled($subscription->rebill_id),
             ] : null,

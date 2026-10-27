@@ -295,10 +295,13 @@ function TasksTab({ tasks, cities, search_filters, task_statuses, configured }) 
 		})]
 	});
 }
-function OrganizationsTab({ organizations, cities, statuses, filters }) {
+function OrganizationsTab({ organizations, cities, statuses, filters, offer_templates }) {
 	const [selected, setSelected] = useState([]);
 	const [busy, setBusy] = useState(false);
-	const importable = organizations.data.filter((o) => o.importable).map((o) => o.id);
+	const [templateId, setTemplateId] = useState(offer_templates[0]?.id ?? "");
+	const importable = organizations.data.filter((o) => o.importable || o.offerable).map((o) => o.id);
+	const selectedImportable = organizations.data.filter((o) => o.importable && selected.includes(o.id)).map((o) => o.id);
+	const selectedOfferable = organizations.data.filter((o) => o.offerable && selected.includes(o.id)).map((o) => o.id);
 	const allSelected = importable.length > 0 && importable.every((id) => selected.includes(id));
 	const toggle = (id) => setSelected((s) => s.includes(id) ? s.filter((x) => x !== id) : [...s, id]);
 	const bulk = (url, data, confirmText) => {
@@ -402,7 +405,7 @@ function OrganizationsTab({ organizations, cities, statuses, filters }) {
 					onChange: () => setSelected(allSelected ? [] : importable)
 				}) : /* @__PURE__ */ jsx("span", {
 					className: "text-sm text-muted",
-					children: "На странице нет карточек для импорта"
+					children: "На странице нет карточек для импорта или КП"
 				}), /* @__PURE__ */ jsxs("span", {
 					className: "text-sm text-muted",
 					children: ["Найдено: ", organizations.total]
@@ -440,7 +443,7 @@ function OrganizationsTab({ organizations, cities, statuses, filters }) {
 							children: /* @__PURE__ */ jsx("input", {
 								type: "checkbox",
 								"aria-label": `Выбрать «${o.name}»`,
-								disabled: !o.importable,
+								disabled: !o.importable && !o.offerable,
 								checked: selected.includes(o.id),
 								onChange: () => toggle(o.id)
 							})
@@ -506,14 +509,19 @@ function OrganizationsTab({ organizations, cities, statuses, filters }) {
 								}) : null
 							]
 						}),
-						/* @__PURE__ */ jsx("div", {
+						/* @__PURE__ */ jsxs("div", {
 							className: "parser-item__actions",
-							children: /* @__PURE__ */ jsx(LinkButton, {
+							children: [o.offer_id ? /* @__PURE__ */ jsx(LinkButton, {
+								href: `/admin/offers/${o.offer_id}`,
+								size: "sm",
+								variant: "ghost",
+								children: "КП"
+							}) : null, /* @__PURE__ */ jsx(LinkButton, {
 								href: `/admin/parser/organizations/${o.id}`,
 								size: "sm",
 								variant: "outline",
 								children: "Открыть"
-							})
+							})]
 						})
 					]
 				}, o.id))
@@ -537,12 +545,46 @@ function OrganizationsTab({ organizations, cities, statuses, filters }) {
 				}), /* @__PURE__ */ jsxs("div", {
 					className: "parser-bulk__actions",
 					children: [
-						/* @__PURE__ */ jsx(Button, {
+						selectedOfferable.length > 0 && offer_templates.length > 0 ? /* @__PURE__ */ jsxs("span", {
+							className: "parser-bulk__offer",
+							children: [/* @__PURE__ */ jsx("select", {
+								"aria-label": "Шаблон КП",
+								className: "select select--sm",
+								value: templateId,
+								onChange: (e) => setTemplateId(Number(e.target.value)),
+								children: offer_templates.map((t) => /* @__PURE__ */ jsx("option", {
+									value: t.id,
+									children: t.name
+								}, t.id))
+							}), /* @__PURE__ */ jsxs(Button, {
+								size: "sm",
+								icon: "file",
+								loading: busy,
+								onClick: () => bulk("/admin/offers/bulk", {
+									ids: selectedOfferable,
+									template_id: templateId
+								}, `Сформировать КП для ${selectedOfferable.length} клиник? Новые карточки будут импортированы в черновики.`),
+								children: [
+									"Сформировать КП (",
+									selectedOfferable.length,
+									")"
+								]
+							})]
+						}) : null,
+						selectedImportable.length > 0 ? /* @__PURE__ */ jsxs(Button, {
 							size: "sm",
+							variant: "outline",
 							loading: busy,
-							onClick: () => bulk("/admin/parser/organizations/import", { photos: true }, `Импортировать ${selected.length} карточек в черновики клиник?`),
-							children: "Импортировать"
-						}),
+							onClick: () => bulk("/admin/parser/organizations/import", {
+								ids: selectedImportable,
+								photos: true
+							}, `Импортировать ${selectedImportable.length} карточек в черновики клиник?`),
+							children: [
+								"Импортировать (",
+								selectedImportable.length,
+								")"
+							]
+						}) : null,
 						/* @__PURE__ */ jsx(Button, {
 							size: "sm",
 							variant: "outline",
@@ -637,4 +679,4 @@ function BaseTab({ base, configured }) {
 //#endregion
 export { AdminParser as default };
 
-//# sourceMappingURL=Parser-B8U-XMtK.js.map
+//# sourceMappingURL=Parser-Bl79YIBW.js.map

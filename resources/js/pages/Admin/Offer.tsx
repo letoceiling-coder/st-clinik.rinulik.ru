@@ -5,6 +5,7 @@ import { PageHead, Panel, Table } from '@/components/Dash';
 import { AnchorButton, Button, LinkButton } from '@/components/ui/Button';
 import { Check, TextArea, TextField } from '@/components/ui/Fields';
 import { Alert, Badge, Tabs } from '@/components/ui/Misc';
+import { DispatchPanel, ExtraPanel, type DispatchChannel } from '@/components/offers/OfferSendPanels';
 import { ApplicationsTab, OFFER_TONE, SectionPicker, type ApplicationRow, type OfferRow } from './Offers';
 
 type Channel = 'web' | 'email' | 'sms' | 'messenger' | 'call';
@@ -66,6 +67,8 @@ interface Props {
     application_statuses: Record<string, string>;
     recipient_statuses: Record<string, string>;
     channels: Record<string, string>;
+    dispatch: DispatchChannel[];
+    extra: { text: string; max: number; ai_available: boolean };
 }
 
 const duration = (sec: number) => (sec < 60 ? `${sec} с` : `${Math.round(sec / 60)} мин`);
@@ -136,6 +139,10 @@ export default function AdminOffer(props: Props) {
                     ) : null}
                 </div>
             </Panel>
+
+            <ExtraPanel offerId={offer.id} extra={props.extra} disabled={!offer.available} />
+
+            <DispatchPanel offerId={offer.id} channels={props.dispatch} statuses={recipient_statuses} disabled={!offer.available} />
 
             <ContentPanel offer={offer} />
 

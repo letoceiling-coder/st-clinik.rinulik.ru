@@ -5,6 +5,8 @@ namespace App\Services\Offers;
 use App\Models\Clinic;
 use App\Models\ParsedOrganization;
 use App\Models\PromotionPackage;
+use App\Models\Tariff;
+use App\Services\Monetization\MonetizationSettings;
 use App\Services\PromotionService;
 use Illuminate\Support\Str;
 
@@ -19,12 +21,24 @@ class OfferRenderer
     public const VARIABLES = [
         '{org.name}' => 'Название клиники',
         '{city}' => 'Город',
+        '{city.in}' => 'Город в предложном падеже: «в Казани»',
         '{org.rating}' => 'Рейтинг на Яндекс Картах',
         '{org.reviews}' => 'Отзывов на Яндекс Картах',
         '{competitors_in_city}' => 'Стоматологий в городе (по данным парсера)',
         '{platform.clinics_in_city}' => 'Клиник города на СтомКлиник',
         '{platform.visitors_in_city}' => 'Просмотров карточек клиник города на СтомКлиник',
-        '{tariffs}' => 'Тарифы продвижения с ценами города',
+        '{org.address}' => 'Адрес клиники',
+        '{org.phone}' => 'Телефон клиники',
+        '{org.hours}' => 'Часы работы',
+        '{org.categories}' => 'Рубрики на Яндекс Картах',
+        '{org.services_count}' => 'Услуг найдено в карточке',
+        '{org.photos_count}' => 'Фото найдено в карточке',
+        '{tariffs}' => 'Тарифы платформы (из раздела «Тарифы»)',
+        '{promotions}' => 'Пакеты продвижения с ценами города',
+        '{trial_days}' => 'Дней пробного периода',
+        '{extra}' => 'Дополнительно: акции и предложения (вводится при отправке)',
+        '{preview_link}' => 'Ссылка на предпросмотр страницы клиники',
+        '{about_link}' => 'Ссылка «О сервисе для клиник»',
         '{demo_link}' => 'Ссылка на демо-кабинет',
         '{offer_link}' => 'Ссылка на страницу КП',
         '{manager.name}' => 'Имя менеджера',
@@ -38,6 +52,7 @@ class OfferRenderer
     public function __construct(
         private readonly OfferSettings $settings,
         private readonly PromotionService $promotions,
+        private readonly MonetizationSettings $monetization,
     ) {}
 
     /**
@@ -48,7 +63,8 @@ class OfferRenderer
     public function render(array $content, Clinic $clinic, array $links): array
     {
         $vars = $this->variables($clinic, $links);
-        $fill = fn (?string $text) => strtr((string) $text, $vars);
+        // Строки, от которых после подстановки остались только знаки препинания (пустые {manager.name}, {manager.phone}), убираем.
+        $fill = fn (?string $text) => preg_replace('/^[ \t]*[,.·:;–—-]*[ \t]*$/mu', '', strtr((string) $text, $vars)) ?? '';
 
         $emailText = $fill($content['email_body'] ?? '');
         if (! str_contains((string) ($content['email_body'] ?? ''), '{unsubscribe_link}') && ($links['unsubscribe_link'] ?? '') !== '') {
@@ -73,7 +89,7 @@ class OfferRenderer
      */
     public function variables(Clinic $clinic, array $links): array
     {
-        $clinic->loadMissing('city:id,name');
+        $clinic->loadMissing(['city:id,name,name_in', 'clinicServices', 'photos']);
         $parsed = ParsedOrganization::query()->where('clinic_id', $clinic->id)->first();
         $cityId = (int) $clinic->city_id;
         $published = Clinic::query()->where('city_id', $cityId)->where('status', 'published');
@@ -82,12 +98,24 @@ class OfferRenderer
         return [
             '{org.name}' => (string) $clinic->name,
             '{city}' => (string) ($clinic->city?->name ?? ''),
+            '{city.in}' => (string) ($clinic->city?->name_in ?: ($clinic->city ? 'в городе '.$clinic->city->name : '')),
             '{org.rating}' => $parsed?->rating ? number_format((float) $parsed->rating, 1, ',', '') : '—',
             '{org.reviews}' => (string) ($parsed?->reviews_count ?? 0),
             '{competitors_in_city}' => (string) max(ParsedOrganization::query()->where('city_id', $cityId)->count(), (clone $published)->count()),
             '{platform.clinics_in_city}' => (string) (clone $published)->count(),
             '{platform.visitors_in_city}' => number_format((int) (clone $published)->sum('views_count'), 0, ',', ' '),
-            '{tariffs}' => $this->tariffs($cityId),
+            '{org.address}' => (string) ($clinic->address ?: ($parsed?->address ?? '')),
+            '{org.phone}' => (string) ($clinic->phone ?? ''),
+            '{org.hours}' => (string) ($parsed?->hours ?? ''),
+            '{org.categories}' => implode(', ', array_map('strval', (array) ($parsed?->categories ?? []))),
+            '{org.services_count}' => (string) $clinic->clinicServices->count(),
+            '{org.photos_count}' => (string) $clinic->photos->count(),
+            '{tariffs}' => $this->plansText(),
+            '{promotions}' => $this->tariffs($cityId),
+            '{trial_days}' => (string) $this->monetization->trialDays(),
+            '{extra}' => $links['extra'] ?? '',
+            '{preview_link}' => $links['preview_link'] ?? '',
+            '{about_link}' => route('alias.for-clinics'),
             '{demo_link}' => $links['demo_link'] ?? '',
             '{offer_link}' => $links['offer_link'] ?? '',
             '{manager.name}' => $manager['name'],
@@ -107,6 +135,40 @@ class OfferRenderer
                 'days' => (int) $p->duration_days,
             ])
             ->values()->all();
+    }
+
+    /**
+     * Тарифы платформы, настроенные в админке (раздел «Тарифы»).
+     *
+     * @return list<array{name: string, description: string|null, price: int, days: int, is_free: bool, limits: list<string>, features: list<string>}>
+     */
+    public function plans(): array
+    {
+        $limit = fn (?int $value, string $label) => $value === null ? "{$label}: без ограничений" : "{$label}: до {$value}";
+
+        return Tariff::query()->where('is_active', true)->orderBy('sort')->orderBy('price')->get()
+            ->map(fn (Tariff $t) => [
+                'name' => (string) $t->name,
+                'description' => $t->description,
+                'price' => (int) round($t->price / 100),
+                'days' => (int) $t->duration_days,
+                'is_free' => (int) $t->price === 0,
+                'limits' => [
+                    $limit($t->max_branches, 'Филиалы'),
+                    $limit($t->max_doctors, 'Врачи'),
+                    $limit($t->max_photos, 'Фото'),
+                ],
+                'features' => array_values(array_map(fn (string $f) => Tariff::FEATURE_LABELS[$f] ?? $f, (array) ($t->features ?? []))),
+            ])
+            ->values()->all();
+    }
+
+    private function plansText(): string
+    {
+        return collect($this->plans())
+            ->map(fn (array $t) => '- **'.$t['name'].'** — '.($t['is_free'] ? 'бесплатно' : number_format($t['price'], 0, ',', ' ').' ₽ за '.$t['days'].' дн.')
+                .($t['features'] !== [] ? ': '.mb_strtolower(implode(', ', $t['features'])) : ''))
+            ->implode("\n");
     }
 
     private function tariffs(int $cityId): string

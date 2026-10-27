@@ -16,9 +16,11 @@ class OpenRouterChatClient
     /**
      * @param  list<array<string, mixed>>  $messages
      */
-    public function complete(array $messages): string
+    public function complete(array $messages, ?string $model = null): string
     {
-        return $this->completeWithTools($messages, [], null);
+        $this->budget->assertWithinBudget();
+
+        return $this->runToolLoop($messages, [], null, 1, null, $model);
     }
 
     /**
@@ -63,6 +65,7 @@ class OpenRouterChatClient
         ?callable $executeTool,
         int $maxRounds,
         ?callable $onDelta,
+        ?string $modelOverride = null,
     ): string {
         $token = config('services.openrouter.api_key');
         if (! filled($token)) {
@@ -70,7 +73,7 @@ class OpenRouterChatClient
         }
 
         $base = rtrim((string) config('services.openrouter.base_url', 'https://openrouter.ai/api/v1'), '/');
-        $model = (string) config('services.openrouter.chat_model', 'openai/gpt-4o-mini');
+        $model = filled($modelOverride) ? (string) $modelOverride : (string) config('services.openrouter.chat_model', 'openai/gpt-4o-mini');
         $maxTokens = (int) config('services.openrouter.max_tokens', 800);
 
         $round = 0;

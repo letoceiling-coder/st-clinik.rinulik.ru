@@ -33,6 +33,7 @@ class Offer extends Model
     {
         return [
             'snapshot' => 'array',
+            'custom_content' => 'array',
             'is_customized' => 'boolean',
             'expires_at' => 'datetime',
             'first_viewed_at' => 'datetime',
