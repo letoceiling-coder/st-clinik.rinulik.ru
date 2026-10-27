@@ -1,4 +1,4 @@
-import Home from "./Home-Doh85Gow.js";
+import Home from "./Home-cChAUU1b.js";
 import { t as useMaxWebAppAuth } from "./max-web-app-BIxFfehh.js";
 import { jsx } from "react/jsx-runtime";
 //#region resources/js/pages/Max/Home.tsx
@@ -9,4 +9,4 @@ function MaxHome(props) {
 //#endregion
 export { MaxHome as default };
 
-//# sourceMappingURL=Home-BKkptQ4-.js.map
+//# sourceMappingURL=Home-VeBYrZ3m.js.map

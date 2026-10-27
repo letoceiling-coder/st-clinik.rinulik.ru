@@ -1,5 +1,5 @@
 import { t as Icon } from "./Icon-DQahs-u2.js";
-import { c as plural, i as doctorsWord, l as priceFrom, n as cx, o as money, t as clinicsWord, u as reviewsWord } from "./format-BPZIj7DQ.js";
+import { i as doctorsWord, l as priceFrom, n as cx, o as money, t as clinicsWord, u as reviewsWord } from "./format-BPZIj7DQ.js";
 import { i as LinkButton, n as Button } from "./Button-D8Mzgn6o.js";
 import { E as Modal, i as useCity, m as SectionHead, v as Check } from "../app.js";
 import { t as ClinicCard } from "./ClinicCard-zFOmpmd8.js";
@@ -252,62 +252,39 @@ function Home({ home_map_active, home_map_clinics, stats, concerns, popular_serv
 	const showPopularServices = popularWithOffers.length > 0;
 	return /* @__PURE__ */ jsxs(Fragment, { children: [
 		/* @__PURE__ */ jsx("section", {
-			className: "hero hero--home",
-			children: /* @__PURE__ */ jsxs("div", {
-				className: "container hero__grid hero__grid--split",
-				children: [/* @__PURE__ */ jsxs("div", {
-					className: "hero__copy hero__copy--start",
+			className: "hero",
+			children: /* @__PURE__ */ jsx("div", {
+				className: "container hero__grid",
+				children: /* @__PURE__ */ jsxs("div", {
+					className: "hero__copy",
 					children: [
 						/* @__PURE__ */ jsx("p", {
 							className: "eyebrow",
 							children: "Стоматологии по всей России"
 						}),
-						/* @__PURE__ */ jsxs("h1", { children: [
-							"Стоматологии ",
-							city.nameIn,
-							": ",
-							/* @__PURE__ */ jsx("span", {
-								className: "hero__accent",
-								children: "цены, отзывы и запись онлайн"
-							})
-						] }),
-						/* @__PURE__ */ jsx("p", {
-							className: "hero__lead",
-							children: "Сравните клиники и врачей, посмотрите цены «от» и запишитесь на удобное время — без звонков и ожидания на линии."
+						/* @__PURE__ */ jsxs("h1", {
+							className: "visually-hidden",
+							children: ["Стоматологии ", city.nameIn]
+						}),
+						/* @__PURE__ */ jsx(HeroServiceFinder, {
+							services: catalog_services,
+							chips: hero_chips,
+							stats: {
+								clinics: stats.clinics,
+								same_day: stats.same_day
+							}
 						}),
 						/* @__PURE__ */ jsxs("dl", {
-							className: "hero__stats",
+							className: "hero__stats hero__stats--inline",
 							"aria-label": "Сервис в цифрах",
 							children: [
-								stats.clinics > 0 ? /* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx("dt", { children: plural(stats.clinics, [
-									"клиника",
-									"клиники",
-									"клиник"
-								]) }), /* @__PURE__ */ jsx("dd", { children: stats.clinics })] }) : null,
-								stats.doctors > 0 ? /* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx("dt", { children: plural(stats.doctors, [
-									"врач",
-									"врача",
-									"врачей"
-								]) }), /* @__PURE__ */ jsx("dd", { children: stats.doctors })] }) : null,
-								stats.reviews > 0 ? /* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx("dt", { children: plural(stats.reviews, [
-									"отзыв",
-									"отзыва",
-									"отзывов"
-								]) }), /* @__PURE__ */ jsx("dd", { children: stats.reviews })] }) : null
+								stats.clinics > 0 ? /* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx("dt", { children: "Клиник" }), /* @__PURE__ */ jsx("dd", { children: stats.clinics })] }) : null,
+								stats.doctors > 0 ? /* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx("dt", { children: "Врачей" }), /* @__PURE__ */ jsx("dd", { children: stats.doctors })] }) : null,
+								stats.reviews > 0 ? /* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx("dt", { children: "Отзывов" }), /* @__PURE__ */ jsx("dd", { children: stats.reviews })] }) : null
 							]
 						})
 					]
-				}), /* @__PURE__ */ jsx("div", {
-					className: "hero__finder",
-					children: /* @__PURE__ */ jsx(HeroServiceFinder, {
-						services: catalog_services,
-						chips: hero_chips,
-						stats: {
-							clinics: stats.clinics,
-							same_day: stats.same_day
-						}
-					})
-				})]
+				})
 			})
 		}),
 		showHomeMap ? /* @__PURE__ */ jsx("section", {
@@ -613,4 +590,4 @@ function Home({ home_map_active, home_map_clinics, stats, concerns, popular_serv
 //#endregion
 export { Home as default };
 
-//# sourceMappingURL=Home-Doh85Gow.js.map
+//# sourceMappingURL=Home-cChAUU1b.js.map

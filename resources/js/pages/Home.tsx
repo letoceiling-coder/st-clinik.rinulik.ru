@@ -12,7 +12,7 @@ import { ConcernChips, SpecialtyCircles } from '@/components/Tiles';
 import { Button, LinkButton } from '@/components/ui/Button';
 import { SectionHead } from '@/components/ui/Misc';
 import { useCity } from '@/lib/city';
-import { clinicsWord, doctorsWord, plural, priceFrom, reviewsWord } from '@/lib/format';
+import { clinicsWord, doctorsWord, priceFrom, reviewsWord } from '@/lib/format';
 import type { ClinicCardData, ConcernData, DoctorData, MapClinicPoint, ReviewData, SpecialtyData } from '@/lib/types';
 
 interface Props {
@@ -105,37 +105,34 @@ export default function Home({
 
     return (
         <>
-            <section className="hero hero--home">
-                <div className="container hero__grid hero__grid--split">
-                    <div className="hero__copy hero__copy--start">
+            <section className="hero">
+                <div className="container hero__grid">
+                    <div className="hero__copy">
                         <p className="eyebrow">Стоматологии по всей России</p>
-                        <h1>
-                            Стоматологии {city.nameIn}: <span className="hero__accent">цены, отзывы и запись онлайн</span>
+                        <h1 className="visually-hidden">
+                            Стоматологии {city.nameIn}
                         </h1>
-                        <p className="hero__lead">Сравните клиники и врачей, посмотрите цены «от» и запишитесь на удобное время — без звонков и ожидания на линии.</p>
-                        <dl className="hero__stats" aria-label="Сервис в цифрах">
+                        <HeroServiceFinder services={catalog_services} chips={hero_chips} stats={{ clinics: stats.clinics, same_day: stats.same_day }} />
+                        <dl className="hero__stats hero__stats--inline" aria-label="Сервис в цифрах">
                             {stats.clinics > 0 ? (
                                 <div>
-                                    <dt>{plural(stats.clinics, ['клиника', 'клиники', 'клиник'])}</dt>
+                                    <dt>Клиник</dt>
                                     <dd>{stats.clinics}</dd>
                                 </div>
                             ) : null}
                             {stats.doctors > 0 ? (
                                 <div>
-                                    <dt>{plural(stats.doctors, ['врач', 'врача', 'врачей'])}</dt>
+                                    <dt>Врачей</dt>
                                     <dd>{stats.doctors}</dd>
                                 </div>
                             ) : null}
                             {stats.reviews > 0 ? (
                                 <div>
-                                    <dt>{plural(stats.reviews, ['отзыв', 'отзыва', 'отзывов'])}</dt>
+                                    <dt>Отзывов</dt>
                                     <dd>{stats.reviews}</dd>
                                 </div>
                             ) : null}
                         </dl>
-                    </div>
-                    <div className="hero__finder">
-                        <HeroServiceFinder services={catalog_services} chips={hero_chips} stats={{ clinics: stats.clinics, same_day: stats.same_day }} />
                     </div>
                 </div>
             </section>
