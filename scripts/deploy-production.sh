@@ -81,6 +81,8 @@ echo "==> Rebuilding and restarting containers"
 $COMPOSE build app
 $COMPOSE up -d postgres redis
 $COMPOSE up -d app web queue scheduler
+# app.conf смонтирован файлом: после распаковки архива у него новый inode, nginx увидит его только в новом контейнере.
+$COMPOSE up -d --force-recreate --no-deps web
 
 echo "==> Syncing build manifest into running app container"
 docker cp "${APP_DIR}/public/build/." "${CONTAINER}:/var/www/html/public/build/"
