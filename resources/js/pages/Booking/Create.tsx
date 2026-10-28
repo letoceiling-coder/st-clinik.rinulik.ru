@@ -1,5 +1,6 @@
 import { Link, router, useForm } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
+import Icon from '@/components/Icon';
 import { Button } from '@/components/ui/Button';
 import { Check, PhoneField, TextArea, TextField } from '@/components/ui/Fields';
 import { Alert } from '@/components/ui/Misc';
@@ -44,6 +45,18 @@ interface Slot {
 }
 
 const WEEKDAYS = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
+
+/** Сколько услуг показываем сразу; остальные — по кнопке, чтобы на телефоне не листать длинный список. */
+const SERVICES_PREVIEW = 6;
+
+const SECTION_IDS = ['book-service', 'book-doctor', 'book-date', 'book-time', 'book-contacts'];
+
+/** Плавно подводит к следующему шагу, когда он отрисуется. */
+function scrollToSection(id: string): void {
+    window.setTimeout(() => {
+        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+}
 
 /** «сб, 31 октября» из даты YYYY-MM-DD. */
 function humanDate(isoDate: string): string {
@@ -94,6 +107,7 @@ export default function BookingCreate({
     const [slots, setSlots] = useState<Slot[]>([]);
     const [loadingDays, setLoadingDays] = useState(false);
     const [loadingSlots, setLoadingSlots] = useState(false);
+    const [showAllServices, setShowAllServices] = useState(false);
 
     const service = services.find((s) => s.id === serviceId) ?? null;
     const doctor = doctors.find((d) => d.id === doctorId) ?? null;
@@ -161,12 +175,45 @@ export default function BookingCreate({
         form.post(`/clinics/${clinic.slug}/booking`);
     };
 
+    const pickService = (id: number | null) => {
+        setServiceId(id);
+        setTime(null);
+        scrollToSection(uses_doctors ? 'book-doctor' : 'book-date');
+    };
+
     const pickDoctor = (id: number | null, any = false) => {
         setAnyDoctor(any);
         setDoctorId(id);
         setDate(null);
         setTime(null);
+        scrollToSection('book-date');
     };
+
+    const pickDate = (value: string) => {
+        setDate(value);
+        setTime(null);
+        scrollToSection('book-time');
+    };
+
+    const pickTime = (value: string) => {
+        setTime(value);
+        scrollToSection('book-contacts');
+    };
+
+    const steps: [string, string][] = [
+        ['Услуга', service?.name ?? 'Консультация'],
+        ['Врач', uses_doctors ? (anyDoctor ? 'Любой свободный' : doctor?.name ?? 'Выберите') : 'Клиника'],
+        ['Дата', date ? humanDate(date) : 'Выберите'],
+        ['Время', time ?? 'Выберите'],
+        ['Контакты', 'Имя и телефон'],
+    ];
+    const currentStep = Math.min(step, steps.length - 1);
+
+    const selectedIndex = services.findIndex((s) => s.id === serviceId);
+    const servicesCollapsed = !showAllServices && services.length > SERVICES_PREVIEW + 1;
+    const visibleServices = servicesCollapsed
+        ? services.filter((s, i) => i < SERVICES_PREVIEW || i === selectedIndex)
+        : services;
 
     return (
         <div className="container book">
@@ -203,37 +250,52 @@ export default function BookingCreate({
             ) : null}
 
             <nav className="book__steps" aria-label="Шаги записи">
-                {[
-                    ['Услуга', service?.name ?? 'Не выбрана'],
-                    ['Врач', uses_doctors ? (anyDoctor ? 'Любой свободный' : doctor?.name ?? 'Выберите') : 'Клиника'],
-                    ['Дата', date ? humanDate(date) : 'Выберите'],
-                    ['Время', time ?? 'Выберите'],
-                    ['Контакты', 'Имя и телефон'],
-                ].map(([t, v], i) => (
-                    <button key={t} type="button" className={`book__step ${i === step ? 'is-current' : i < step ? 'is-done' : ''}`} disabled={i > step} onClick={() => {
-                        if (i <= 1) { setDate(null); setTime(null); }
-                        if (i === 2) setTime(null);
-                    }}>
-                        <span className="book__step-n">Шаг {i + 1}</span>
-                        <span className="book__step-t">{t}</span>
-                        <span className="text-xs text-muted">{v}</span>
-                    </button>
-                ))}
+                <ol className="book__step-list">
+                    {steps.map(([title, value], i) => {
+                        const state = i === currentStep ? 'is-current' : i < currentStep ? 'is-done' : '';
+                        const skipped = i === 1 && !uses_doctors;
+
+                        return (
+                            <li key={title} className={`book__step ${state}`}>
+                                <button
+                                    type="button"
+                                    disabled={i > currentStep || skipped}
+                                    aria-current={i === currentStep ? 'step' : undefined}
+                                    onClick={() => scrollToSection(SECTION_IDS[i])}
+                                >
+                                    <span className="book__step-dot" aria-hidden="true">
+                                        {i < currentStep ? <Icon name="check" size={14} strokeWidth={3} /> : i + 1}
+                                    </span>
+                                    <span className="book__step-text">
+                                        <span className="book__step-t">{title}</span>
+                                        <span className="book__step-v">{value}</span>
+                                    </span>
+                                </button>
+                            </li>
+                        );
+                    })}
+                </ol>
+                <p className="book__now">
+                    <span>
+                        Шаг {currentStep + 1} из {steps.length}
+                    </span>
+                    {steps[currentStep][0]}
+                </p>
             </nav>
 
             {services.length > 0 ? (
-                <section className="card stack">
+                <section className="card stack book__section" id="book-service">
                     <h2>Услуга</h2>
                     <div className="book__choice book__choice--2">
-                        <button type="button" className={`book-card ${serviceId === null ? 'is-on' : ''}`} onClick={() => { setServiceId(null); setTime(null); }}>
+                        <button type="button" className={`book-card ${serviceId === null ? 'is-on' : ''}`} onClick={() => pickService(null)}>
                             <span />
                             <span>
                                 <b>Консультация / осмотр</b>
                                 <span className="text-sm text-muted">30 мин, уточнит клиника</span>
                             </span>
                         </button>
-                        {services.map((s) => (
-                            <button key={s.id} type="button" className={`book-card ${serviceId === s.id ? 'is-on' : ''}`} onClick={() => { setServiceId(s.id); setTime(null); }}>
+                        {visibleServices.map((s) => (
+                            <button key={s.id} type="button" className={`book-card ${serviceId === s.id ? 'is-on' : ''}`} onClick={() => pickService(s.id)}>
                                 <span />
                                 <span>
                                     <b>{s.name}</b>
@@ -242,11 +304,17 @@ export default function BookingCreate({
                             </button>
                         ))}
                     </div>
+                    {services.length > SERVICES_PREVIEW + 1 ? (
+                        <button type="button" className="book__more" onClick={() => setShowAllServices((v) => !v)}>
+                            {showAllServices ? 'Свернуть список' : `Показать все услуги (${services.length + 1})`}
+                            <Icon name={showAllServices ? 'chevron-up' : 'chevron-down'} size={18} />
+                        </button>
+                    ) : null}
                 </section>
             ) : null}
 
             {uses_doctors ? (
-                <section className="card stack">
+                <section className="card stack book__section" id="book-doctor">
                     <h2>Врач</h2>
                     <div className="book__choice book__choice--2">
                         <button type="button" className={`book-card ${anyDoctor ? 'is-on' : ''}`} onClick={() => pickDoctor(null, true)}>
@@ -272,12 +340,16 @@ export default function BookingCreate({
             ) : null}
 
             {doctorReady ? (
-                <section className="card stack">
-                    <div className="row row--between">
+                <section className="card stack book__section" id="book-date">
+                    <div className="book__section-head">
                         <h2>Дата</h2>
-                        <div className="row">
-                            <Button type="button" size="sm" variant="ghost" disabled={from <= iso(new Date())} onClick={() => setFrom(addDays(from, -14))}>Назад</Button>
-                            <Button type="button" size="sm" variant="ghost" disabled={addDays(from, 14) > addDays(iso(new Date()), horizon_days)} onClick={() => setFrom(addDays(from, 14))}>Дальше</Button>
+                        <div className="book__pager">
+                            <button type="button" aria-label="Предыдущие дни" disabled={from <= iso(new Date())} onClick={() => setFrom(addDays(from, -14))}>
+                                <Icon name="chevron-left" size={20} />
+                            </button>
+                            <button type="button" aria-label="Следующие дни" disabled={addDays(from, 14) > addDays(iso(new Date()), horizon_days)} onClick={() => setFrom(addDays(from, 14))}>
+                                <Icon name="chevron-right" size={20} />
+                            </button>
                         </div>
                     </div>
                     {loadingDays ? <p className="text-muted">Считаем свободные дни…</p> : null}
@@ -286,28 +358,28 @@ export default function BookingCreate({
                             const dt = new Date(`${d.date}T12:00:00`);
 
                             return (
-                                <button key={d.date} type="button" className={`book-day ${date === d.date ? 'is-on' : ''}`} disabled={d.count === 0} onClick={() => { setDate(d.date); setTime(null); }}>
+                                <button key={d.date} type="button" className={`book-day ${date === d.date ? 'is-on' : ''}`} disabled={d.count === 0} onClick={() => pickDate(d.date)}>
                                     <span className="book-day__w">{WEEKDAYS[dt.getDay()]}</span>
                                     <span className="book-day__n">{dt.getDate()}</span>
-                                    <span className="book-day__c">{d.count ? `${d.count}` : '—'}</span>
+                                    <span className="book-day__c">{d.count ? `${d.count} св.` : 'нет'}</span>
                                 </button>
                             );
                         })}
                     </div>
                     {!loadingDays && !days.some((d) => d.count > 0) ? <Alert>На ближайшие дни свободных слотов нет. Попробуйте другого врача или оставьте заявку «перезвоните мне».</Alert> : null}
                     {!date && firstFree ? (
-                        <Button type="button" variant="outline" size="sm" onClick={() => setDate(firstFree)}>Ближайшее свободное</Button>
+                        <Button type="button" variant="outline" size="sm" icon="flash" onClick={() => pickDate(firstFree)}>Ближайшее свободное</Button>
                     ) : null}
                 </section>
             ) : null}
 
             {date ? (
-                <section className="card stack">
+                <section className="card stack book__section" id="book-time">
                     <h2>Время</h2>
                     {loadingSlots ? <p className="text-muted">Загружаем слоты…</p> : null}
                     <div className="book-slots">
                         {slots.map((s) => (
-                            <button key={s.time} type="button" className={`book-slot ${time === s.time ? 'is-on' : ''}`} onClick={() => setTime(s.time)}>
+                            <button key={s.time} type="button" className={`book-slot ${time === s.time ? 'is-on' : ''}`} onClick={() => pickTime(s.time)}>
                                 {s.time}
                             </button>
                         ))}
@@ -318,7 +390,7 @@ export default function BookingCreate({
             ) : null}
 
             {time ? (
-                <section className="card stack">
+                <section className="card stack book__section" id="book-contacts">
                     <h2>Контакты</h2>
                     <dl className="book-sum">
                         <div><dt>Когда</dt><dd>{date ? humanDate(date) : ''} в {time}</dd></div>
@@ -333,8 +405,8 @@ export default function BookingCreate({
                         <Check label="Запись для ребёнка" checked={form.data.is_child} onChange={(e) => form.setData('is_child', e.target.checked)} />
                         <Check label="Согласен на обработку персональных данных" checked={form.data.consent} onChange={(e) => form.setData('consent', e.target.checked)} error={form.errors.consent} />
                         <input type="text" name="website" value={form.data.website} onChange={(e) => form.setData('website', e.target.value)} className="visually-hidden" tabIndex={-1} autoComplete="off" />
-                        <div className="row row--wrap span-2">
-                            <Button type="submit" loading={form.processing}>Подтвердить запись</Button>
+                        <div className="book__submit span-2">
+                            <Button type="submit" size="lg" loading={form.processing}>Подтвердить запись</Button>
                         </div>
                     </form>
                 </section>

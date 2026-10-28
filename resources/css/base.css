@@ -22,7 +22,8 @@ body {
     font-feature-settings: 'ss01', 'cv11';
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-    overflow-x: hidden;
+    /* clip, а не hidden: hidden делает body прокручиваемым контейнером и ломает position: sticky */
+    overflow-x: clip;
 }
 
 h1,
