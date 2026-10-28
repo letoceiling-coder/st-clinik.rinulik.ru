@@ -10,11 +10,13 @@ use App\Models\Concern;
 use App\Models\District;
 use App\Models\Doctor;
 use App\Models\Service;
+use App\Models\Specialty;
 use App\Repositories\Contracts\ClinicRepository;
 use App\Repositories\Filters\ClinicFilters;
 use App\Services\SlotAvailabilityService;
 use App\Support\Text;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -135,8 +137,7 @@ class AssistantToolExecutor
         $query = trim((string) ($arguments['query'] ?? ''));
         $limit = max(1, min(6, (int) ($arguments['limit'] ?? 4)));
 
-        $service = $query !== '' ? $this->matchService($query) : null;
-        $specialtySlug = $service === null && $query !== '' ? $this->matchSpecialty($query) : null;
+        ['service' => $service, 'specialty' => $specialty] = $this->matchCatalog($query);
         $district = $this->matchDistrict($city, (string) ($arguments['district'] ?? ''));
 
         $base = array_filter([
@@ -150,8 +151,12 @@ class AssistantToolExecutor
         $attempts = [];
         if ($service !== null) {
             $attempts[] = ['match' => 'service', 'filters' => $base + ['service' => $service->slug]];
-        } elseif ($specialtySlug !== null) {
-            $attempts[] = ['match' => 'specialty', 'filters' => $base + ['specialty' => $specialtySlug]];
+        } elseif ($specialty !== null) {
+            $attempts[] = ['match' => 'specialty', 'filters' => $base + ['specialty' => $specialty->slug]];
+            $offering = $this->clinicIdsOfferingSpecialty($city, $specialty);
+            if ($offering !== []) {
+                $attempts[] = ['match' => 'specialty', 'filters' => ['ids' => implode(',', $offering)]];
+            }
         } elseif ($query !== '') {
             $attempts[] = ['match' => 'text', 'filters' => $base + ['q' => $query]];
         }
@@ -171,20 +176,14 @@ class AssistantToolExecutor
         }
 
         $collection = $page?->getCollection() ?? collect();
-        $prices = $service !== null && $collection->isNotEmpty()
-            ? ClinicService::query()
-                ->whereIn('clinic_id', $collection->pluck('id'))
-                ->where('service_id', $service->id)
-                ->get()
-                ->keyBy('clinic_id')
-            : collect();
+        $prices = $this->pricesFor($collection->pluck('id')->all(), $matched, $service, $specialty);
 
         $items = [];
         foreach ($collection as $clinic) {
             /** @var Clinic $clinic */
             $url = route('clinics.show', $clinic->slug);
             $this->rememberClinic($clinic, $url);
-            $price = $prices->get($clinic->id);
+            $price = $prices[$clinic->id] ?? null;
             $items[] = array_filter([
                 'slug' => $clinic->slug,
                 'name' => $clinic->name,
@@ -193,8 +192,8 @@ class AssistantToolExecutor
                 'address' => $clinic->address,
                 'metro' => $clinic->metro,
                 'district' => $clinic->district?->name,
-                'service_price' => $price !== null && $price->price_from ? $this->priceLabel((int) $price->price_from, $price->price_to ? (int) $price->price_to : null) : null,
-                'min_price' => $clinic->min_price ? 'от '.Text::money((int) $clinic->min_price) : null,
+                'service_price' => $price,
+                'cheapest_any_service' => $price === null && $clinic->min_price ? 'от '.Text::money((int) $clinic->min_price) : null,
                 'features' => $this->features($clinic),
                 'url' => $url,
                 'booking_url' => route('booking.create', $clinic->slug).($service !== null ? '?service='.$service->id : ''),
@@ -206,55 +205,141 @@ class AssistantToolExecutor
             'query' => $query,
             'matched_by' => $matched,
             'service' => $service ? ['id' => $service->id, 'name' => $service->name] : null,
+            'direction' => $specialty?->name,
             'district' => $district?->name,
             'total_found' => $page?->total() ?? 0,
             'clinics' => $items,
             'catalog_url' => route('city.clinics', $city->slug).($service !== null ? '?service='.$service->slug : ''),
             'note' => match ($matched) {
-                'city_best', 'city_best_without_filters' => 'Точных совпадений нет — это лучшие клиники города по рейтингу. Скажи об этом пользователю честно.',
-                default => null,
+                'city_best', 'city_best_without_filters' => 'Клиник именно с этой услугой не нашлось — это лучшие клиники города по рейтингу. Скажи об этом честно и не выдавай cheapest_any_service за цену нужной услуги.',
+                default => 'service_price — цена именно по запрошенной услуге или направлению. cheapest_any_service — самая дешёвая услуга клиники вообще, её не выдавай за цену запрошенной услуги.',
             },
         ], JSON_UNESCAPED_UNICODE);
     }
 
-    /** Услуга каталога по словам пользователя: сначала прямое совпадение названия, затем «что беспокоит». */
-    private function matchService(string $query): ?Service
+    /** Слова, которые есть почти в любом запросе и не помогают понять услугу. */
+    private const STOP_WORDS = ['зуб', 'зуба', 'зубы', 'зубов', 'зубам', 'зубах', 'нужна', 'нужно', 'нужен', 'хочу', 'надо', 'недорого', 'дешево', 'дёшево', 'клиника', 'клиники', 'клинику', 'стоматология', 'стоматологию', 'стоматолог', 'посоветуйте', 'подскажите', 'хорошая', 'хороший', 'лучшая', 'рядом', 'сегодня', 'срочно'];
+
+    /**
+     * Сопоставляет слова пользователя с каталогом по основам слов («имплантация» ↔ «импланта»).
+     * Направление выигрывает при равенстве: «имплантация» охватывает все услуги имплантации, а не одну.
+     *
+     * @return array{service: ?Service, specialty: ?Specialty}
+     */
+    private function matchCatalog(string $query): array
     {
-        $tokens = (new ClinicFilters(q: $query))->tokens();
-        if ($tokens === []) {
-            return null;
+        $stems = $this->stems($query);
+        if ($stems === []) {
+            return ['service' => null, 'specialty' => null];
         }
 
-        $direct = Service::query()->where('is_active', true);
-        foreach ($tokens as $token) {
-            $direct->whereLike('search_text', '%'.$token.'%');
+        [$service, $serviceScore] = $this->bestMatch(Service::query()->where('is_active', true)->get(['id', 'name', 'slug', 'search_text', 'specialty_id']), $stems);
+        [$specialty, $specialtyScore] = $this->bestMatch(Specialty::query()->where('is_active', true)->get(['id', 'name', 'slug', 'search_text']), $stems);
+
+        if ($service !== null && $serviceScore > $specialtyScore) {
+            return ['service' => $service, 'specialty' => null];
         }
-        $service = $direct->orderBy('id')->first();
-        if ($service !== null) {
-            return $service;
+        if ($specialty !== null) {
+            return ['service' => null, 'specialty' => $specialty];
         }
 
-        $concern = Concern::query()->where('is_active', true);
-        foreach ($tokens as $token) {
-            $concern->whereLike('search_text', '%'.$token.'%');
-        }
+        // «Что беспокоит»: «болит зуб», «кровоточат дёсны» → направление симптома.
+        [$concern] = $this->bestMatch(Concern::query()->where('is_active', true)->with('specialty:id,name,slug')->get(), $stems);
 
-        return $concern->first()?->services()->where('is_active', true)->orderBy('services.id')->first();
+        return ['service' => null, 'specialty' => $concern?->specialty];
     }
 
-    private function matchSpecialty(string $query): ?string
+    /** @return list<string> */
+    private function stems(string $query): array
     {
-        $tokens = (new ClinicFilters(q: $query))->tokens();
-        if ($tokens === []) {
-            return null;
+        $stems = [];
+        foreach ((new ClinicFilters(q: $query))->tokens() as $token) {
+            $token = mb_strtolower($token);
+            $length = mb_strlen($token);
+            if ($length < 4 || in_array($token, self::STOP_WORDS, true)) {
+                continue;
+            }
+            $stems[] = mb_substr($token, 0, max(4, min($length - 3, 7)));
         }
 
-        $concern = Concern::query()->where('is_active', true);
-        foreach ($tokens as $token) {
-            $concern->whereLike('search_text', '%'.$token.'%');
+        return array_values(array_unique($stems));
+    }
+
+    /**
+     * @template T of \Illuminate\Database\Eloquent\Model
+     *
+     * @param  Collection<int, T>  $items
+     * @param  list<string>  $stems
+     * @return array{0: ?T, 1: int}
+     */
+    private function bestMatch($items, array $stems): array
+    {
+        $best = null;
+        $bestScore = 0;
+        foreach ($items as $item) {
+            $haystack = mb_strtolower($item->name.' '.$item->search_text);
+            $score = 0;
+            foreach ($stems as $stem) {
+                if (str_contains($haystack, $stem)) {
+                    $score++;
+                }
+            }
+            if ($score > $bestScore) {
+                $best = $item;
+                $bestScore = $score;
+            }
         }
 
-        return $concern->with('specialty:id,slug')->first()?->specialty?->slug;
+        return [$best, $bestScore];
+    }
+
+    /** @return list<int> Клиники города, у которых есть хотя бы одна услуга направления. */
+    private function clinicIdsOfferingSpecialty(City $city, Specialty $specialty): array
+    {
+        return ClinicService::query()
+            ->join('services', 'services.id', '=', 'clinic_services.service_id')
+            ->join('clinics', 'clinics.id', '=', 'clinic_services.clinic_id')
+            ->where('services.specialty_id', $specialty->id)
+            ->where('clinics.city_id', $city->id)
+            ->where('clinics.status', 'published')
+            ->where('clinic_services.price_from', '>', 0)
+            ->orderByDesc('clinics.rating')
+            ->pluck('clinic_services.clinic_id')
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->take(24)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Цена именно по запрошенной услуге или минимальная по услугам направления.
+     *
+     * @param  list<int>  $clinicIds
+     * @return array<int, string>
+     */
+    private function pricesFor(array $clinicIds, string $matched, ?Service $service, ?Specialty $specialty): array
+    {
+        if ($clinicIds === [] || ! in_array($matched, ['service', 'specialty'], true)) {
+            return [];
+        }
+
+        $rows = ClinicService::query()
+            ->whereIn('clinic_id', $clinicIds)
+            ->where('price_from', '>', 0)
+            ->when($service !== null, fn ($q) => $q->where('service_id', $service->id))
+            ->when($service === null && $specialty !== null, fn ($q) => $q->whereIn('service_id', Service::query()->where('specialty_id', $specialty->id)->select('id')))
+            ->get(['clinic_id', 'price_from', 'price_to']);
+
+        $prices = [];
+        foreach ($rows->groupBy('clinic_id') as $clinicId => $group) {
+            $cheapest = $group->sortBy('price_from')->first();
+            $prices[(int) $clinicId] = $service !== null
+                ? $this->priceLabel((int) $cheapest->price_from, $cheapest->price_to ? (int) $cheapest->price_to : null)
+                : 'от '.Text::money((int) $cheapest->price_from);
+        }
+
+        return $prices;
     }
 
     private function matchDistrict(City $city, string $name): ?District
@@ -319,7 +404,7 @@ class AssistantToolExecutor
         $this->rememberClinic($clinic, $url);
 
         $focus = trim((string) ($arguments['service'] ?? ''));
-        $focusService = $focus !== '' ? $this->matchService($focus) : null;
+        $focusService = $focus !== '' ? $this->matchCatalog($focus)['service'] : null;
 
         $services = $clinic->clinicServices()
             ->with('service:id,name')

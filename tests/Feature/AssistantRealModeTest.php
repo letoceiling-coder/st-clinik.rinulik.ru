@@ -48,6 +48,24 @@ class AssistantRealModeTest extends TestCase
         $this->assertSame([['slug' => $withService->slug, 'name' => $withService->name]], $executor->consumeShownClinics());
     }
 
+    public function test_general_request_matches_direction_and_returns_price_of_that_direction(): void
+    {
+        $city = $this->city();
+        $implant = Service::query()->where('slug', 'implant-standart')->firstOrFail();
+        $cheapOther = Service::query()->where('specialty_id', '!=', $implant->specialty_id)->firstOrFail();
+        $clinic = $this->createPublishedClinic($city, 'Имплант Плюс');
+        ClinicService::query()->create(['clinic_id' => $clinic->id, 'service_id' => $implant->id, 'price_from' => 38000]);
+        ClinicService::query()->create(['clinic_id' => $clinic->id, 'service_id' => $cheapOther->id, 'price_from' => 500]);
+        $this->createPublishedClinic($city, 'Без Имплантов');
+
+        $payload = json_decode(app(AssistantToolExecutor::class)->run('search_clinics', ['query' => 'имплантация зуба недорого'], $city), true);
+
+        $this->assertSame('specialty', $payload['matched_by']);
+        $this->assertSame([$clinic->slug], array_column($payload['clinics'], 'slug'));
+        $this->assertStringContainsString('38', $payload['clinics'][0]['service_price']);
+        $this->assertArrayNotHasKey('cheapest_any_service', $payload['clinics'][0]);
+    }
+
     public function test_search_clinics_falls_back_to_best_clinics_of_the_city(): void
     {
         $city = $this->city();
