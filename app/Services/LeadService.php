@@ -7,6 +7,8 @@ use App\Models\Lead;
 use App\Models\User;
 use App\Models\UserNotification;
 use App\Rules\RussianPhone;
+use App\Services\Organization\ClinicStaffNotifier;
+use App\Support\ClinicNotificationEvents;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -93,14 +95,16 @@ class LeadService
             'ip_hash' => hash('sha256', (request()->ip() ?? '').config('app.key')),
         ]);
 
-        if (! $assistantBroadcast) {
-            $owner = $clinic->organization?->owner;
-            if ($owner) {
-                UserNotification::create([
-                    'user_id' => $owner->id, 'type' => 'lead_new', 'title' => 'Новая заявка',
-                    'body' => "Заявка в «{$clinic->name}» от {$lead->name}.", 'url' => '/clinic-cabinet/leads',
-                ]);
-            }
+        if (! $assistantBroadcast && $clinic->organization !== null) {
+            // Всем сотрудникам с доступом к заявкам — в кабинет и в их каналы (MAX, push, почта): чем быстрее звонок, тем больше записей.
+            app(ClinicStaffNotifier::class)->notify(
+                $clinic->organization,
+                ClinicNotificationEvents::LEAD_NEW,
+                'lead_new',
+                'Новая заявка',
+                "Заявка в «{$clinic->name}» от {$lead->name}, {$lead->phone}. Перезвоните как можно скорее.",
+                '/clinic-cabinet/leads',
+            );
         }
         if ($user) {
             UserNotification::create([

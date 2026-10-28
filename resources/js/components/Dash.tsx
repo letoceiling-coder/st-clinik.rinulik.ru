@@ -15,6 +15,8 @@ export const STATUS: Record<string, { label: string; tone?: 'success' | 'warning
     active: { label: 'Активен', tone: 'success' },
     blocked: { label: 'Заблокирован', tone: 'danger' },
     new: { label: 'Новая', tone: 'primary' },
+    contacted: { label: 'Связались', tone: 'info' },
+    no_answer: { label: 'Не дозвонились', tone: 'warning' },
     confirmed: { label: 'Подтверждена', tone: 'info' },
     rescheduled: { label: 'Перенесена', tone: 'info' },
     completed: { label: 'Состоялась', tone: 'success' },

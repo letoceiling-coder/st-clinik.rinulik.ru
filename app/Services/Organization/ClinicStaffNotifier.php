@@ -6,10 +6,11 @@ use App\Models\Organization;
 use App\Models\OrganizationStaff;
 use App\Models\User;
 use App\Models\UserNotification;
+use App\Notifications\ClinicStaffAlertNotification;
 use App\Services\Notifications\NotificationPreferenceService;
 use App\Support\ClinicNotificationEvents;
 
-/** In-app уведомления активным сотрудникам организации с учётом их настроек. */
+/** Уведомления активным сотрудникам организации: в кабинете и во внешних каналах (почта, MAX, push) по их настройкам. */
 class ClinicStaffNotifier
 {
     public function __construct(
@@ -45,17 +46,18 @@ class ClinicStaffNotifier
         }
 
         $staffUsers->unique('id')->each(function (User $user) use ($eventKey, $type, $title, $body, $url): void {
-            if (! $this->preferences->allows($user, $eventKey, 'in_app')) {
-                return;
+            if ($this->preferences->allows($user, $eventKey, 'in_app')) {
+                UserNotification::query()->create([
+                    'user_id' => $user->id,
+                    'type' => $type,
+                    'title' => $title,
+                    'body' => trim($body),
+                    'url' => $url,
+                ]);
             }
 
-            UserNotification::query()->create([
-                'user_id' => $user->id,
-                'type' => $type,
-                'title' => $title,
-                'body' => trim($body),
-                'url' => $url,
-            ]);
+            // Внешние каналы (почта, MAX, push) — по настройкам сотрудника; раньше они не доставлялись.
+            $user->notify(new ClinicStaffAlertNotification($eventKey, $title, trim($body), $url));
         });
     }
 }
