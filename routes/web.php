@@ -389,6 +389,11 @@ Route::middleware(['auth', 'perm:admin.dashboard'])->prefix('admin')->name('admi
         Route::delete('/kb/{entry}', [AdminAssistantController::class, 'destroyKb'])->name('kb.destroy');
     });
 
+    Route::middleware('perm:admin.integrations')->group(function () {
+        Route::get('/system', [Admin\SystemHealthController::class, 'index'])->name('system');
+        Route::post('/system/refresh', [Admin\SystemHealthController::class, 'refresh'])->name('system.refresh');
+    });
+
     Route::middleware('perm:admin.integrations')->prefix('integrations')->name('integrations.')->group(function () {
         Route::get('/max-publish', [Admin\MaxPublishController::class, 'index'])->name('max-publish');
         Route::get('/', [Admin\IntegrationController::class, 'index'])->name('index');

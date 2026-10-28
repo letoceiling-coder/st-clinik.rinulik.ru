@@ -25,6 +25,7 @@ const ALL: (NavItem & { perm: string })[] = [
     { href: '/admin/campaigns', label: 'Кампании КП', icon: 'mail', group: 'Работа', perm: 'offers.manage' },
     { href: '/admin/broadcasts', label: 'Рассылки', icon: 'send', group: 'Работа', perm: 'admin.broadcasts' },
     { href: '/admin/assistant', label: 'AI-ассистент', icon: 'send', group: 'Система', perm: 'admin.assistant' },
+    { href: '/admin/system', label: 'Состояние системы', icon: 'shield', group: 'Система', perm: 'admin.integrations' },
     { href: '/admin/integrations', label: 'Интеграции', icon: 'settings', group: 'Система', perm: 'admin.integrations' },
     { href: '/admin/complaints', label: 'Жалобы', icon: 'alert', group: 'Работа', perm: 'admin.complaints' },
     { href: '/admin/duplicates', label: 'Дубликаты', icon: 'refresh', group: 'Работа', perm: 'admin.duplicates' },

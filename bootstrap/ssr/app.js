@@ -3967,6 +3967,13 @@ var ALL = [
 		perm: "admin.assistant"
 	},
 	{
+		href: "/admin/system",
+		label: "Состояние системы",
+		icon: "shield",
+		group: "Система",
+		perm: "admin.integrations"
+	},
+	{
 		href: "/admin/integrations",
 		label: "Интеграции",
 		icon: "settings",
@@ -4596,6 +4603,7 @@ var renderPromise = createInertiaApp({
 			"./pages/Admin/Reviews.tsx": () => import("./assets/Reviews-DDUs1wsh.js"),
 			"./pages/Admin/Roles.tsx": () => import("./assets/Roles-B0rBhyEy.js"),
 			"./pages/Admin/SiteDisplay.tsx": () => import("./assets/SiteDisplay-Bxf1E2tA.js"),
+			"./pages/Admin/SystemHealth.tsx": () => import("./assets/SystemHealth-Do_GLNpt.js"),
 			"./pages/Admin/Tariffs.tsx": () => import("./assets/Tariffs-DEGMmbAc.js"),
 			"./pages/Admin/UserShow.tsx": () => import("./assets/UserShow-QyNnw__P.js"),
 			"./pages/Admin/Users.tsx": () => import("./assets/Users-BQy2Jior.js"),

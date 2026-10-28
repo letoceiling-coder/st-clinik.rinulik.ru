@@ -5570,3 +5570,73 @@ html.is-navigating { scroll-behavior: auto !important; }
         font-size: var(--fs-xl);
     }
 }
+
+/* Админка: состояние системы */
+.health-overall {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    border-left: 4px solid var(--color-success);
+    color: var(--color-success);
+}
+.health-overall p {
+    margin: 2px 0 0;
+    color: var(--color-text);
+}
+.health-overall--warn { border-left-color: var(--color-warning); color: var(--color-warning); }
+.health-overall--fail { border-left-color: var(--color-danger); color: var(--color-danger); }
+.health-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+    gap: var(--space-3);
+}
+.health-card {
+    display: grid;
+    grid-template-columns: 12px minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+}
+.health-card__dot {
+    width: 12px;
+    height: 12px;
+    margin-top: 4px;
+    border-radius: 999px;
+    background: var(--color-success);
+    box-shadow: 0 0 0 4px var(--color-success-soft);
+}
+.health-card--warn .health-card__dot { background: var(--color-warning); box-shadow: 0 0 0 4px var(--color-warning-soft); }
+.health-card--fail .health-card__dot { background: var(--color-danger); box-shadow: 0 0 0 4px var(--color-danger-soft); }
+.health-card--fail { border-color: var(--color-danger); }
+.health-card__body {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+.health-card__label {
+    font-size: var(--fs-xs);
+    color: var(--color-muted);
+}
+.health-card__value {
+    overflow-wrap: anywhere;
+}
+.health-card__hint {
+    margin: 4px 0 0;
+    font-size: var(--fs-caption);
+    color: var(--color-muted);
+}
+.health-jobs {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.health-jobs li {
+    display: grid;
+    gap: 2px;
+}
+.health-jobs code {
+    font-size: var(--fs-caption);
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}

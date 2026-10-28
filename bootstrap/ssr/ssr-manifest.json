@@ -1382,6 +1382,9 @@
   "resources/js/pages/Admin/SiteDisplay.tsx": [
     "/build/assets/SiteDisplay-Bxf1E2tA.js"
   ],
+  "resources/js/pages/Admin/SystemHealth.tsx": [
+    "/build/assets/SystemHealth-Do_GLNpt.js"
+  ],
   "resources/js/pages/Admin/Tariffs.tsx": [
     "/build/assets/Tariffs-DEGMmbAc.js"
   ],
