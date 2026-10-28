@@ -374,7 +374,7 @@ function activeChips(values, options) {
 	});
 	return out;
 }
-function CatalogLayout({ values, options, mode, apply, patch, remove, loading, total, children, mapToggle }) {
+function CatalogLayout({ values, options, mode, apply, patch, remove, loading, total, children, mapToggle, view }) {
 	const [drawer, setDrawer] = useState(false);
 	const chips = activeChips(values, options);
 	const count = activeCount(values, options);
@@ -438,6 +438,34 @@ function CatalogLayout({ values, options, mode, apply, patch, remove, loading, t
 										children: count
 									}) : null]
 								}),
+								view ? /* @__PURE__ */ jsxs("div", {
+									className: "catalog__view",
+									role: "group",
+									"aria-label": "Вид списка",
+									children: [/* @__PURE__ */ jsx("button", {
+										type: "button",
+										className: cx(view.value === "list" && "is-active"),
+										"aria-pressed": view.value === "list",
+										"aria-label": "Одной колонкой",
+										title: "Одной колонкой",
+										onClick: () => view.onChange("list"),
+										children: /* @__PURE__ */ jsx(Icon, {
+											name: "list",
+											size: 18
+										})
+									}), /* @__PURE__ */ jsx("button", {
+										type: "button",
+										className: cx(view.value === "grid" && "is-active"),
+										"aria-pressed": view.value === "grid",
+										"aria-label": "Сеткой в две колонки",
+										title: "Сеткой в две колонки",
+										onClick: () => view.onChange("grid"),
+										children: /* @__PURE__ */ jsx(Icon, {
+											name: "grid",
+											size: 18
+										})
+									})]
+								}) : null,
 								/* @__PURE__ */ jsxs("label", {
 									className: "sort",
 									children: [
@@ -521,4 +549,4 @@ function CatalogLayout({ values, options, mode, apply, patch, remove, loading, t
 //#endregion
 export { useCatalog as n, CatalogLayout as t };
 
-//# sourceMappingURL=Catalog-CvPf56di.js.map
+//# sourceMappingURL=Catalog--NwFAXTB.js.map

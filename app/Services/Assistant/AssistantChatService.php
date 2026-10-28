@@ -5,13 +5,18 @@ namespace App\Services\Assistant;
 use App\Models\AssistantConversation;
 use App\Models\AssistantMessage;
 use App\Models\City;
+use App\Models\District;
+use App\Models\Service;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Throwable;
 
 class AssistantChatService
 {
-    private const HISTORY_LIMIT = 12;
+    private const HISTORY_LIMIT = 16;
+
+    /** Сколько последних ответов просматриваем, чтобы вспомнить показанные клиники. */
+    private const MEMORY_REPLIES = 8;
 
     public function __construct(
         private readonly AssistantSettings $settings,
@@ -84,20 +89,23 @@ class AssistantChatService
                 $toolDefs,
                 fn (string $name, array $args) => $this->tools->run($name, $args, $city, $conversation),
             );
-            $links = $this->mergeLinks($this->tools->consumeLinks(), $mockPayload['links']);
+            $reply = $this->tidy($reply);
+            $shown = $this->tools->consumeShownClinics();
+            $leadCreated = $this->tools->consumeLeadCreated();
+            $links = $this->mergeLinks($this->tools->consumeLinks(), []);
 
             $this->storeMessage($conversation, 'user', $message);
-            $this->storeMessage($conversation, 'assistant', $reply, ['engine' => 'openrouter']);
+            $this->storeMessage($conversation, 'assistant', $reply, ['engine' => 'openrouter', 'clinics' => $shown, 'lead_created' => $leadCreated]);
 
             return [
                 'reply' => $reply,
-                'suggestions' => $mockPayload['suggestions'],
+                'suggestions' => $this->suggestionsFor($shown, $leadCreated),
                 'links' => $links,
                 'conversation_id' => $conversation->public_id,
                 'mock' => false,
             ];
         } catch (Throwable $e) {
-            $reply = $mockPayload['reply']."\n\n(Ответ сгенерирован локально: модель временно недоступна.)";
+            $reply = $mockPayload['reply'];
             $this->storeMessage($conversation, 'user', $message);
             $this->storeMessage($conversation, 'assistant', $reply, ['engine' => 'mock_fallback', 'error' => $e->getMessage()]);
 
@@ -181,18 +189,21 @@ class AssistantChatService
                 fn (string $name, array $args) => $this->tools->run($name, $args, $city, $conversation),
                 $onDelta,
             );
-            $links = $this->mergeLinks($this->tools->consumeLinks(), $mockPayload['links']);
-            $this->storeMessage($conversation, 'assistant', $reply, ['engine' => 'openrouter', 'stream' => true]);
+            $reply = $this->tidy($reply);
+            $shown = $this->tools->consumeShownClinics();
+            $leadCreated = $this->tools->consumeLeadCreated();
+            $links = $this->mergeLinks($this->tools->consumeLinks(), []);
+            $this->storeMessage($conversation, 'assistant', $reply, ['engine' => 'openrouter', 'stream' => true, 'clinics' => $shown, 'lead_created' => $leadCreated]);
 
             return [
                 'reply' => $reply,
-                'suggestions' => $mockPayload['suggestions'],
+                'suggestions' => $this->suggestionsFor($shown, $leadCreated),
                 'links' => $links,
                 'conversation_id' => $conversation->public_id,
                 'mock' => false,
             ];
         } catch (Throwable $e) {
-            $reply = $mockPayload['reply']."\n\n(Ответ сгенерирован локально: модель временно недоступна.)";
+            $reply = $mockPayload['reply'];
             foreach (AssistantSseStream::chunkText($reply) as $piece) {
                 $onDelta($piece);
             }
@@ -219,6 +230,12 @@ class AssistantChatService
     }
 
     /** @return list<array{role: string, content: string}> */
+    public function previewMessages(AssistantConversation $conversation, City $city, string $latestUserMessage): array
+    {
+        return $this->buildMessages($conversation, $city, $latestUserMessage);
+    }
+
+    /** @return list<array{role: string, content: string}> */
     private function buildMessages(
         AssistantConversation $conversation,
         City $city,
@@ -230,6 +247,7 @@ class AssistantChatService
         if ($system === '') {
             $system = $this->defaultSystemPrompt($city, $settings['disclaimer']);
         }
+        $system .= "\n\n".$this->contextBlock($conversation, $city);
 
         $messages = [['role' => 'system', 'content' => $system]];
 
@@ -254,14 +272,123 @@ class AssistantChatService
     private function defaultSystemPrompt(City $city, string $disclaimer): string
     {
         return implode("\n", [
-            'Ты помощник сервиса '.config('app.name').' для пациентов в городе '.$city->name.'.',
-            'Помогай найти стоматологические клиники, записаться онлайн, понять услуги и цены.',
-            'Не ставь диагнозы и не назначай лечение. При неотложных симптомах советуй звонить 103 или 112.',
-            'Отвечай кратко, по-русски, дружелюбно.',
-            'Для подбора клиник и врачей вызывай search_clinics, get_clinic, search_doctors; для слотов — get_available_days и get_slots; для правил сервиса — search_knowledge.',
-            'Чтобы оформить заявку, уточни имя и телефон, получи явное согласие на ПД, затем вызови create_lead с consent=true (или предложи кнопку «Оставить заявку»).',
+            'Ты — консультант сервиса '.config('app.name').': помогаешь людям выбрать стоматологию и записаться. Общайся как внимательный живой администратор клиники: тепло, спокойно, на «вы», короткими фразами, без канцелярита и шаблонных вступлений. Не называй себя человеком, но и не подчёркивай, что ты бот.',
+            '',
+            'Как вести диалог:',
+            '— Сначала пойми задачу: что беспокоит или какая услуга нужна, для взрослого или ребёнка, удобный район или метро, бюджет, когда удобно прийти. Задавай не больше одного-двух уточняющих вопросов за раз и только то, что действительно нужно. Если запрос понятен — сразу подбирай.',
+            '— Подбирай клиники только через search_clinics и get_clinic. Никогда не придумывай клиники, цены, врачей, адреса и свободное время.',
+            '— Рекомендуй 2–3 клиники. По каждой одна-две строки: почему подходит (рейтинг и отзывы, цена на нужную услугу, метро или район, особенности вроде детского приёма, рассрочки, записи сегодня). Можно отметить, какую выбрал бы ты и почему.',
+            '— Если подходящих клиник нет — честно скажи и предложи ближайшие альтернативы.',
+            '— Про свободное время узнавай через get_available_days и get_slots и называй конкретные даты и время.',
+            '— Предлагай следующий шаг: онлайн-запись по ссылке клиники или заявку, по которой клиника перезвонит.',
+            '',
+            'Заявка:',
+            '— Чтобы отправить заявку, попроси имя и телефон. Перед отправкой спроси явное согласие на обработку персональных данных («Согласны, чтобы клиника получила ваши имя и телефон?»).',
+            '— После «да» вызови create_lead: clinic — slug выбранной клиники; если клиника не выбрана и человек просит подобрать — broadcast=true. В comment кратко опиши запрос (услуга, удобное время), без диагнозов.',
+            '— После успешной заявки подтверди, что клиника перезвонит, и коротко скажи, что подготовить к визиту.',
+            '',
+            'Медицина и безопасность:',
+            '— Не ставь диагнозы и не назначай лечение, не называй лекарства и дозировки. Можно объяснить, какой специалист и какая услуга обычно нужны, и что окончательно решит врач на осмотре.',
+            '— Сильная боль с отёком, температура, кровотечение, травма — советуй срочно обратиться в клинику с приёмом сегодня или звонить 103/112.',
+            '',
+            'Оформление ответа:',
+            '— Пиши обычным текстом без Markdown: без звёздочек, решёток и таблиц. Списки — строками, начинающимися с «— ». Ссылки отдельно не вставляй: они появятся кнопками под ответом.',
+            '— Обычно 2–6 строк. Отвечай на языке пользователя (по умолчанию русский).',
+            '',
+            'Помни разговор целиком: если человек пишет «первая», «та, что у метро», «запишите туда» — это о клиниках, которые ты уже показывал (список ниже).',
             $disclaimer,
         ]);
+    }
+
+    /** Город, дата, районы и ранее показанные клиники — чтобы модель опиралась на факты диалога. */
+    private function contextBlock(AssistantConversation $conversation, City $city): string
+    {
+        $now = now()->timezone(config('app.timezone'));
+        $lines = [
+            'Контекст:',
+            '— Город пользователя: '.$city->name.'. Ищи и предлагай клиники только в этом городе. Если человек спрашивает о другом городе — предложи переключить город в шапке сайта.',
+            '— Сейчас: '.$now->translatedFormat('l, j F Y, H:i').'.',
+        ];
+
+        $districts = District::query()->where('city_id', $city->id)->orderBy('name')->limit(40)->pluck('name');
+        if ($districts->isNotEmpty()) {
+            $lines[] = '— Районы города: '.$districts->implode(', ').'.';
+        }
+
+        $popular = Service::query()->where('is_active', true)->orderBy('sort')->limit(14)->pluck('name');
+        if ($popular->isNotEmpty()) {
+            $lines[] = '— Примеры услуг в каталоге: '.$popular->implode(', ').'.';
+        }
+
+        $shown = $this->recentlyShownClinics($conversation);
+        if ($shown !== []) {
+            $lines[] = '— Ты уже показывал клиники (по порядку): '.implode('; ', array_map(
+                fn (array $c, int $i) => ($i + 1).'. '.$c['name'].' (slug: '.$c['slug'].')',
+                $shown,
+                array_keys($shown),
+            )).'.';
+        }
+
+        return implode("\n", $lines);
+    }
+
+    /** @return list<array{slug: string, name: string}> */
+    private function recentlyShownClinics(AssistantConversation $conversation): array
+    {
+        $rows = $conversation->messages()
+            ->where('role', 'assistant')
+            ->orderByDesc('id')
+            ->limit(self::MEMORY_REPLIES)
+            ->get(['meta'])
+            ->reverse();
+
+        $seen = [];
+        foreach ($rows as $row) {
+            foreach ((array) ($row->meta['clinics'] ?? []) as $clinic) {
+                if (is_array($clinic) && isset($clinic['slug'], $clinic['name'])) {
+                    $seen[$clinic['slug']] = ['slug' => (string) $clinic['slug'], 'name' => (string) $clinic['name']];
+                }
+            }
+        }
+
+        return array_slice(array_values($seen), -8);
+    }
+
+    /**
+     * Подсказки-кнопки под ответом по ходу диалога.
+     *
+     * @param  list<array{slug: string, name: string}>  $shown
+     * @return list<string>
+     */
+    private function suggestionsFor(array $shown, bool $leadCreated): array
+    {
+        if ($leadCreated) {
+            return ['Как подготовиться к приёму?', 'Подобрать ещё клинику'];
+        }
+
+        if ($shown !== []) {
+            $first = $shown[0]['name'];
+
+            return array_values(array_filter([
+                'Записаться в «'.Str::limit(trim($first, '«»"'), 28, '…').'»',
+                'Есть время на сегодня?',
+                count($shown) > 1 ? 'Чем они отличаются?' : null,
+                'Показать другие варианты',
+            ]));
+        }
+
+        return ['Болит зуб', 'Имплантация', 'Детский стоматолог', 'Чистка зубов'];
+    }
+
+    /** Убирает Markdown, который модель иногда добавляет: в виджете он отображался бы символами. */
+    private function tidy(string $reply): string
+    {
+        $reply = preg_replace('/\*\*(.+?)\*\*/u', '$1', $reply) ?? $reply;
+        $reply = preg_replace('/^#{1,6}\s*/mu', '', $reply) ?? $reply;
+        $reply = preg_replace('/^\s*[*\-]\s+/mu', '— ', $reply) ?? $reply;
+        $reply = preg_replace('/\[([^\]]+)\]\((https?:[^)]+)\)/u', '$1', $reply) ?? $reply;
+
+        return trim(preg_replace("/\n{3,}/u", "\n\n", $reply) ?? $reply);
     }
 
     /**
@@ -313,8 +440,16 @@ class AssistantChatService
         if ($publicId !== null && $publicId !== '') {
             $existing = AssistantConversation::query()->where('public_id', $publicId)->first();
             if ($existing !== null) {
+                $changes = [];
                 if ($user !== null && $existing->user_id === null) {
-                    $existing->update(['user_id' => $user->id]);
+                    $changes['user_id'] = $user->id;
+                }
+                // Город диалога — тот, из которого пишут сейчас: заявки-рассылки уйдут клиникам этого города.
+                if ($existing->city_id !== $city->id) {
+                    $changes['city_id'] = $city->id;
+                }
+                if ($changes !== []) {
+                    $existing->update($changes);
                 }
 
                 return $existing;

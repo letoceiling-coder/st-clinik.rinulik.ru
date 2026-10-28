@@ -21,6 +21,8 @@ interface Props {
     breadcrumbs: Crumb[];
 }
 
+const VIEW_KEY = 'stk.catalog.view';
+
 export default function ClinicsIndex({ clinics, recommended_clinics, banner_catalog, map_clinics, filters, options, service_name, breadcrumbs }: Props) {
     const city = useCity();
     const { seo } = usePage<SharedProps>().props;
@@ -37,6 +39,34 @@ export default function ClinicsIndex({ clinics, recommended_clinics, banner_cata
         return () => query.removeEventListener('change', sync);
     }, []);
     const mapOpen = mapPref ?? isWide;
+
+    /** Вид карточек запоминается в браузере; сетка доступна только на широком экране. */
+    const [view, setView] = useState<'list' | 'grid'>('list');
+    const [isDesktop, setIsDesktop] = useState(false);
+    useEffect(() => {
+        try {
+            if (window.localStorage.getItem(VIEW_KEY) === 'grid') {
+                setView('grid');
+            }
+        } catch {
+            /* без хранилища — список */
+        }
+        const query = window.matchMedia('(min-width: 961px)');
+        const sync = (): void => setIsDesktop(query.matches);
+        sync();
+        query.addEventListener('change', sync);
+
+        return () => query.removeEventListener('change', sync);
+    }, []);
+    const changeView = (next: 'list' | 'grid'): void => {
+        setView(next);
+        try {
+            window.localStorage.setItem(VIEW_KEY, next);
+        } catch {
+            /* ignore */
+        }
+    };
+    const grid = view === 'grid' && isDesktop;
     const title = seo?.h1 ?? `Стоматологии ${city.nameIn}`;
 
     return (
@@ -55,6 +85,7 @@ export default function ClinicsIndex({ clinics, recommended_clinics, banner_cata
                 mode="clinics"
                 total={<b>{clinics.total > 0 ? `Найдено: ${clinicsWord(clinics.total)}` : 'Ничего не найдено'}</b>}
                 mapToggle={map_clinics.length > 0 ? { open: mapOpen, onToggle: () => setMapPref(!mapOpen) } : undefined}
+                view={{ value: view, onChange: changeView }}
             >
                 {recommended_clinics.length > 0 && !cat.loading ? (
                     <section className="recommended-block stack" aria-labelledby="recommended-h">
@@ -103,9 +134,9 @@ export default function ClinicsIndex({ clinics, recommended_clinics, banner_cata
                     />
                 ) : (
                     <>
-                        <div className="stack-lg">
+                        <div className={cx('catalog__cards', grid && 'catalog__cards--grid')}>
                             {clinics.data.map((c, i) => (
-                                <ClinicCard key={c.id} clinic={c} priority={i < 2} />
+                                <ClinicCard key={c.id} clinic={c} priority={i < 2} layout={grid ? 'tile' : 'row'} />
                             ))}
                         </div>
                         <Pagination page={clinics} />

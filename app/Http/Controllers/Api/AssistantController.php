@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\AssistantConversation;
+use App\Models\User;
 use App\Rules\RussianPhone;
 use App\Services\Assistant\AssistantChatService;
 use App\Services\Assistant\AssistantLeadService;
@@ -16,6 +17,11 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AssistantController extends Controller
 {
+    /** Диалоги, начатые в этой сессии браузера: продолжить чужой диалог по одному идентификатору нельзя. */
+    private const SESSION_KEY = 'assistant_conversations';
+
+    private const SESSION_LIMIT = 20;
+
     public function message(Request $request, AssistantSettings $settings, AssistantChatService $chat): JsonResponse
     {
         abort_unless($settings->get()['enabled'], 404);
@@ -25,7 +31,7 @@ class AssistantController extends Controller
             'conversation_id' => ['nullable', 'uuid'],
         ]);
 
-        $payload = $this->respond($request, $settings, $chat, $data['message'], $data['conversation_id'] ?? null);
+        $payload = $this->respond($request, $settings, $chat, $data['message'], $this->ownedConversationId($request, $data['conversation_id'] ?? null));
 
         return response()->json($payload);
     }
@@ -44,7 +50,7 @@ class AssistantController extends Controller
         ]);
 
         $message = $data['message'];
-        $publicId = $data['conversation_id'] ?? $request->session()->get('assistant_conversation_id');
+        $publicId = $this->ownedConversationId($request, $data['conversation_id'] ?? null);
 
         return response()->stream(function () use ($request, $chat, $message, $publicId): void {
             $write = static function (string $chunk): void {
@@ -61,7 +67,8 @@ class AssistantController extends Controller
                         AssistantSseStream::event($write, 'chunk', ['text' => $piece]);
                     },
                 );
-                $request->session()->put('assistant_conversation_id', $payload['conversation_id']);
+                $this->rememberConversation($request, $payload['conversation_id']);
+                $request->session()->save();
 
                 AssistantSseStream::event($write, 'done', [
                     'reply' => $payload['reply'],
@@ -106,10 +113,10 @@ class AssistantController extends Controller
             throw ValidationException::withMessages(['conversation_id' => 'Диалог не найден. Сначала напишите ассистенту.']);
         }
 
-        $expectedHash = hash('sha256', (string) $request->ip());
-        if ($conversation->ip_hash !== null && $conversation->ip_hash !== $expectedHash && $request->user()?->id !== $conversation->user_id) {
-            abort(403);
-        }
+        $ownedInSession = in_array($conversation->public_id, (array) $request->session()->get(self::SESSION_KEY, []), true);
+        $ownedByUser = $request->user() !== null && $request->user()->id === $conversation->user_id;
+        $sameIp = $conversation->ip_hash !== null && $conversation->ip_hash === hash('sha256', (string) $request->ip());
+        abort_unless($ownedInSession || $ownedByUser || $sameIp, 403);
 
         $result = $assistantLeads->create($conversation, $data, $request->user());
 
@@ -132,9 +139,40 @@ class AssistantController extends Controller
     private function respond(Request $request, AssistantSettings $settings, AssistantChatService $chat, string $message, ?string $publicId): array
     {
         $payload = $this->buildPayload($request, $chat, $message, $publicId);
-        $request->session()->put('assistant_conversation_id', $payload['conversation_id']);
+        $this->rememberConversation($request, $payload['conversation_id']);
 
         return $payload;
+    }
+
+    /**
+     * Идентификатор диалога принимается, только если диалог начат в этой сессии или принадлежит вошедшему пользователю.
+     * Иначе начинается новый диалог — память разных людей не смешивается.
+     */
+    private function ownedConversationId(Request $request, ?string $publicId): ?string
+    {
+        if ($publicId === null || $publicId === '') {
+            return null;
+        }
+
+        if (in_array($publicId, (array) $request->session()->get(self::SESSION_KEY, []), true)) {
+            return $publicId;
+        }
+
+        $user = $request->user();
+        if ($user instanceof User && AssistantConversation::query()->where('public_id', $publicId)->where('user_id', $user->id)->exists()) {
+            return $publicId;
+        }
+
+        return null;
+    }
+
+    private function rememberConversation(Request $request, string $publicId): void
+    {
+        $owned = array_values(array_filter((array) $request->session()->get(self::SESSION_KEY, []), 'is_string'));
+        if (! in_array($publicId, $owned, true)) {
+            $owned[] = $publicId;
+        }
+        $request->session()->put(self::SESSION_KEY, array_slice($owned, -self::SESSION_LIMIT));
     }
 
     /**
@@ -148,7 +186,6 @@ class AssistantController extends Controller
      */
     private function buildPayload(Request $request, AssistantChatService $chat, string $message, ?string $publicId): array
     {
-        $publicId = $publicId ?? $request->session()->get('assistant_conversation_id');
         $ipHash = hash('sha256', (string) $request->ip());
 
         return $chat->chat(
@@ -178,7 +215,6 @@ class AssistantController extends Controller
         ?string $publicId,
         callable $onDelta,
     ): array {
-        $publicId = $publicId ?? $request->session()->get('assistant_conversation_id');
         $ipHash = hash('sha256', (string) $request->ip());
 
         return $chat->chatStreaming(

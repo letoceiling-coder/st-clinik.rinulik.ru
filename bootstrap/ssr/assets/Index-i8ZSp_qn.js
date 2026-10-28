@@ -3,12 +3,13 @@ import { n as Button } from "./Button-C2BxTtRt.js";
 import { d as EmptyState, i as useCity, p as Pagination, u as Breadcrumbs } from "../app.js";
 import { n as ClinicCardSkeleton, t as ClinicCard } from "./ClinicCard-BNgGJWfR.js";
 import { t as AdSlot } from "./AdSlot-CNgFa8UC.js";
-import { n as useCatalog, t as CatalogLayout } from "./Catalog-CvPf56di.js";
+import { n as useCatalog, t as CatalogLayout } from "./Catalog--NwFAXTB.js";
 import { t as YandexMap } from "./YandexMap-CVmtcJ5u.js";
 import { usePage } from "@inertiajs/react";
 import { useEffect, useState } from "react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 //#region resources/js/pages/Clinics/Index.tsx
+var VIEW_KEY = "stk.catalog.view";
 function ClinicsIndex({ clinics, recommended_clinics, banner_catalog, map_clinics, filters, options, service_name, breadcrumbs }) {
 	const city = useCity();
 	const { seo } = usePage().props;
@@ -24,6 +25,26 @@ function ClinicsIndex({ clinics, recommended_clinics, banner_catalog, map_clinic
 		return () => query.removeEventListener("change", sync);
 	}, []);
 	const mapOpen = mapPref ?? isWide;
+	/** Вид карточек запоминается в браузере; сетка доступна только на широком экране. */
+	const [view, setView] = useState("list");
+	const [isDesktop, setIsDesktop] = useState(false);
+	useEffect(() => {
+		try {
+			if (window.localStorage.getItem(VIEW_KEY) === "grid") setView("grid");
+		} catch {}
+		const query = window.matchMedia("(min-width: 961px)");
+		const sync = () => setIsDesktop(query.matches);
+		sync();
+		query.addEventListener("change", sync);
+		return () => query.removeEventListener("change", sync);
+	}, []);
+	const changeView = (next) => {
+		setView(next);
+		try {
+			window.localStorage.setItem(VIEW_KEY, next);
+		} catch {}
+	};
+	const grid = view === "grid" && isDesktop;
 	const title = seo?.h1 ?? `Стоматологии ${city.nameIn}`;
 	return /* @__PURE__ */ jsxs(Fragment, { children: [
 		/* @__PURE__ */ jsx(Breadcrumbs, { items: breadcrumbs }),
@@ -43,6 +64,10 @@ function ClinicsIndex({ clinics, recommended_clinics, banner_catalog, map_clinic
 				open: mapOpen,
 				onToggle: () => setMapPref(!mapOpen)
 			} : void 0,
+			view: {
+				value: view,
+				onChange: changeView
+			},
 			children: [
 				recommended_clinics.length > 0 && !cat.loading ? /* @__PURE__ */ jsxs("section", {
 					className: "recommended-block stack",
@@ -95,10 +120,11 @@ function ClinicsIndex({ clinics, recommended_clinics, banner_catalog, map_clinic
 						children: "Сбросить фильтры"
 					})
 				}) : /* @__PURE__ */ jsxs(Fragment, { children: [/* @__PURE__ */ jsx("div", {
-					className: "stack-lg",
+					className: cx("catalog__cards", grid && "catalog__cards--grid"),
 					children: clinics.data.map((c, i) => /* @__PURE__ */ jsx(ClinicCard, {
 						clinic: c,
-						priority: i < 2
+						priority: i < 2,
+						layout: grid ? "tile" : "row"
 					}, c.id))
 				}), /* @__PURE__ */ jsx(Pagination, { page: clinics })] })
 			]
@@ -108,4 +134,4 @@ function ClinicsIndex({ clinics, recommended_clinics, banner_catalog, map_clinic
 //#endregion
 export { ClinicsIndex as default };
 
-//# sourceMappingURL=Index-D0vAmwSu.js.map
+//# sourceMappingURL=Index-i8ZSp_qn.js.map

@@ -14,6 +14,42 @@ const STARTER_REPLIES = ['Болит зуб', 'Подобрать имплант
 
 const MOBILE_QUERY = '(max-width: 767px)';
 
+/** История текущего диалога живёт в этой вкладке до её закрытия: переходы и перезагрузки её не теряют. */
+const STORAGE_KEY = 'stk.assistant.v1';
+
+interface StoredChat {
+    conversationId: string | null;
+    messages: Msg[];
+    quickReplies: string[];
+}
+
+function loadChat(): StoredChat | null {
+    try {
+        const raw = window.sessionStorage.getItem(STORAGE_KEY);
+        const parsed = raw ? (JSON.parse(raw) as StoredChat) : null;
+
+        return parsed && Array.isArray(parsed.messages) ? parsed : null;
+    } catch {
+        return null;
+    }
+}
+
+function saveChat(chat: StoredChat): void {
+    try {
+        window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ ...chat, messages: chat.messages.slice(-40) }));
+    } catch {
+        /* без хранилища история живёт до перезагрузки */
+    }
+}
+
+function clearChat(): void {
+    try {
+        window.sessionStorage.removeItem(STORAGE_KEY);
+    } catch {
+        /* ignore */
+    }
+}
+
 function xsrfToken(): string {
     const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
     return match ? decodeURIComponent(match[1]) : '';
@@ -87,6 +123,33 @@ export default function AssistantWidget() {
     const panelRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const [quickReplies, setQuickReplies] = useState<string[]>([]);
+
+    const [restored, setRestored] = useState(false);
+
+    useEffect(() => {
+        const stored = loadChat();
+        if (stored) {
+            setMessages(stored.messages);
+            setConversationId(stored.conversationId);
+            setQuickReplies(stored.quickReplies ?? []);
+        }
+        setRestored(true);
+    }, []);
+
+    useEffect(() => {
+        if (restored && messages.some((m) => m.role === 'user')) {
+            saveChat({ conversationId, messages, quickReplies });
+        }
+    }, [restored, conversationId, messages, quickReplies]);
+
+    const startNewChat = (): void => {
+        clearChat();
+        setConversationId(null);
+        setQuickReplies([]);
+        setShowLead(false);
+        setInput('');
+        setMessages(assistant?.greeting ? [{ role: 'assistant', text: assistant.greeting }] : []);
+    };
 
     const clinicChoices = useMemo(() => clinicChoicesFromMessages(messages), [messages]);
     const userHasWritten = messages.some((m) => m.role === 'user');
@@ -265,6 +328,11 @@ export default function AssistantWidget() {
                         <span>{busy ? 'Подбирает ответ…' : 'Поможет найти клинику и врача'}</span>
                     </div>
                     <div className="assistant-panel__head-actions">
+                        {userHasWritten ? (
+                            <button type="button" className="assistant-panel__close" aria-label="Новый диалог" title="Новый диалог" disabled={busy} onClick={startNewChat}>
+                                <Icon name="refresh" size={18} />
+                            </button>
+                        ) : null}
                         <button type="button" className={cx('assistant-chip assistant-chip--head', showLead && 'is-active')} disabled={busy} onClick={() => setShowLead((v) => !v)}>
                             <Icon name="calendar" size={16} />
                             Заявка

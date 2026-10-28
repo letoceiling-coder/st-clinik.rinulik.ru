@@ -1864,6 +1864,30 @@ var STARTER_REPLIES = [
 	"Записаться сегодня"
 ];
 var MOBILE_QUERY = "(max-width: 767px)";
+/** История текущего диалога живёт в этой вкладке до её закрытия: переходы и перезагрузки её не теряют. */
+var STORAGE_KEY = "stk.assistant.v1";
+function loadChat() {
+	try {
+		const raw = window.sessionStorage.getItem(STORAGE_KEY);
+		const parsed = raw ? JSON.parse(raw) : null;
+		return parsed && Array.isArray(parsed.messages) ? parsed : null;
+	} catch {
+		return null;
+	}
+}
+function saveChat(chat) {
+	try {
+		window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+			...chat,
+			messages: chat.messages.slice(-40)
+		}));
+	} catch {}
+}
+function clearChat() {
+	try {
+		window.sessionStorage.removeItem(STORAGE_KEY);
+	} catch {}
+}
 function xsrfToken$1() {
 	const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
 	return match ? decodeURIComponent(match[1]) : "";
@@ -1934,6 +1958,39 @@ function AssistantWidget() {
 	const panelRef = useRef(null);
 	const inputRef = useRef(null);
 	const [quickReplies, setQuickReplies] = useState([]);
+	const [restored, setRestored] = useState(false);
+	useEffect(() => {
+		const stored = loadChat();
+		if (stored) {
+			setMessages(stored.messages);
+			setConversationId(stored.conversationId);
+			setQuickReplies(stored.quickReplies ?? []);
+		}
+		setRestored(true);
+	}, []);
+	useEffect(() => {
+		if (restored && messages.some((m) => m.role === "user")) saveChat({
+			conversationId,
+			messages,
+			quickReplies
+		});
+	}, [
+		restored,
+		conversationId,
+		messages,
+		quickReplies
+	]);
+	const startNewChat = () => {
+		clearChat();
+		setConversationId(null);
+		setQuickReplies([]);
+		setShowLead(false);
+		setInput("");
+		setMessages(assistant?.greeting ? [{
+			role: "assistant",
+			text: assistant.greeting
+		}] : []);
+	};
 	const clinicChoices = useMemo(() => clinicChoicesFromMessages(messages), [messages]);
 	const userHasWritten = messages.some((m) => m.role === "user");
 	const chips = quickReplies.length ? quickReplies : userHasWritten ? [] : STARTER_REPLIES;
@@ -2101,25 +2158,40 @@ function AssistantWidget() {
 					}),
 					/* @__PURE__ */ jsxs("div", {
 						className: "assistant-panel__head-actions",
-						children: [/* @__PURE__ */ jsxs("button", {
-							type: "button",
-							className: cx("assistant-chip assistant-chip--head", showLead && "is-active"),
-							disabled: busy,
-							onClick: () => setShowLead((v) => !v),
-							children: [/* @__PURE__ */ jsx(Icon, {
-								name: "calendar",
-								size: 16
-							}), "Заявка"]
-						}), /* @__PURE__ */ jsx("button", {
-							type: "button",
-							className: "assistant-panel__close",
-							"aria-label": "Закрыть",
-							onClick: () => setOpen(false),
-							children: /* @__PURE__ */ jsx(Icon, {
-								name: "x",
-								size: 20
+						children: [
+							userHasWritten ? /* @__PURE__ */ jsx("button", {
+								type: "button",
+								className: "assistant-panel__close",
+								"aria-label": "Новый диалог",
+								title: "Новый диалог",
+								disabled: busy,
+								onClick: startNewChat,
+								children: /* @__PURE__ */ jsx(Icon, {
+									name: "refresh",
+									size: 18
+								})
+							}) : null,
+							/* @__PURE__ */ jsxs("button", {
+								type: "button",
+								className: cx("assistant-chip assistant-chip--head", showLead && "is-active"),
+								disabled: busy,
+								onClick: () => setShowLead((v) => !v),
+								children: [/* @__PURE__ */ jsx(Icon, {
+									name: "calendar",
+									size: 16
+								}), "Заявка"]
+							}),
+							/* @__PURE__ */ jsx("button", {
+								type: "button",
+								className: "assistant-panel__close",
+								"aria-label": "Закрыть",
+								onClick: () => setOpen(false),
+								children: /* @__PURE__ */ jsx(Icon, {
+									name: "x",
+									size: 20
+								})
 							})
-						})]
+						]
 					})
 				]
 			}),
@@ -4559,20 +4631,20 @@ var renderPromise = createInertiaApp({
 			"./pages/Cabinet/Settings.tsx": () => import("./assets/Settings-CbY3jSuX.js"),
 			"./pages/Cabinet/Staff.tsx": () => import("./assets/Staff-7_tQvH_7.js"),
 			"./pages/Cabinet/Stats.tsx": () => import("./assets/Stats-DTH2l1le.js"),
-			"./pages/Clinics/Index.tsx": () => import("./assets/Index-D0vAmwSu.js"),
+			"./pages/Clinics/Index.tsx": () => import("./assets/Index-i8ZSp_qn.js"),
 			"./pages/Clinics/Show.tsx": () => import("./assets/Show-tI_XRg__.js"),
 			"./pages/Collections/Compare.tsx": () => import("./assets/Compare-Cm3A4r02.js"),
 			"./pages/Collections/Favorites.tsx": () => import("./assets/Favorites-s7hLfkY9.js"),
 			"./pages/Concerns/Show.tsx": () => import("./assets/Show-uPdbAscn.js"),
 			"./pages/Directions/Index.tsx": () => import("./assets/Index-DudMsnB6.js"),
 			"./pages/Directions/Show.tsx": () => import("./assets/Show-DxcAHvz0.js"),
-			"./pages/Doctors/Index.tsx": () => import("./assets/Index-BdVRofnJ.js"),
+			"./pages/Doctors/Index.tsx": () => import("./assets/Index-Dau-85Z_.js"),
 			"./pages/Doctors/Show.tsx": () => import("./assets/Show-I2h8Jhfq.js"),
 			"./pages/Error.tsx": () => import("./assets/Error-Bn61fICg.js"),
 			"./pages/Home.tsx": () => import("./assets/Home-BjSBWyUy.js"),
 			"./pages/Max/Appointments.tsx": () => import("./assets/Appointments-6Q1kE5mL.js"),
 			"./pages/Max/ClinicShow.tsx": () => import("./assets/ClinicShow-CxRoJYw6.js"),
-			"./pages/Max/Clinics.tsx": () => import("./assets/Clinics-BtM-qXrY.js"),
+			"./pages/Max/Clinics.tsx": () => import("./assets/Clinics-ChXK9DnH.js"),
 			"./pages/Max/Home.tsx": () => import("./assets/Home-D7iSLkyF.js"),
 			"./pages/Offer/Claim.tsx": () => import("./assets/Claim-BsXZ22_k.js"),
 			"./pages/Offer/Show.tsx": () => import("./assets/Show-WE4UbIb9.js"),

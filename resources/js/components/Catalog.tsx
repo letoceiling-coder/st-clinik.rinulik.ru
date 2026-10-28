@@ -104,6 +104,7 @@ export function CatalogLayout({
     total,
     children,
     mapToggle,
+    view,
 }: {
     values: FilterValues;
     options: FilterOptions;
@@ -116,6 +117,8 @@ export function CatalogLayout({
     children: ReactNode;
     /** Переключатель карты в панели над списком (каталог клиник). */
     mapToggle?: { open: boolean; onToggle: () => void };
+    /** Вид карточек на компьютере: одна колонка или сетка из двух. */
+    view?: { value: 'list' | 'grid'; onChange: (value: 'list' | 'grid') => void };
 }) {
     const [drawer, setDrawer] = useState(false);
     const chips = activeChips(values, options);
@@ -142,6 +145,16 @@ export function CatalogLayout({
                             Фильтры
                             {count ? <span className="catalog__count">{count}</span> : null}
                         </Button>
+                        {view ? (
+                            <div className="catalog__view" role="group" aria-label="Вид списка">
+                                <button type="button" className={cx(view.value === 'list' && 'is-active')} aria-pressed={view.value === 'list'} aria-label="Одной колонкой" title="Одной колонкой" onClick={() => view.onChange('list')}>
+                                    <Icon name="list" size={18} />
+                                </button>
+                                <button type="button" className={cx(view.value === 'grid' && 'is-active')} aria-pressed={view.value === 'grid'} aria-label="Сеткой в две колонки" title="Сеткой в две колонки" onClick={() => view.onChange('grid')}>
+                                    <Icon name="grid" size={18} />
+                                </button>
+                            </div>
+                        ) : null}
                         <label className="sort">
                             <span className="visually-hidden">Сортировка</span>
                             <Icon name="sort" size={18} />

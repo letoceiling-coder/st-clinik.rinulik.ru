@@ -5066,3 +5066,85 @@ html.is-navigating { scroll-behavior: auto !important; }
 @media (prefers-reduced-motion: reduce) {
     .main, .max-app__main { transition: none; }
 }
+
+/* Каталог: сдержанные скругления, отступы между блоками списка, вид «список / сетка» */
+.clinic-card.clinic-card,
+.doctor-card.doctor-card {
+    border-radius: 14px;
+}
+.catalog__filters--sidebar .card,
+.catalog__map-viewport {
+    border-radius: 14px;
+}
+.catalog .select,
+.catalog .sort .select--sm,
+.catalog__map-btn,
+.catalog__view,
+.catalog__tools > .catalog__filters-open,
+.filters .chip {
+    border-radius: 12px;
+}
+.catalog__list {
+    display: grid;
+    gap: var(--space-5);
+    align-content: start;
+}
+.catalog__list > * {
+    min-width: 0;
+}
+/* Прокрутка фильтров: тонкая полоса появляется при наведении, в конце списка прокрутка переходит на страницу */
+.catalog__filters--sidebar .card {
+    overscroll-behavior: auto;
+    scrollbar-gutter: stable;
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color 0.2s ease;
+}
+.catalog__filters--sidebar .card:hover {
+    scrollbar-color: var(--color-line-strong) transparent;
+}
+.catalog__view {
+    display: inline-flex;
+    padding: 3px;
+    gap: 2px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+}
+.catalog__view button {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 32px;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--color-muted);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.catalog__view button:hover {
+    color: var(--color-text);
+}
+.catalog__view button.is-active {
+    background: var(--color-graphite);
+    color: var(--color-primary);
+}
+.catalog__cards {
+    display: grid;
+    gap: var(--space-5);
+    min-width: 0;
+}
+.catalog__cards--grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+}
+.catalog__cards--grid > .clinic-card {
+    height: 100%;
+}
+@media (max-width: 960px) {
+    .catalog__view {
+        display: none;
+    }
+    .catalog__cards--grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
