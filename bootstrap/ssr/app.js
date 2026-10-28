@@ -1806,9 +1806,60 @@ async function postAssistantMessageStream(url, body, headers, onChunk) {
 }
 //#endregion
 //#region resources/js/components/AssistantWidget.tsx
+var STARTER_REPLIES = [
+	"Болит зуб",
+	"Подобрать имплантацию",
+	"Детский стоматолог",
+	"Записаться сегодня"
+];
+var MOBILE_QUERY = "(max-width: 767px)";
 function xsrfToken$1() {
 	const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
 	return match ? decodeURIComponent(match[1]) : "";
+}
+/** Живая сфера в духе Siri: переливающиеся цвета сайта; пока ассистент отвечает, вращается быстрее. */
+function AssistantOrb({ active = false, size = "md" }) {
+	return /* @__PURE__ */ jsxs("span", {
+		className: cx("assistant-orb", `assistant-orb--${size}`, active && "is-active"),
+		"aria-hidden": "true",
+		children: [
+			/* @__PURE__ */ jsx("span", { className: "assistant-orb__blob assistant-orb__blob--a" }),
+			/* @__PURE__ */ jsx("span", { className: "assistant-orb__blob assistant-orb__blob--b" }),
+			/* @__PURE__ */ jsx("span", { className: "assistant-orb__blob assistant-orb__blob--c" }),
+			/* @__PURE__ */ jsx("span", { className: "assistant-orb__gloss" })
+		]
+	});
+}
+/**
+* На телефоне чат занимает весь экран и повторяет видимую область (visualViewport),
+* поэтому поле ввода остаётся над клавиатурой, а страница под чатом не прокручивается.
+*/
+function useMobileSheet(open, panelRef) {
+	useEffect(() => {
+		const panel = panelRef.current;
+		if (!open || !panel || !window.matchMedia(MOBILE_QUERY).matches) return;
+		const viewport = window.visualViewport;
+		const sync = () => {
+			const height = viewport ? viewport.height : window.innerHeight;
+			const top = viewport ? viewport.offsetTop : 0;
+			panel.style.setProperty("--assistant-vh", `${Math.round(height)}px`);
+			panel.style.setProperty("--assistant-top", `${Math.round(top)}px`);
+		};
+		sync();
+		viewport?.addEventListener("resize", sync);
+		viewport?.addEventListener("scroll", sync);
+		window.addEventListener("resize", sync);
+		const root = document.documentElement;
+		root.classList.add("assistant-open");
+		return () => {
+			viewport?.removeEventListener("resize", sync);
+			viewport?.removeEventListener("scroll", sync);
+			window.removeEventListener("resize", sync);
+			root.classList.remove("assistant-open");
+			panel.style.removeProperty("--assistant-vh");
+			panel.style.removeProperty("--assistant-top");
+		};
+	}, [open, panelRef]);
 }
 function AssistantWidget() {
 	const { assistant } = usePage().props;
@@ -1818,11 +1869,15 @@ function AssistantWidget() {
 	const [input, setInput] = useState("");
 	const [busy, setBusy] = useState(false);
 	const [conversationId, setConversationId] = useState(null);
-	const [isMock, setIsMock] = useState(true);
 	const [showLead, setShowLead] = useState(false);
 	const listRef = useRef(null);
+	const panelRef = useRef(null);
+	const inputRef = useRef(null);
 	const [quickReplies, setQuickReplies] = useState([]);
 	const clinicChoices = useMemo(() => clinicChoicesFromMessages(messages), [messages]);
+	const userHasWritten = messages.some((m) => m.role === "user");
+	const chips = quickReplies.length ? quickReplies : userHasWritten ? [] : STARTER_REPLIES;
+	useMobileSheet(open, panelRef);
 	useEffect(() => {
 		if (open && messages.length === 0 && assistant?.greeting) setMessages([{
 			role: "assistant",
@@ -1841,13 +1896,31 @@ function AssistantWidget() {
 	}, [
 		messages,
 		open,
-		showLead
+		showLead,
+		busy
 	]);
+	useEffect(() => {
+		if (!open) return;
+		const onKey = (event) => {
+			if (event.key === "Escape") setOpen(false);
+		};
+		window.addEventListener("keydown", onKey);
+		if (!window.matchMedia(MOBILE_QUERY).matches) inputRef.current?.focus();
+		return () => window.removeEventListener("keydown", onKey);
+	}, [open]);
+	useEffect(() => {
+		const field = inputRef.current;
+		if (field) {
+			field.style.height = "auto";
+			field.style.height = `${Math.min(field.scrollHeight, 120)}px`;
+		}
+	}, [input]);
 	const send = useCallback(async (text) => {
 		const trimmed = text.trim();
 		if (!trimmed || busy) return;
 		setInput("");
 		setShowLead(false);
+		setQuickReplies([]);
 		setMessages((m) => [...m, {
 			role: "user",
 			text: trimmed
@@ -1875,7 +1948,6 @@ function AssistantWidget() {
 					});
 				});
 				if (data.conversation_id) setConversationId(data.conversation_id);
-				if (typeof data.mock === "boolean") setIsMock(data.mock);
 				setMessages((m) => {
 					const copy = [...m];
 					const last = copy[copy.length - 1];
@@ -1904,7 +1976,6 @@ function AssistantWidget() {
 				const data = await res.json();
 				if (!res.ok) throw new Error(data.message ?? "Не удалось отправить сообщение");
 				if (data.conversation_id) setConversationId(data.conversation_id);
-				if (typeof data.mock === "boolean") setIsMock(data.mock);
 				setMessages((m) => [...m, {
 					role: "assistant",
 					text: data.reply ?? "…",
@@ -1913,10 +1984,13 @@ function AssistantWidget() {
 				if (data.suggestions?.length) setQuickReplies(data.suggestions);
 			}
 		} catch (e) {
-			setMessages((m) => [...m, {
-				role: "assistant",
-				text: e instanceof Error ? e.message : "Ошибка сети. Попробуйте позже."
-			}]);
+			setMessages((m) => {
+				const last = m[m.length - 1];
+				return [...last?.role === "assistant" && last.text === "" ? m.slice(0, -1) : m, {
+					role: "assistant",
+					text: e instanceof Error ? e.message : "Ошибка сети. Попробуйте позже."
+				}];
+			});
 		} finally {
 			setBusy(false);
 		}
@@ -1926,68 +2000,93 @@ function AssistantWidget() {
 		streamResponses
 	]);
 	if (!assistant?.enabled) return null;
-	return /* @__PURE__ */ jsxs(Fragment, { children: [!open ? /* @__PURE__ */ jsx("button", {
+	const lastMessage = messages[messages.length - 1];
+	const waitingFirstPiece = busy && !(lastMessage?.role === "assistant" && lastMessage.text !== "");
+	return /* @__PURE__ */ jsxs(Fragment, { children: [!open ? /* @__PURE__ */ jsxs("button", {
 		type: "button",
 		className: "assistant-fab",
-		"aria-label": "Открыть ассистента",
+		"aria-label": "Открыть AI-ассистента",
 		onClick: () => {
 			setOpen(true);
 			trackAnalyticsEvent(AnalyticsEvents.assistantOpen);
 		},
-		children: /* @__PURE__ */ jsx(Icon, {
-			name: "send",
-			size: 26
-		})
+		children: [/* @__PURE__ */ jsx(AssistantOrb, {}), /* @__PURE__ */ jsx(Icon, {
+			name: "sparkle",
+			size: 22,
+			className: "assistant-fab__icon"
+		})]
 	}) : null, /* @__PURE__ */ jsxs("div", {
+		ref: panelRef,
 		className: cx("assistant-panel", open && "is-open"),
 		role: "dialog",
+		"aria-modal": open,
 		"aria-label": "AI-ассистент",
+		hidden: !open,
 		children: [
 			/* @__PURE__ */ jsxs("header", {
 				className: "assistant-panel__head",
-				children: [/* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx("strong", { children: "AI-ассистент" }), /* @__PURE__ */ jsxs("p", {
-					className: "text-xs text-muted",
-					children: [isMock ? "Каталог + шаблоны" : "OpenRouter", " · без диагнозов"]
-				})] }), /* @__PURE__ */ jsxs("div", {
-					className: "assistant-panel__head-actions",
-					children: [/* @__PURE__ */ jsx("button", {
-						type: "button",
-						className: "assistant-chip assistant-chip--head",
-						disabled: busy,
-						onClick: () => setShowLead((v) => !v),
-						children: "Заявка"
-					}), /* @__PURE__ */ jsx("button", {
-						type: "button",
-						className: "icon-link",
-						"aria-label": "Закрыть",
-						onClick: () => setOpen(false),
-						children: /* @__PURE__ */ jsx(Icon, {
-							name: "x",
-							size: 22
-						})
-					})]
-				})]
+				children: [
+					/* @__PURE__ */ jsx(AssistantOrb, {
+						active: busy,
+						size: "sm"
+					}),
+					/* @__PURE__ */ jsxs("div", {
+						className: "assistant-panel__title",
+						children: [/* @__PURE__ */ jsx("strong", { children: "AI-ассистент" }), /* @__PURE__ */ jsx("span", { children: busy ? "Подбирает ответ…" : "Поможет найти клинику и врача" })]
+					}),
+					/* @__PURE__ */ jsxs("div", {
+						className: "assistant-panel__head-actions",
+						children: [/* @__PURE__ */ jsxs("button", {
+							type: "button",
+							className: cx("assistant-chip assistant-chip--head", showLead && "is-active"),
+							disabled: busy,
+							onClick: () => setShowLead((v) => !v),
+							children: [/* @__PURE__ */ jsx(Icon, {
+								name: "calendar",
+								size: 16
+							}), "Заявка"]
+						}), /* @__PURE__ */ jsx("button", {
+							type: "button",
+							className: "assistant-panel__close",
+							"aria-label": "Закрыть",
+							onClick: () => setOpen(false),
+							children: /* @__PURE__ */ jsx(Icon, {
+								name: "x",
+								size: 20
+							})
+						})]
+					})
+				]
 			}),
 			/* @__PURE__ */ jsxs("div", {
 				className: "assistant-panel__messages",
 				ref: listRef,
-				children: [messages.map((m, i) => /* @__PURE__ */ jsxs("div", {
+				"aria-live": "polite",
+				children: [messages.map((m, i) => m.role === "assistant" && m.text === "" ? null : /* @__PURE__ */ jsxs("div", {
 					className: cx("assistant-bubble", m.role === "user" && "is-user"),
 					children: [/* @__PURE__ */ jsx("p", {
 						className: "assistant-bubble__text",
 						children: m.text
 					}), m.links?.length ? /* @__PURE__ */ jsx("ul", {
 						className: "assistant-bubble__links",
-						children: m.links.map((l) => /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsx("a", {
+						children: m.links.map((l) => /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsxs("a", {
 							href: l.url,
 							target: "_blank",
 							rel: "noreferrer",
-							children: l.label
+							children: [l.label, /* @__PURE__ */ jsx(Icon, {
+								name: "chevron-right",
+								size: 14
+							})]
 						}) }, l.url))
 					}) : null]
-				}, i)), busy ? /* @__PURE__ */ jsx("p", {
-					className: "text-sm text-muted assistant-typing",
-					children: "Печатает…"
+				}, i)), waitingFirstPiece ? /* @__PURE__ */ jsxs("div", {
+					className: "assistant-bubble assistant-typing",
+					"aria-label": "Ассистент печатает",
+					children: [
+						/* @__PURE__ */ jsx("span", {}),
+						/* @__PURE__ */ jsx("span", {}),
+						/* @__PURE__ */ jsx("span", {})
+					]
 				}) : null]
 			}),
 			showLead ? /* @__PURE__ */ jsx(AssistantLeadPanel, {
@@ -1999,13 +2098,9 @@ function AssistantWidget() {
 					text
 				}])
 			}) : null,
-			!showLead && assistant.disclaimer ? /* @__PURE__ */ jsx("p", {
-				className: "assistant-panel__note text-xs text-muted",
-				children: assistant.disclaimer
-			}) : null,
-			!showLead && quickReplies.length ? /* @__PURE__ */ jsx("div", {
+			!showLead && chips.length ? /* @__PURE__ */ jsx("div", {
 				className: "assistant-panel__chips",
-				children: quickReplies.slice(0, 4).map((s) => /* @__PURE__ */ jsx("button", {
+				children: chips.slice(0, 4).map((s) => /* @__PURE__ */ jsx("button", {
 					type: "button",
 					className: "assistant-chip",
 					disabled: busy,
@@ -2019,19 +2114,36 @@ function AssistantWidget() {
 					e.preventDefault();
 					send(input);
 				},
-				children: [/* @__PURE__ */ jsx("input", {
-					type: "text",
+				children: [/* @__PURE__ */ jsx("textarea", {
+					ref: inputRef,
+					rows: 1,
 					value: input,
 					onChange: (e) => setInput(e.target.value),
-					placeholder: "Спросите о клиниках или записи…",
+					onKeyDown: (e) => {
+						if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+							e.preventDefault();
+							send(input);
+						}
+					},
+					placeholder: "Напишите вопрос…",
+					"aria-label": "Сообщение ассистенту",
 					maxLength: 2e3,
-					disabled: busy
-				}), /* @__PURE__ */ jsx(Button, {
+					enterKeyHint: "send",
+					autoComplete: "off"
+				}), /* @__PURE__ */ jsx("button", {
 					type: "submit",
-					size: "sm",
+					className: "assistant-panel__send",
+					"aria-label": "Отправить",
 					disabled: busy || !input.trim(),
-					children: "Отправить"
+					children: /* @__PURE__ */ jsx(Icon, {
+						name: "send",
+						size: 20
+					})
 				})]
+			}) : null,
+			!showLead && !userHasWritten && assistant.disclaimer ? /* @__PURE__ */ jsx("p", {
+				className: "assistant-panel__note",
+				children: assistant.disclaimer
 			}) : null
 		]
 	})] });

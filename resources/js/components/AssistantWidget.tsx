@@ -1,8 +1,8 @@
 import { usePage } from '@inertiajs/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { RefObject } from 'react';
 import Icon from '@/components/Icon';
 import AssistantLeadPanel, { clinicChoicesFromMessages } from '@/components/AssistantLeadPanel';
-import { Button } from '@/components/ui/Button';
 import { postAssistantMessageStream } from '@/lib/assistant-stream';
 import { AnalyticsEvents, trackAnalyticsEvent } from '@/lib/analytics';
 import { cx } from '@/lib/format';
@@ -10,9 +10,62 @@ import type { SharedProps } from '@/lib/types';
 
 type Msg = { role: 'user' | 'assistant'; text: string; links?: { label: string; url: string }[] };
 
+const STARTER_REPLIES = ['Болит зуб', 'Подобрать имплантацию', 'Детский стоматолог', 'Записаться сегодня'];
+
+const MOBILE_QUERY = '(max-width: 767px)';
+
 function xsrfToken(): string {
     const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
     return match ? decodeURIComponent(match[1]) : '';
+}
+
+/** Живая сфера в духе Siri: переливающиеся цвета сайта; пока ассистент отвечает, вращается быстрее. */
+function AssistantOrb({ active = false, size = 'md' }: { active?: boolean; size?: 'sm' | 'md' }) {
+    return (
+        <span className={cx('assistant-orb', `assistant-orb--${size}`, active && 'is-active')} aria-hidden="true">
+            <span className="assistant-orb__blob assistant-orb__blob--a" />
+            <span className="assistant-orb__blob assistant-orb__blob--b" />
+            <span className="assistant-orb__blob assistant-orb__blob--c" />
+            <span className="assistant-orb__gloss" />
+        </span>
+    );
+}
+
+/**
+ * На телефоне чат занимает весь экран и повторяет видимую область (visualViewport),
+ * поэтому поле ввода остаётся над клавиатурой, а страница под чатом не прокручивается.
+ */
+function useMobileSheet(open: boolean, panelRef: RefObject<HTMLDivElement | null>): void {
+    useEffect(() => {
+        const panel = panelRef.current;
+        if (!open || !panel || !window.matchMedia(MOBILE_QUERY).matches) {
+            return undefined;
+        }
+
+        const viewport = window.visualViewport;
+        const sync = (): void => {
+            const height = viewport ? viewport.height : window.innerHeight;
+            const top = viewport ? viewport.offsetTop : 0;
+            panel.style.setProperty('--assistant-vh', `${Math.round(height)}px`);
+            panel.style.setProperty('--assistant-top', `${Math.round(top)}px`);
+        };
+        sync();
+        viewport?.addEventListener('resize', sync);
+        viewport?.addEventListener('scroll', sync);
+        window.addEventListener('resize', sync);
+
+        const root = document.documentElement;
+        root.classList.add('assistant-open');
+
+        return () => {
+            viewport?.removeEventListener('resize', sync);
+            viewport?.removeEventListener('scroll', sync);
+            window.removeEventListener('resize', sync);
+            root.classList.remove('assistant-open');
+            panel.style.removeProperty('--assistant-vh');
+            panel.style.removeProperty('--assistant-top');
+        };
+    }, [open, panelRef]);
 }
 
 export default function AssistantWidget() {
@@ -25,12 +78,17 @@ export default function AssistantWidget() {
     const [input, setInput] = useState('');
     const [busy, setBusy] = useState(false);
     const [conversationId, setConversationId] = useState<string | null>(null);
-    const [isMock, setIsMock] = useState(true);
     const [showLead, setShowLead] = useState(false);
     const listRef = useRef<HTMLDivElement>(null);
+    const panelRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLTextAreaElement>(null);
     const [quickReplies, setQuickReplies] = useState<string[]>([]);
 
     const clinicChoices = useMemo(() => clinicChoicesFromMessages(messages), [messages]);
+    const userHasWritten = messages.some((m) => m.role === 'user');
+    const chips = quickReplies.length ? quickReplies : userHasWritten ? [] : STARTER_REPLIES;
+
+    useMobileSheet(open, panelRef);
 
     useEffect(() => {
         if (open && messages.length === 0 && assistant?.greeting) {
@@ -40,7 +98,33 @@ export default function AssistantWidget() {
 
     useEffect(() => {
         listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' });
-    }, [messages, open, showLead]);
+    }, [messages, open, showLead, busy]);
+
+    useEffect(() => {
+        if (!open) {
+            return undefined;
+        }
+        const onKey = (event: KeyboardEvent): void => {
+            if (event.key === 'Escape') {
+                setOpen(false);
+            }
+        };
+        window.addEventListener('keydown', onKey);
+        // На телефоне клавиатуру сразу не открываем: сначала видно приветствие и подсказки.
+        if (!window.matchMedia(MOBILE_QUERY).matches) {
+            inputRef.current?.focus();
+        }
+
+        return () => window.removeEventListener('keydown', onKey);
+    }, [open]);
+
+    useEffect(() => {
+        const field = inputRef.current;
+        if (field) {
+            field.style.height = 'auto';
+            field.style.height = `${Math.min(field.scrollHeight, 120)}px`;
+        }
+    }, [input]);
 
     const send = useCallback(
         async (text: string) => {
@@ -50,6 +134,7 @@ export default function AssistantWidget() {
             }
             setInput('');
             setShowLead(false);
+            setQuickReplies([]);
             setMessages((m) => [...m, { role: 'user', text: trimmed }]);
             setBusy(true);
             try {
@@ -74,9 +159,6 @@ export default function AssistantWidget() {
                     );
                     if (data.conversation_id) {
                         setConversationId(data.conversation_id);
-                    }
-                    if (typeof data.mock === 'boolean') {
-                        setIsMock(data.mock);
                     }
                     setMessages((m) => {
                         const copy = [...m];
@@ -110,7 +192,6 @@ export default function AssistantWidget() {
                         links?: { label: string; url: string }[];
                         suggestions?: string[];
                         conversation_id?: string;
-                        mock?: boolean;
                         message?: string;
                     };
                     if (!res.ok) {
@@ -118,9 +199,6 @@ export default function AssistantWidget() {
                     }
                     if (data.conversation_id) {
                         setConversationId(data.conversation_id);
-                    }
-                    if (typeof data.mock === 'boolean') {
-                        setIsMock(data.mock);
                     }
                     setMessages((m) => [
                         ...m,
@@ -135,10 +213,12 @@ export default function AssistantWidget() {
                     }
                 }
             } catch (e) {
-                setMessages((m) => [
-                    ...m,
-                    { role: 'assistant', text: e instanceof Error ? e.message : 'Ошибка сети. Попробуйте позже.' },
-                ]);
+                setMessages((m) => {
+                    const last = m[m.length - 1];
+                    const base = last?.role === 'assistant' && last.text === '' ? m.slice(0, -1) : m;
+
+                    return [...base, { role: 'assistant', text: e instanceof Error ? e.message : 'Ошибка сети. Попробуйте позже.' }];
+                });
             } finally {
                 setBusy(false);
             }
@@ -150,61 +230,71 @@ export default function AssistantWidget() {
         return null;
     }
 
+    const lastMessage = messages[messages.length - 1];
+    const waitingFirstPiece = busy && !(lastMessage?.role === 'assistant' && lastMessage.text !== '');
+
     return (
         <>
             {!open ? (
                 <button
                     type="button"
                     className="assistant-fab"
-                    aria-label="Открыть ассистента"
+                    aria-label="Открыть AI-ассистента"
                     onClick={() => {
                         setOpen(true);
                         trackAnalyticsEvent(AnalyticsEvents.assistantOpen);
                     }}
                 >
-                    <Icon name="send" size={26} />
+                    <AssistantOrb />
+                    <Icon name="sparkle" size={22} className="assistant-fab__icon" />
                 </button>
             ) : null}
 
-            <div className={cx('assistant-panel', open && 'is-open')} role="dialog" aria-label="AI-ассистент">
+            <div ref={panelRef} className={cx('assistant-panel', open && 'is-open')} role="dialog" aria-modal={open} aria-label="AI-ассистент" hidden={!open}>
                 <header className="assistant-panel__head">
-                    <div>
+                    <AssistantOrb active={busy} size="sm" />
+                    <div className="assistant-panel__title">
                         <strong>AI-ассистент</strong>
-                        <p className="text-xs text-muted">{isMock ? 'Каталог + шаблоны' : 'OpenRouter'} · без диагнозов</p>
+                        <span>{busy ? 'Подбирает ответ…' : 'Поможет найти клинику и врача'}</span>
                     </div>
                     <div className="assistant-panel__head-actions">
-                        <button
-                            type="button"
-                            className="assistant-chip assistant-chip--head"
-                            disabled={busy}
-                            onClick={() => setShowLead((v) => !v)}
-                        >
+                        <button type="button" className={cx('assistant-chip assistant-chip--head', showLead && 'is-active')} disabled={busy} onClick={() => setShowLead((v) => !v)}>
+                            <Icon name="calendar" size={16} />
                             Заявка
                         </button>
-                        <button type="button" className="icon-link" aria-label="Закрыть" onClick={() => setOpen(false)}>
-                            <Icon name="x" size={22} />
+                        <button type="button" className="assistant-panel__close" aria-label="Закрыть" onClick={() => setOpen(false)}>
+                            <Icon name="x" size={20} />
                         </button>
                     </div>
                 </header>
 
-                <div className="assistant-panel__messages" ref={listRef}>
-                    {messages.map((m, i) => (
-                        <div key={i} className={cx('assistant-bubble', m.role === 'user' && 'is-user')}>
-                            <p className="assistant-bubble__text">{m.text}</p>
-                            {m.links?.length ? (
-                                <ul className="assistant-bubble__links">
-                                    {m.links.map((l) => (
-                                        <li key={l.url}>
-                                            <a href={l.url} target="_blank" rel="noreferrer">
-                                                {l.label}
-                                            </a>
-                                        </li>
-                                    ))}
-                                </ul>
-                            ) : null}
+                <div className="assistant-panel__messages" ref={listRef} aria-live="polite">
+                    {messages.map((m, i) =>
+                        m.role === 'assistant' && m.text === '' ? null : (
+                            <div key={i} className={cx('assistant-bubble', m.role === 'user' && 'is-user')}>
+                                <p className="assistant-bubble__text">{m.text}</p>
+                                {m.links?.length ? (
+                                    <ul className="assistant-bubble__links">
+                                        {m.links.map((l) => (
+                                            <li key={l.url}>
+                                                <a href={l.url} target="_blank" rel="noreferrer">
+                                                    {l.label}
+                                                    <Icon name="chevron-right" size={14} />
+                                                </a>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : null}
+                            </div>
+                        ),
+                    )}
+                    {waitingFirstPiece ? (
+                        <div className="assistant-bubble assistant-typing" aria-label="Ассистент печатает">
+                            <span />
+                            <span />
+                            <span />
                         </div>
-                    ))}
-                    {busy ? <p className="text-sm text-muted assistant-typing">Печатает…</p> : null}
+                    ) : null}
                 </div>
 
                 {showLead ? (
@@ -216,13 +306,9 @@ export default function AssistantWidget() {
                     />
                 ) : null}
 
-                {!showLead && assistant.disclaimer ? (
-                    <p className="assistant-panel__note text-xs text-muted">{assistant.disclaimer}</p>
-                ) : null}
-
-                {!showLead && quickReplies.length ? (
+                {!showLead && chips.length ? (
                     <div className="assistant-panel__chips">
-                        {quickReplies.slice(0, 4).map((s) => (
+                        {chips.slice(0, 4).map((s) => (
                             <button key={s} type="button" className="assistant-chip" disabled={busy} onClick={() => void send(s)}>
                                 {s}
                             </button>
@@ -238,19 +324,30 @@ export default function AssistantWidget() {
                             void send(input);
                         }}
                     >
-                        <input
-                            type="text"
+                        <textarea
+                            ref={inputRef}
+                            rows={1}
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
-                            placeholder="Спросите о клиниках или записи…"
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+                                    e.preventDefault();
+                                    void send(input);
+                                }
+                            }}
+                            placeholder="Напишите вопрос…"
+                            aria-label="Сообщение ассистенту"
                             maxLength={2000}
-                            disabled={busy}
+                            enterKeyHint="send"
+                            autoComplete="off"
                         />
-                        <Button type="submit" size="sm" disabled={busy || !input.trim()}>
-                            Отправить
-                        </Button>
+                        <button type="submit" className="assistant-panel__send" aria-label="Отправить" disabled={busy || !input.trim()}>
+                            <Icon name="send" size={20} />
+                        </button>
                     </form>
                 ) : null}
+
+                {!showLead && !userHasWritten && assistant.disclaimer ? <p className="assistant-panel__note">{assistant.disclaimer}</p> : null}
             </div>
         </>
     );
