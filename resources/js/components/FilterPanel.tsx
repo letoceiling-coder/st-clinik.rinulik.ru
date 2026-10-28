@@ -156,7 +156,6 @@ export default function FilterPanel({ values, options, onApply, mode, auto = fal
                         </button>
                     ))}
                 </div>
-                <p className="text-xs text-muted">Цена «от». Окончательную стоимость называет врач после осмотра.</p>
             </fieldset>
 
             <fieldset className="filters__group">
@@ -170,7 +169,7 @@ export default function FilterPanel({ values, options, onApply, mode, auto = fal
                 </div>
             </fieldset>
 
-            <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+            <div className="form-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))' }}>
                 <SelectField label="Отзывов от" value={draft.reviews_min ?? ''} onChange={(e) => set('reviews_min', e.target.value)}>
                     <option value="">Любое</option>
                     <option value="10">10+</option>
@@ -202,17 +201,20 @@ export default function FilterPanel({ values, options, onApply, mode, auto = fal
             </fieldset>
 
             {propertyGroups.map(([group, items]) => (
-                <fieldset key={group} className="filters__group">
-                    <legend>{group}</legend>
-                    <div className="stack" style={{ ['--gap' as string]: '10px' }}>
-                        {items.map((p) => (
+                <details key={group} className="filters__fold" open={!!items?.some((p) => draft[p.slug] === '1')}>
+                    <summary>
+                        {group}
+                        {items?.some((p) => draft[p.slug] === '1') ? <span className="filters__dot" aria-label="Есть выбранные" /> : null}
+                    </summary>
+                    <div className="filters__fold-body">
+                        {(items ?? []).map((p) => (
                             <div key={p.slug}>
                                 <Check id={`${idPrefix}-${p.slug}`} label={p.name} checked={draft[p.slug] === '1'} onChange={(e) => set(p.slug, e.target.checked)} />
                                 {p.hint ? <p className="text-xs text-muted" style={{ marginTop: 4, marginLeft: 28 }}>{p.hint}</p> : null}
                             </div>
                         ))}
                     </div>
-                </fieldset>
+                </details>
             ))}
 
             <div className="filters__actions">

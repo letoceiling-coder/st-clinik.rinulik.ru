@@ -103,6 +103,7 @@ export function CatalogLayout({
     loading,
     total,
     children,
+    mapToggle,
 }: {
     values: FilterValues;
     options: FilterOptions;
@@ -113,6 +114,8 @@ export function CatalogLayout({
     loading: boolean;
     total: ReactNode;
     children: ReactNode;
+    /** Переключатель карты в панели над списком (каталог клиник). */
+    mapToggle?: { open: boolean; onToggle: () => void };
 }) {
     const [drawer, setDrawer] = useState(false);
     const chips = activeChips(values, options);
@@ -130,13 +133,14 @@ export function CatalogLayout({
             </aside>
 
             <div className="catalog__main" aria-busy={loading}>
+                <div className="catalog__total" aria-live="polite">
+                    {total}
+                </div>
                 <div className="catalog__bar">
-                    <div className="catalog__total" aria-live="polite">
-                        {total}
-                    </div>
                     <div className="catalog__tools">
                         <Button variant="outline" size="sm" icon="filter" onClick={() => setDrawer(true)} className="catalog__filters-open">
-                            Фильтры{count ? ` · ${count}` : ''}
+                            Фильтры
+                            {count ? <span className="catalog__count">{count}</span> : null}
                         </Button>
                         <label className="sort">
                             <span className="visually-hidden">Сортировка</span>
@@ -149,6 +153,18 @@ export function CatalogLayout({
                                 ))}
                             </select>
                         </label>
+                        {mapToggle ? (
+                            <button
+                                type="button"
+                                className={cx('catalog__map-btn', mapToggle.open && 'is-active')}
+                                aria-pressed={mapToggle.open}
+                                aria-controls="catalog-map-body"
+                                onClick={mapToggle.onToggle}
+                            >
+                                <Icon name="pin" size={18} />
+                                <span>Карта</span>
+                            </button>
+                        ) : null}
                     </div>
                 </div>
 

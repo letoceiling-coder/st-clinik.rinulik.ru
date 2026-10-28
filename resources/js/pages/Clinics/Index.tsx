@@ -1,5 +1,5 @@
 import { usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AdSlot, { type AdBanner } from '@/components/AdSlot';
 import ClinicCard, { ClinicCardSkeleton } from '@/components/ClinicCard';
 import { CatalogLayout, useCatalog } from '@/components/Catalog';
@@ -25,7 +25,18 @@ export default function ClinicsIndex({ clinics, recommended_clinics, banner_cata
     const city = useCity();
     const { seo } = usePage<SharedProps>().props;
     const cat = useCatalog(filters);
-    const [mapOpen, setMapOpen] = useState(false);
+    /** null — по умолчанию: карта открыта на компьютере и свёрнута на телефоне (решает CSS, без скачка вёрстки). */
+    const [mapPref, setMapPref] = useState<boolean | null>(null);
+    const [isWide, setIsWide] = useState(false);
+    useEffect(() => {
+        const query = window.matchMedia('(min-width: 769px)');
+        const sync = (): void => setIsWide(query.matches);
+        sync();
+        query.addEventListener('change', sync);
+
+        return () => query.removeEventListener('change', sync);
+    }, []);
+    const mapOpen = mapPref ?? isWide;
     const title = seo?.h1 ?? `Стоматологии ${city.nameIn}`;
 
     return (
@@ -43,6 +54,7 @@ export default function ClinicsIndex({ clinics, recommended_clinics, banner_cata
                 options={options}
                 mode="clinics"
                 total={<b>{clinics.total > 0 ? `Найдено: ${clinicsWord(clinics.total)}` : 'Ничего не найдено'}</b>}
+                mapToggle={map_clinics.length > 0 ? { open: mapOpen, onToggle: () => setMapPref(!mapOpen) } : undefined}
             >
                 {recommended_clinics.length > 0 && !cat.loading ? (
                     <section className="recommended-block stack" aria-labelledby="recommended-h">
@@ -61,16 +73,11 @@ export default function ClinicsIndex({ clinics, recommended_clinics, banner_cata
                 <AdSlot banners={banner_catalog} slot="catalog" />
 
                 {map_clinics.length > 0 ? (
-                    <section className={cx('catalog__map card', mapOpen && 'catalog__map--open')} aria-labelledby="catalog-map-h">
-                        <div className="catalog__map-head">
-                            <h2 id="catalog-map-h" className="catalog__map-title">
-                                На карте
-                            </h2>
-                            <Button type="button" variant="outline" size="sm" className="catalog__map-toggle" onClick={() => setMapOpen((open) => !open)} aria-expanded={mapOpen} aria-controls="catalog-map-body">
-                                {mapOpen ? 'Скрыть карту' : 'Показать карту'}
-                            </Button>
-                        </div>
-                        <div id="catalog-map-body" className={cx('catalog__map-body', !mapOpen && 'catalog__map-body--collapsed')}>
+                    <section
+                        className={cx('catalog__map', mapPref === null ? 'catalog__map--auto' : mapPref ? 'catalog__map--open' : 'catalog__map--closed')}
+                        aria-label="Клиники на карте"
+                    >
+                        <div id="catalog-map-body" className="catalog__map-body">
                             <div className="catalog__map-viewport">
                                 <YandexMap points={map_clinics} className="catalog__map-frame" />
                             </div>

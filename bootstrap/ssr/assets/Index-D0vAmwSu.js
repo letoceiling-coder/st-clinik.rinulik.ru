@@ -3,17 +3,27 @@ import { n as Button } from "./Button-C2BxTtRt.js";
 import { d as EmptyState, i as useCity, p as Pagination, u as Breadcrumbs } from "../app.js";
 import { n as ClinicCardSkeleton, t as ClinicCard } from "./ClinicCard-BNgGJWfR.js";
 import { t as AdSlot } from "./AdSlot-CNgFa8UC.js";
-import { n as useCatalog, t as CatalogLayout } from "./Catalog-DD9GqNSP.js";
+import { n as useCatalog, t as CatalogLayout } from "./Catalog-CvPf56di.js";
 import { t as YandexMap } from "./YandexMap-CVmtcJ5u.js";
 import { usePage } from "@inertiajs/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 //#region resources/js/pages/Clinics/Index.tsx
 function ClinicsIndex({ clinics, recommended_clinics, banner_catalog, map_clinics, filters, options, service_name, breadcrumbs }) {
 	const city = useCity();
 	const { seo } = usePage().props;
 	const cat = useCatalog(filters);
-	const [mapOpen, setMapOpen] = useState(false);
+	/** null — по умолчанию: карта открыта на компьютере и свёрнута на телефоне (решает CSS, без скачка вёрстки). */
+	const [mapPref, setMapPref] = useState(null);
+	const [isWide, setIsWide] = useState(false);
+	useEffect(() => {
+		const query = window.matchMedia("(min-width: 769px)");
+		const sync = () => setIsWide(query.matches);
+		sync();
+		query.addEventListener("change", sync);
+		return () => query.removeEventListener("change", sync);
+	}, []);
+	const mapOpen = mapPref ?? isWide;
 	const title = seo?.h1 ?? `Стоматологии ${city.nameIn}`;
 	return /* @__PURE__ */ jsxs(Fragment, { children: [
 		/* @__PURE__ */ jsx(Breadcrumbs, { items: breadcrumbs }),
@@ -29,6 +39,10 @@ function ClinicsIndex({ clinics, recommended_clinics, banner_catalog, map_clinic
 			options,
 			mode: "clinics",
 			total: /* @__PURE__ */ jsx("b", { children: clinics.total > 0 ? `Найдено: ${clinicsWord(clinics.total)}` : "Ничего не найдено" }),
+			mapToggle: map_clinics.length > 0 ? {
+				open: mapOpen,
+				onToggle: () => setMapPref(!mapOpen)
+			} : void 0,
 			children: [
 				recommended_clinics.length > 0 && !cat.loading ? /* @__PURE__ */ jsxs("section", {
 					className: "recommended-block stack",
@@ -54,28 +68,12 @@ function ClinicsIndex({ clinics, recommended_clinics, banner_catalog, map_clinic
 					banners: banner_catalog,
 					slot: "catalog"
 				}),
-				map_clinics.length > 0 ? /* @__PURE__ */ jsxs("section", {
-					className: cx("catalog__map card", mapOpen && "catalog__map--open"),
-					"aria-labelledby": "catalog-map-h",
-					children: [/* @__PURE__ */ jsxs("div", {
-						className: "catalog__map-head",
-						children: [/* @__PURE__ */ jsx("h2", {
-							id: "catalog-map-h",
-							className: "catalog__map-title",
-							children: "На карте"
-						}), /* @__PURE__ */ jsx(Button, {
-							type: "button",
-							variant: "outline",
-							size: "sm",
-							className: "catalog__map-toggle",
-							onClick: () => setMapOpen((open) => !open),
-							"aria-expanded": mapOpen,
-							"aria-controls": "catalog-map-body",
-							children: mapOpen ? "Скрыть карту" : "Показать карту"
-						})]
-					}), /* @__PURE__ */ jsx("div", {
+				map_clinics.length > 0 ? /* @__PURE__ */ jsx("section", {
+					className: cx("catalog__map", mapPref === null ? "catalog__map--auto" : mapPref ? "catalog__map--open" : "catalog__map--closed"),
+					"aria-label": "Клиники на карте",
+					children: /* @__PURE__ */ jsx("div", {
 						id: "catalog-map-body",
-						className: cx("catalog__map-body", !mapOpen && "catalog__map-body--collapsed"),
+						className: "catalog__map-body",
 						children: /* @__PURE__ */ jsx("div", {
 							className: "catalog__map-viewport",
 							children: /* @__PURE__ */ jsx(YandexMap, {
@@ -83,7 +81,7 @@ function ClinicsIndex({ clinics, recommended_clinics, banner_catalog, map_clinic
 								className: "catalog__map-frame"
 							})
 						})
-					})]
+					})
 				}) : null,
 				cat.loading ? /* @__PURE__ */ jsx("div", {
 					className: "stack-lg",
@@ -110,4 +108,4 @@ function ClinicsIndex({ clinics, recommended_clinics, banner_catalog, map_clinic
 //#endregion
 export { ClinicsIndex as default };
 
-//# sourceMappingURL=Index-C2pPXYxY.js.map
+//# sourceMappingURL=Index-D0vAmwSu.js.map

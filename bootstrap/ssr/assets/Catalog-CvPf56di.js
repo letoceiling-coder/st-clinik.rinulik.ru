@@ -137,23 +137,16 @@ function FilterPanel({ values, options, onApply, mode, auto = false, idPrefix = 
 			}) : null,
 			/* @__PURE__ */ jsxs("fieldset", {
 				className: "filters__group",
-				children: [
-					/* @__PURE__ */ jsx("legend", { children: "Цена услуг" }),
-					/* @__PURE__ */ jsx("div", {
-						className: "chip-row",
-						children: PRICES.map((p) => /* @__PURE__ */ jsxs("button", {
-							type: "button",
-							className: cx("chip", draft.price_max === String(p) && "is-active"),
-							"aria-pressed": draft.price_max === String(p),
-							onClick: () => set("price_max", draft.price_max === String(p) ? null : String(p)),
-							children: ["до ", money(p)]
-						}, p))
-					}),
-					/* @__PURE__ */ jsx("p", {
-						className: "text-xs text-muted",
-						children: "Цена «от». Окончательную стоимость называет врач после осмотра."
-					})
-				]
+				children: [/* @__PURE__ */ jsx("legend", { children: "Цена услуг" }), /* @__PURE__ */ jsx("div", {
+					className: "chip-row",
+					children: PRICES.map((p) => /* @__PURE__ */ jsxs("button", {
+						type: "button",
+						className: cx("chip", draft.price_max === String(p) && "is-active"),
+						"aria-pressed": draft.price_max === String(p),
+						onClick: () => set("price_max", draft.price_max === String(p) ? null : String(p)),
+						children: ["до ", money(p)]
+					}, p))
+				})]
 			}),
 			/* @__PURE__ */ jsxs("fieldset", {
 				className: "filters__group",
@@ -170,7 +163,7 @@ function FilterPanel({ values, options, onApply, mode, auto = false, idPrefix = 
 			}),
 			/* @__PURE__ */ jsxs("div", {
 				className: "form-grid",
-				style: { gridTemplateColumns: "1fr 1fr" },
+				style: { gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))" },
 				children: [/* @__PURE__ */ jsxs(SelectField, {
 					label: "Отзывов от",
 					value: draft.reviews_min ?? "",
@@ -257,12 +250,15 @@ function FilterPanel({ values, options, onApply, mode, auto = false, idPrefix = 
 					}) : null
 				]
 			}),
-			propertyGroups.map(([group, items]) => /* @__PURE__ */ jsxs("fieldset", {
-				className: "filters__group",
-				children: [/* @__PURE__ */ jsx("legend", { children: group }), /* @__PURE__ */ jsx("div", {
-					className: "stack",
-					style: { ["--gap"]: "10px" },
-					children: items.map((p) => /* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx(Check, {
+			propertyGroups.map(([group, items]) => /* @__PURE__ */ jsxs("details", {
+				className: "filters__fold",
+				open: !!items?.some((p) => draft[p.slug] === "1"),
+				children: [/* @__PURE__ */ jsxs("summary", { children: [group, items?.some((p) => draft[p.slug] === "1") ? /* @__PURE__ */ jsx("span", {
+					className: "filters__dot",
+					"aria-label": "Есть выбранные"
+				}) : null] }), /* @__PURE__ */ jsx("div", {
+					className: "filters__fold-body",
+					children: (items ?? []).map((p) => /* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx(Check, {
 						id: `${idPrefix}-${p.slug}`,
 						label: p.name,
 						checked: draft[p.slug] === "1",
@@ -378,7 +374,7 @@ function activeChips(values, options) {
 	});
 	return out;
 }
-function CatalogLayout({ values, options, mode, apply, patch, remove, loading, total, children }) {
+function CatalogLayout({ values, options, mode, apply, patch, remove, loading, total, children, mapToggle }) {
 	const [drawer, setDrawer] = useState(false);
 	const chips = activeChips(values, options);
 	const count = activeCount(values, options);
@@ -421,44 +417,62 @@ function CatalogLayout({ values, options, mode, apply, patch, remove, loading, t
 				className: "catalog__main",
 				"aria-busy": loading,
 				children: [
-					/* @__PURE__ */ jsxs("div", {
+					/* @__PURE__ */ jsx("div", {
+						className: "catalog__total",
+						"aria-live": "polite",
+						children: total
+					}),
+					/* @__PURE__ */ jsx("div", {
 						className: "catalog__bar",
-						children: [/* @__PURE__ */ jsx("div", {
-							className: "catalog__total",
-							"aria-live": "polite",
-							children: total
-						}), /* @__PURE__ */ jsxs("div", {
+						children: /* @__PURE__ */ jsxs("div", {
 							className: "catalog__tools",
-							children: [/* @__PURE__ */ jsxs(Button, {
-								variant: "outline",
-								size: "sm",
-								icon: "filter",
-								onClick: () => setDrawer(true),
-								className: "catalog__filters-open",
-								children: ["Фильтры", count ? ` · ${count}` : ""]
-							}), /* @__PURE__ */ jsxs("label", {
-								className: "sort",
-								children: [
-									/* @__PURE__ */ jsx("span", {
-										className: "visually-hidden",
-										children: "Сортировка"
-									}),
-									/* @__PURE__ */ jsx(Icon, {
-										name: "sort",
+							children: [
+								/* @__PURE__ */ jsxs(Button, {
+									variant: "outline",
+									size: "sm",
+									icon: "filter",
+									onClick: () => setDrawer(true),
+									className: "catalog__filters-open",
+									children: ["Фильтры", count ? /* @__PURE__ */ jsx("span", {
+										className: "catalog__count",
+										children: count
+									}) : null]
+								}),
+								/* @__PURE__ */ jsxs("label", {
+									className: "sort",
+									children: [
+										/* @__PURE__ */ jsx("span", {
+											className: "visually-hidden",
+											children: "Сортировка"
+										}),
+										/* @__PURE__ */ jsx(Icon, {
+											name: "sort",
+											size: 18
+										}),
+										/* @__PURE__ */ jsx("select", {
+											className: "select select--sm",
+											value: values.sort ?? "relevance",
+											onChange: (e) => patch({ sort: e.target.value === "relevance" ? "" : e.target.value }),
+											children: sorts.map((k) => /* @__PURE__ */ jsx("option", {
+												value: k,
+												children: SORTS[k]
+											}, k))
+										})
+									]
+								}),
+								mapToggle ? /* @__PURE__ */ jsxs("button", {
+									type: "button",
+									className: cx("catalog__map-btn", mapToggle.open && "is-active"),
+									"aria-pressed": mapToggle.open,
+									"aria-controls": "catalog-map-body",
+									onClick: mapToggle.onToggle,
+									children: [/* @__PURE__ */ jsx(Icon, {
+										name: "pin",
 										size: 18
-									}),
-									/* @__PURE__ */ jsx("select", {
-										className: "select select--sm",
-										value: values.sort ?? "relevance",
-										onChange: (e) => patch({ sort: e.target.value === "relevance" ? "" : e.target.value }),
-										children: sorts.map((k) => /* @__PURE__ */ jsx("option", {
-											value: k,
-											children: SORTS[k]
-										}, k))
-									})
-								]
-							})]
-						})]
+									}), /* @__PURE__ */ jsx("span", { children: "Карта" })]
+								}) : null
+							]
+						})
 					}),
 					chips.length > 0 ? /* @__PURE__ */ jsxs("ul", {
 						className: "active-chips",
@@ -507,4 +521,4 @@ function CatalogLayout({ values, options, mode, apply, patch, remove, loading, t
 //#endregion
 export { useCatalog as n, CatalogLayout as t };
 
-//# sourceMappingURL=Catalog-DD9GqNSP.js.map
+//# sourceMappingURL=Catalog-CvPf56di.js.map

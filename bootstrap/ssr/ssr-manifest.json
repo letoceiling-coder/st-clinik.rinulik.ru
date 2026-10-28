@@ -140,7 +140,7 @@
     "/build/assets/Tiles-DcOWpm7B.js"
   ],
   "resources/js/components/Catalog.tsx": [
-    "/build/assets/Catalog-DD9GqNSP.js"
+    "/build/assets/Catalog-CvPf56di.js"
   ],
   "resources/js/components/CityPrompt.tsx": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -231,7 +231,7 @@
     "/build/assets/DoctorCard-4DqYH8EC.js"
   ],
   "resources/js/components/FilterPanel.tsx": [
-    "/build/assets/Catalog-DD9GqNSP.js"
+    "/build/assets/Catalog-CvPf56di.js"
   ],
   "resources/js/components/HeroServiceFinder.tsx": [
     "/build/assets/Home-BjSBWyUy.js"
@@ -1482,7 +1482,7 @@
     "/build/assets/Stats-DTH2l1le.js"
   ],
   "resources/js/pages/Clinics/Index.tsx": [
-    "/build/assets/Index-C2pPXYxY.js"
+    "/build/assets/Index-D0vAmwSu.js"
   ],
   "resources/js/pages/Clinics/Show.tsx": [
     "/build/assets/Show-tI_XRg__.js"
@@ -1503,7 +1503,7 @@
     "/build/assets/Show-DxcAHvz0.js"
   ],
   "resources/js/pages/Doctors/Index.tsx": [
-    "/build/assets/Index-cDTE40My.js"
+    "/build/assets/Index-BdVRofnJ.js"
   ],
   "resources/js/pages/Doctors/Show.tsx": [
     "/build/assets/Show-I2h8Jhfq.js"
@@ -1521,7 +1521,7 @@
     "/build/assets/ClinicShow-CxRoJYw6.js"
   ],
   "resources/js/pages/Max/Clinics.tsx": [
-    "/build/assets/Clinics-CIZ7EFZu.js"
+    "/build/assets/Clinics-BtM-qXrY.js"
   ],
   "resources/js/pages/Max/Home.tsx": [
     "/build/assets/Home-D7iSLkyF.js"

@@ -1,4 +1,4 @@
-import ClinicsIndex from "./Index-C2pPXYxY.js";
+import ClinicsIndex from "./Index-D0vAmwSu.js";
 import { t as useMaxWebAppAuth } from "./max-web-app-BIxFfehh.js";
 import { jsx } from "react/jsx-runtime";
 //#region resources/js/pages/Max/Clinics.tsx
@@ -9,4 +9,4 @@ function MaxClinics(props) {
 //#endregion
 export { MaxClinics as default };
 
-//# sourceMappingURL=Clinics-CIZ7EFZu.js.map
+//# sourceMappingURL=Clinics-BtM-qXrY.js.map
