@@ -22,12 +22,31 @@ class ClinicSeo
         return [
             'name' => $clinic->name,
             'city' => $clinic->city?->name,
-            'address' => $clinic->address,
+            'address' => $this->addressWithoutCity((string) $clinic->address, $clinic->city?->name),
             'rating' => $clinic->reviews_count ? number_format((float) $clinic->rating, 1, ',', '') : 'нет оценок',
             'reviews' => (int) $clinic->reviews_count,
             'doctors' => (int) ($clinic->doctors_count ?? $clinic->doctors()->published()->count()),
             'price' => $clinic->min_price ? Text::money((int) $clinic->min_price) : 'по запросу',
         ];
+    }
+
+    /**
+     * Город в шаблоне стоит отдельно, поэтому из адреса его убираем: «Москва, ул. Тверская, 12» → «ул. Тверская, 12»,
+     * «ул. Кирова, 116, Краснодар» → «ул. Кирова, 116». Если после этого адрес пуст — оставляем исходный.
+     */
+    public function addressWithoutCity(string $address, ?string $city): string
+    {
+        $address = trim($address);
+        if ($city === null || trim($city) === '' || $address === '') {
+            return $address;
+        }
+
+        $cityPattern = '(?:г\.?\s*|город\s+)?'.preg_quote(trim($city), '/');
+        $clean = preg_replace('/^\s*'.$cityPattern.'\s*,\s*/iu', '', $address) ?? $address;
+        $clean = preg_replace('/\s*,\s*'.$cityPattern.'\s*$/iu', '', $clean) ?? $clean;
+        $clean = trim($clean, ' ,');
+
+        return $clean !== '' ? $clean : $address;
     }
 
     /** @return array{title: string, description: string} */

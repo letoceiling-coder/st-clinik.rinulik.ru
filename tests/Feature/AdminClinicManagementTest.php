@@ -8,6 +8,7 @@ use App\Models\Organization;
 use App\Models\Specialty;
 use App\Models\User;
 use App\Repositories\Contracts\CatalogRepository;
+use App\Services\Clinics\ClinicSeo;
 use Database\Seeders\FoundationSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -132,6 +133,23 @@ class AdminClinicManagementTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->where('seo.title', 'Ручной заголовок клиники')
                 ->where('seo.description', 'Ручное описание'));
+    }
+
+    public function test_automatic_seo_does_not_repeat_city_from_address(): void
+    {
+        $seo = app(ClinicSeo::class);
+
+        $this->assertSame('ул. Тверская, 12, стр. 1', $seo->addressWithoutCity('Москва, ул. Тверская, 12, стр. 1', 'Москва'));
+        $this->assertSame('ул. Кирова, 116', $seo->addressWithoutCity('ул. Кирова, 116, Краснодар', 'Краснодар'));
+        $this->assertSame('ул. Ленина, 1', $seo->addressWithoutCity('г. Сочи, ул. Ленина, 1', 'Сочи'));
+        $this->assertSame('Москва', $seo->addressWithoutCity('Москва', 'Москва'));
+        $this->assertSame('пр. Московский, 5', $seo->addressWithoutCity('пр. Московский, 5', 'Москва'));
+
+        $clinic = $this->clinic();
+        $clinic->update(['address' => $clinic->city->name.', ул. Тестовая, 1']);
+        $title = $seo->auto($clinic->refresh())['title'];
+
+        $this->assertSame(1, mb_substr_count($title, $clinic->city->name));
     }
 
     private function city(): City
