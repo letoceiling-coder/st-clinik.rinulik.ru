@@ -9,7 +9,21 @@ function Clinics({ clinics, cities, statuses, filters }) {
 		children: [
 			/* @__PURE__ */ jsx(PageHead, {
 				title: "Клиники",
-				text: `Найдено: ${clinics.total}`
+				text: `Найдено: ${clinics.total}`,
+				action: /* @__PURE__ */ jsxs("div", {
+					className: "row row--wrap",
+					style: { gap: 8 },
+					children: [/* @__PURE__ */ jsx(LinkButton, {
+						href: "/admin/parser",
+						variant: "outline",
+						icon: "search",
+						children: "Из парсера"
+					}), /* @__PURE__ */ jsx(LinkButton, {
+						href: "/admin/clinics/create",
+						icon: "plus",
+						children: "Добавить клинику"
+					})]
+				})
 			}),
 			/* @__PURE__ */ jsxs(FilterBar, { children: [
 				/* @__PURE__ */ jsx(SearchInput, {
@@ -84,4 +98,4 @@ function Clinics({ clinics, cities, statuses, filters }) {
 //#endregion
 export { Clinics as default };
 
-//# sourceMappingURL=Clinics-BnoExTk9.js.map
+//# sourceMappingURL=Clinics-BOVczbgi.js.map

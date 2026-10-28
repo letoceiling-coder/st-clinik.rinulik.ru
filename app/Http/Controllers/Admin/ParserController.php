@@ -220,7 +220,8 @@ class ParserController extends AdminController
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('success', "Черновик «{$clinic->name}» создан. На сайте он не виден до публикации.");
+        return redirect()->route('admin.clinics.show', $clinic)
+            ->with('success', "Черновик «{$clinic->name}» создан из спарсенной карточки. Проверьте данные и опубликуйте — до публикации на сайте он не виден.");
     }
 
     public function importMany(Request $request, ParsedOrganizationImporter $importer): RedirectResponse

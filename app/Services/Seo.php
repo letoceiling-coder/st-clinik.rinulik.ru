@@ -14,7 +14,7 @@ class Seo
     /** @var array<string,SeoTemplate>|null */
     private ?array $templates = null;
 
-    private function template(string $type): ?SeoTemplate
+    public function template(string $type): ?SeoTemplate
     {
         if ($this->templates === null) {
             $this->templates = Schema::hasTable('seo_templates')

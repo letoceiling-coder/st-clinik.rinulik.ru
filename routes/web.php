@@ -325,6 +325,9 @@ Route::middleware(['auth', 'perm:admin.dashboard'])->prefix('admin')->name('admi
 
     Route::middleware('perm:admin.clinics')->group(function () {
         Route::get('/clinics', [Admin\ClinicController::class, 'index'])->name('clinics');
+        Route::get('/clinics/create', [Admin\ClinicController::class, 'create'])->name('clinics.create');
+        Route::post('/clinics', [Admin\ClinicController::class, 'store'])->name('clinics.store');
+        Route::put('/clinics/{clinic}/profile', [Admin\ClinicController::class, 'updateProfile'])->name('clinics.profile');
         Route::get('/clinics/{clinic}', [Admin\ClinicController::class, 'show'])->name('clinics.show');
         Route::put('/clinics/{clinic}', [Admin\ClinicController::class, 'update'])->name('clinics.update');
         Route::post('/clinics/{clinic}/organization/block', [Admin\ClinicController::class, 'blockOrganization'])->name('clinics.organization.block');

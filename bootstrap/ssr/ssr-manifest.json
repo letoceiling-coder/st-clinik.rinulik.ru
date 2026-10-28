@@ -215,6 +215,9 @@
   "resources/js/components/ClinicParts.tsx": [
     "/build/assets/ClinicParts-DnKsCgEp.js"
   ],
+  "resources/js/components/ClinicProfileFields.tsx": [
+    "/build/assets/ClinicProfileFields-DPwNqPUN.js"
+  ],
   "resources/js/components/CollectionButtons.tsx": [
     "/build/assets/CollectionButtons-DPxrOg7y.js"
   ],
@@ -1307,11 +1310,14 @@
   "resources/js/pages/Admin/ClinicCardAppearance.tsx": [
     "/build/assets/ClinicCardAppearance-Bneyzihc.js"
   ],
+  "resources/js/pages/Admin/ClinicCreate.tsx": [
+    "/build/assets/ClinicCreate-CvHpF5CW.js"
+  ],
   "resources/js/pages/Admin/ClinicShow.tsx": [
-    "/build/assets/ClinicShow-D8vuEzvq.js"
+    "/build/assets/ClinicShow-CgTclVoA.js"
   ],
   "resources/js/pages/Admin/Clinics.tsx": [
-    "/build/assets/Clinics-BnoExTk9.js"
+    "/build/assets/Clinics-BOVczbgi.js"
   ],
   "resources/js/pages/Admin/Complaints.tsx": [
     "/build/assets/Complaints-B9XTmXxE.js"
@@ -1416,7 +1422,7 @@
     "/build/assets/Show-C7OrseBl.js"
   ],
   "resources/js/pages/Cabinet/BranchForm.tsx": [
-    "/build/assets/BranchForm-idigvl70.js"
+    "/build/assets/BranchForm-CpXOWmYw.js"
   ],
   "resources/js/pages/Cabinet/Branches.tsx": [
     "/build/assets/Branches-BfcDFhZj.js"

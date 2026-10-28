@@ -31,7 +31,20 @@ export default function Clinics({
 }) {
     return (
         <div className="stack-lg">
-            <PageHead title="Клиники" text={`Найдено: ${clinics.total}`} />
+            <PageHead
+                title="Клиники"
+                text={`Найдено: ${clinics.total}`}
+                action={
+                    <div className="row row--wrap" style={{ gap: 8 }}>
+                        <LinkButton href="/admin/parser" variant="outline" icon="search">
+                            Из парсера
+                        </LinkButton>
+                        <LinkButton href="/admin/clinics/create" icon="plus">
+                            Добавить клинику
+                        </LinkButton>
+                    </div>
+                }
+            />
             <FilterBar>
                 <SearchInput name="q" defaultValue={filters.q} placeholder="Название или адрес" />
                 <SelectField name="status" label="Статус" defaultValue={filters.status ?? ''}>
