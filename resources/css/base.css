@@ -235,3 +235,16 @@ table {
         scroll-behavior: auto !important;
     }
 }
+
+/* Сенсорные экраны: без серо-синей вспышки при касании и выделения текста при долгом нажатии на элементы управления */
+@media (hover: none) and (pointer: coarse) {
+    html {
+        -webkit-tap-highlight-color: transparent;
+    }
+    button,
+    [role='button'] {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+    }
+}

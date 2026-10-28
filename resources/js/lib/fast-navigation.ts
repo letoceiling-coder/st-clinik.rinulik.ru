@@ -128,7 +128,8 @@ export function setupFastNavigation(): void {
     });
     router.on('finish', (event) => {
         if (!event.detail.visit.prefetch) {
-            root.classList.remove('is-navigating');
+            // Снимаем после отрисовки: сброс прокрутки новой страницы должен пройти мгновенно, без smooth.
+            requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('is-navigating')));
         }
     });
 }

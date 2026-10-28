@@ -131,16 +131,16 @@
     "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/components/BannerCropper.tsx": [
-    "/build/assets/Promotions-CTwsr3Rz.js"
+    "/build/assets/Promotions-DliPXuOc.js"
   ],
   "resources/js/components/BannerPreview.tsx": [
-    "/build/assets/Promotions-CTwsr3Rz.js"
+    "/build/assets/Promotions-DliPXuOc.js"
   ],
   "resources/js/components/Carousel.tsx": [
-    "/build/assets/Tiles-D7oUyG79.js"
+    "/build/assets/Tiles-DcOWpm7B.js"
   ],
   "resources/js/components/Catalog.tsx": [
-    "/build/assets/Catalog-DYilOPhT.js"
+    "/build/assets/Catalog-DD9GqNSP.js"
   ],
   "resources/js/components/CityPrompt.tsx": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -207,37 +207,37 @@
     "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/components/ClinicCard.tsx": [
-    "/build/assets/ClinicCard-Bllv53MX.js"
+    "/build/assets/ClinicCard-BNgGJWfR.js"
   ],
   "resources/js/components/ClinicCardGallery.tsx": [
-    "/build/assets/ClinicCard-Bllv53MX.js"
+    "/build/assets/ClinicCard-BNgGJWfR.js"
   ],
   "resources/js/components/ClinicParts.tsx": [
-    "/build/assets/ClinicParts-D6Ha8UE_.js"
+    "/build/assets/ClinicParts-DnKsCgEp.js"
   ],
   "resources/js/components/CollectionButtons.tsx": [
-    "/build/assets/CollectionButtons-Ckr5F4uw.js"
+    "/build/assets/CollectionButtons-DPxrOg7y.js"
   ],
   "resources/js/components/CollectionViews.tsx": [
-    "/build/assets/CollectionViews-pUQgrBy7.js"
+    "/build/assets/CollectionViews-CKhOf8VK.js"
   ],
   "resources/js/components/CopyButton.tsx": [
-    "/build/assets/CopyButton-Cei3m-mt.js"
+    "/build/assets/CopyButton-ByUXubLU.js"
   ],
   "resources/js/components/Dash.tsx": [
-    "/build/assets/Dash-1ijSGeUC.js"
+    "/build/assets/Dash-BqP8YCar.js"
   ],
   "resources/js/components/DoctorCard.tsx": [
-    "/build/assets/DoctorCard-BEvXP41U.js"
+    "/build/assets/DoctorCard-4DqYH8EC.js"
   ],
   "resources/js/components/FilterPanel.tsx": [
-    "/build/assets/Catalog-DYilOPhT.js"
+    "/build/assets/Catalog-DD9GqNSP.js"
   ],
   "resources/js/components/HeroServiceFinder.tsx": [
-    "/build/assets/Home-CnC52e86.js"
+    "/build/assets/Home-BjSBWyUy.js"
   ],
   "resources/js/components/Icon.tsx": [
-    "/build/assets/Icon-DQahs-u2.js"
+    "/build/assets/Icon-_sloiNX5.js"
   ],
   "resources/js/components/InstallAppButton.tsx": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -403,10 +403,10 @@
     "/build/assets/PhotoArt-C4p4XGJd.js"
   ],
   "resources/js/components/ReviewCard.tsx": [
-    "/build/assets/ReviewCard-DG9IImq4.js"
+    "/build/assets/ReviewCard-CuSLPQ3N.js"
   ],
   "resources/js/components/ReviewForm.tsx": [
-    "/build/assets/Show-ezmFWqQ9.js"
+    "/build/assets/Show-tI_XRg__.js"
   ],
   "resources/js/components/SearchBox.tsx": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -441,10 +441,10 @@
     "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/components/ServicePickerModal.tsx": [
-    "/build/assets/Home-CnC52e86.js"
+    "/build/assets/Home-BjSBWyUy.js"
   ],
   "resources/js/components/Tiles.tsx": [
-    "/build/assets/Tiles-D7oUyG79.js"
+    "/build/assets/Tiles-DcOWpm7B.js"
   ],
   "resources/js/components/ToastHost.tsx": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -485,10 +485,10 @@
     "/build/assets/SocialOAuthButtons-BfmrBF_z.js"
   ],
   "resources/js/components/offers/OfferSendPanels.tsx": [
-    "/build/assets/Offer-9o_nGEij.js"
+    "/build/assets/Offer-D1kqBuP5.js"
   ],
   "resources/js/components/ui/Button.tsx": [
-    "/build/assets/Button-B5alqlNe.js"
+    "/build/assets/Button-C2BxTtRt.js"
   ],
   "resources/js/components/ui/Fields.tsx": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -523,7 +523,7 @@
     "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/components/ui/FileDropzone.tsx": [
-    "/build/assets/FileDropzone-BvLWy1Cm.js"
+    "/build/assets/FileDropzone-CiBd0Lal.js"
   ],
   "resources/js/components/ui/Misc.tsx": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -1076,7 +1076,7 @@
     "/build/assets/demo-images-B26oc1SN.js"
   ],
   "resources/js/lib/entities.ts": [
-    "/build/assets/CollectionViews-pUQgrBy7.js"
+    "/build/assets/CollectionViews-CKhOf8VK.js"
   ],
   "resources/js/lib/fast-navigation.ts": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -1212,296 +1212,328 @@
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
     "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
+  "resources/js/lib/touch-hover.ts": [
+    "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
+    "/build/assets/geist-cyrillic-ext-400-normal-ChfpGzr5.woff",
+    "/build/assets/geist-cyrillic-400-normal-DXusLSnH.woff2",
+    "/build/assets/geist-cyrillic-400-normal-DkrqoNl2.woff",
+    "/build/assets/geist-vietnamese-400-normal-C4gMWAkH.woff2",
+    "/build/assets/geist-vietnamese-400-normal-C8xY9-dI.woff",
+    "/build/assets/geist-latin-ext-400-normal-CND6cjiG.woff2",
+    "/build/assets/geist-latin-ext-400-normal-Bz1pQMyt.woff",
+    "/build/assets/geist-latin-400-normal-B40WzpMT.woff2",
+    "/build/assets/geist-latin-400-normal-akEymXtG.woff",
+    "/build/assets/geist-cyrillic-ext-500-normal-UpgxCE-h.woff2",
+    "/build/assets/geist-cyrillic-ext-500-normal-BXrH8YSv.woff",
+    "/build/assets/geist-cyrillic-500-normal-NWpm63d5.woff2",
+    "/build/assets/geist-cyrillic-500-normal-BboVsk8R.woff",
+    "/build/assets/geist-vietnamese-500-normal-DEhtl5QD.woff2",
+    "/build/assets/geist-vietnamese-500-normal-_b1ojCbH.woff",
+    "/build/assets/geist-latin-ext-500-normal-BovoTgeE.woff2",
+    "/build/assets/geist-latin-ext-500-normal-C9fx-R30.woff",
+    "/build/assets/geist-latin-500-normal-CTWBw9NS.woff2",
+    "/build/assets/geist-latin-500-normal-BDXIbFrL.woff",
+    "/build/assets/geist-cyrillic-ext-600-normal-Cr7e20Aw.woff2",
+    "/build/assets/geist-cyrillic-ext-600-normal-PR76dHFV.woff",
+    "/build/assets/geist-cyrillic-600-normal-BeW5VFD_.woff2",
+    "/build/assets/geist-cyrillic-600-normal-CnEeIcMC.woff",
+    "/build/assets/geist-vietnamese-600-normal-BFUgqsz8.woff2",
+    "/build/assets/geist-vietnamese-600-normal-B5MZcNo4.woff",
+    "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
+    "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
+    "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
+  ],
   "resources/js/lib/web-push.ts": [
-    "/build/assets/Profile-DXITGei9.js"
+    "/build/assets/Profile-BiolE1y_.js"
   ],
   "resources/js/pages/Account/Appointments.tsx": [
-    "/build/assets/Appointments-BrooluRr.js"
+    "/build/assets/Appointments-mrwLYGpT.js"
   ],
   "resources/js/pages/Account/Compare.tsx": [
-    "/build/assets/Compare-D2MvqDMZ.js"
+    "/build/assets/Compare-DjWGUjhl.js"
   ],
   "resources/js/pages/Account/Favorites.tsx": [
-    "/build/assets/Favorites-DftZ9CqI.js"
+    "/build/assets/Favorites-XXJsSbaI.js"
   ],
   "resources/js/pages/Account/History.tsx": [
-    "/build/assets/History-BNtDZphO.js"
+    "/build/assets/History-C0Vp31d3.js"
   ],
   "resources/js/pages/Account/Leads.tsx": [
-    "/build/assets/Leads-CMgdNEbn.js"
+    "/build/assets/Leads-xOfDW5Vk.js"
   ],
   "resources/js/pages/Account/Notifications.tsx": [
-    "/build/assets/Notifications-DMtVWWx_.js"
+    "/build/assets/Notifications-CzqbqYk-.js"
   ],
   "resources/js/pages/Account/Overview.tsx": [
-    "/build/assets/Overview-jqNLeUQV.js"
+    "/build/assets/Overview-BpTbmv4W.js"
   ],
   "resources/js/pages/Account/Profile.tsx": [
-    "/build/assets/Profile-DXITGei9.js"
+    "/build/assets/Profile-BiolE1y_.js"
   ],
   "resources/js/pages/Account/Reviews.tsx": [
-    "/build/assets/Reviews-DafdNwdP.js"
+    "/build/assets/Reviews-D4MjXCix.js"
   ],
   "resources/js/pages/Admin/Analytics.tsx": [
-    "/build/assets/Analytics-3VeXfaCX.js"
+    "/build/assets/Analytics-BrIQsReQ.js"
   ],
   "resources/js/pages/Admin/Appointments.tsx": [
-    "/build/assets/Appointments-CMsVz-BQ.js"
+    "/build/assets/Appointments-C1DC6Mis.js"
   ],
   "resources/js/pages/Admin/Assistant.tsx": [
-    "/build/assets/Assistant-jV6egOmE.js"
+    "/build/assets/Assistant-7G9JlOI-.js"
   ],
   "resources/js/pages/Admin/AssistantConversation.tsx": [
-    "/build/assets/AssistantConversation-DO9VuviK.js"
+    "/build/assets/AssistantConversation-AYJmdJ0y.js"
   ],
   "resources/js/pages/Admin/Audit.tsx": [
-    "/build/assets/Audit-BhB5YjIl.js"
+    "/build/assets/Audit-Bl1i56Ck.js"
   ],
   "resources/js/pages/Admin/BroadcastShow.tsx": [
-    "/build/assets/BroadcastShow-CW-1OwaX.js"
+    "/build/assets/BroadcastShow-D_7d56_8.js"
   ],
   "resources/js/pages/Admin/Broadcasts.tsx": [
-    "/build/assets/Broadcasts-CUL-HLes.js"
+    "/build/assets/Broadcasts-C1fzdp7z.js"
   ],
   "resources/js/pages/Admin/Campaign.tsx": [
-    "/build/assets/Campaign-CA3PLLW9.js"
+    "/build/assets/Campaign-DhuKECZv.js"
   ],
   "resources/js/pages/Admin/Campaigns.tsx": [
-    "/build/assets/Campaigns-L-zq9FOc.js"
+    "/build/assets/Campaigns-zLxPF8CX.js"
   ],
   "resources/js/pages/Admin/CardBonuses.tsx": [
-    "/build/assets/CardBonuses-DlhLY6bZ.js"
+    "/build/assets/CardBonuses-AaayDnuv.js"
   ],
   "resources/js/pages/Admin/ClinicCardAppearance.tsx": [
-    "/build/assets/ClinicCardAppearance-CRQ26B0T.js"
+    "/build/assets/ClinicCardAppearance-DCm0FI1y.js"
   ],
   "resources/js/pages/Admin/ClinicShow.tsx": [
-    "/build/assets/ClinicShow-CeXYBNE3.js"
+    "/build/assets/ClinicShow-D8vuEzvq.js"
   ],
   "resources/js/pages/Admin/Clinics.tsx": [
-    "/build/assets/Clinics-B8ryJEsV.js"
+    "/build/assets/Clinics-BnoExTk9.js"
   ],
   "resources/js/pages/Admin/Complaints.tsx": [
-    "/build/assets/Complaints-CnhCwVcw.js"
+    "/build/assets/Complaints-B9XTmXxE.js"
   ],
   "resources/js/pages/Admin/Dashboard.tsx": [
-    "/build/assets/Dashboard-BEn-UeI9.js"
+    "/build/assets/Dashboard-COnJMEFq.js"
   ],
   "resources/js/pages/Admin/Dictionary.tsx": [
-    "/build/assets/Dictionary-9Q8ffKx2.js"
+    "/build/assets/Dictionary-Blt1FMDS.js"
   ],
   "resources/js/pages/Admin/Doctors.tsx": [
-    "/build/assets/Doctors-BwGBLbs2.js"
+    "/build/assets/Doctors-GA9BpoJH.js"
   ],
   "resources/js/pages/Admin/Duplicates.tsx": [
-    "/build/assets/Duplicates-DEaR0LRY.js"
+    "/build/assets/Duplicates-CL1T9FKf.js"
   ],
   "resources/js/pages/Admin/Finance.tsx": [
-    "/build/assets/Finance-BXJDI_v7.js"
+    "/build/assets/Finance-Bmb707UR.js"
   ],
   "resources/js/pages/Admin/Geography.tsx": [
-    "/build/assets/Geography-9Jhv-xRM.js"
+    "/build/assets/Geography-B7oymTBx.js"
   ],
   "resources/js/pages/Admin/Integrations.tsx": [
-    "/build/assets/Integrations-t4_UHzlF.js"
+    "/build/assets/Integrations-B3o_-Uct.js"
   ],
   "resources/js/pages/Admin/MaxPublish.tsx": [
-    "/build/assets/MaxPublish-cMcDZWsG.js"
+    "/build/assets/MaxPublish-CbdpXY2b.js"
   ],
   "resources/js/pages/Admin/Moderation.tsx": [
-    "/build/assets/Moderation-DAWwN4FM.js"
+    "/build/assets/Moderation-CEXODD4R.js"
   ],
   "resources/js/pages/Admin/Offer.tsx": [
-    "/build/assets/Offer-9o_nGEij.js"
+    "/build/assets/Offer-D1kqBuP5.js"
   ],
   "resources/js/pages/Admin/OfferTemplate.tsx": [
-    "/build/assets/OfferTemplate-D2vqsYqb.js"
+    "/build/assets/OfferTemplate-CgribFwO.js"
   ],
   "resources/js/pages/Admin/Offers.tsx": [
-    "/build/assets/Offers-DkwPpmeN.js"
+    "/build/assets/Offers-UFAS_nEr.js"
   ],
   "resources/js/pages/Admin/ParsedOrganization.tsx": [
-    "/build/assets/ParsedOrganization-DKGc3XAs.js"
+    "/build/assets/ParsedOrganization-x953uud6.js"
   ],
   "resources/js/pages/Admin/Parser.tsx": [
-    "/build/assets/Parser-Bl79YIBW.js"
+    "/build/assets/Parser-Cj9h-Iec.js"
   ],
   "resources/js/pages/Admin/Promotions.tsx": [
-    "/build/assets/Promotions-CLTbnott.js"
+    "/build/assets/Promotions-CjaMwu5E.js"
   ],
   "resources/js/pages/Admin/Reports.tsx": [
-    "/build/assets/Reports-qdI7KQwp.js"
+    "/build/assets/Reports-TIrifCa3.js"
   ],
   "resources/js/pages/Admin/Reviews.tsx": [
-    "/build/assets/Reviews-BzyQ9fty.js"
+    "/build/assets/Reviews-CZppT3Ml.js"
   ],
   "resources/js/pages/Admin/Roles.tsx": [
-    "/build/assets/Roles-f66HY7XD.js"
+    "/build/assets/Roles-C9r1kE7T.js"
   ],
   "resources/js/pages/Admin/SiteDisplay.tsx": [
-    "/build/assets/SiteDisplay-DnDHnzzO.js"
+    "/build/assets/SiteDisplay-BlLVyKAC.js"
   ],
   "resources/js/pages/Admin/Tariffs.tsx": [
-    "/build/assets/Tariffs-BNw64eoA.js"
+    "/build/assets/Tariffs-Dn9Xns0e.js"
   ],
   "resources/js/pages/Admin/UserShow.tsx": [
-    "/build/assets/UserShow-4J5Wmsza.js"
+    "/build/assets/UserShow-2BHFQgf6.js"
   ],
   "resources/js/pages/Admin/Users.tsx": [
-    "/build/assets/Users-DCukcjyF.js"
+    "/build/assets/Users-hdTnm7uX.js"
   ],
   "resources/js/pages/Auth/AcceptStaffInvite.tsx": [
-    "/build/assets/AcceptStaffInvite-ad0d1jH1.js"
+    "/build/assets/AcceptStaffInvite-VodrJ_aE.js"
   ],
   "resources/js/pages/Auth/ForgotPassword.tsx": [
-    "/build/assets/ForgotPassword-B0BmQw4Z.js"
+    "/build/assets/ForgotPassword-D4sBYXzF.js"
   ],
   "resources/js/pages/Auth/LinkSocial.tsx": [
-    "/build/assets/LinkSocial-WZTZE9ZE.js"
+    "/build/assets/LinkSocial-D4XSbkLa.js"
   ],
   "resources/js/pages/Auth/Login.tsx": [
-    "/build/assets/Login-DLYN7lNW.js"
+    "/build/assets/Login-NAWUqSP7.js"
   ],
   "resources/js/pages/Auth/MaxLogin.tsx": [
-    "/build/assets/MaxLogin-CQwX4_KG.js"
+    "/build/assets/MaxLogin-BXmE2MEo.js"
   ],
   "resources/js/pages/Auth/Register.tsx": [
-    "/build/assets/Register-C2GhEipN.js"
+    "/build/assets/Register-Bsn9eCVY.js"
   ],
   "resources/js/pages/Auth/RegisterClinic.tsx": [
-    "/build/assets/RegisterClinic-BBAmzf_A.js"
+    "/build/assets/RegisterClinic-BmB1UY_4.js"
   ],
   "resources/js/pages/Auth/ResetPassword.tsx": [
-    "/build/assets/ResetPassword-D8Ov4eLS.js"
+    "/build/assets/ResetPassword-Dh9aBPQJ.js"
   ],
   "resources/js/pages/Auth/VerifyEmail.tsx": [
-    "/build/assets/VerifyEmail-DEdTbeLU.js"
+    "/build/assets/VerifyEmail-DSrbawvC.js"
   ],
   "resources/js/pages/Booking/Create.tsx": [
-    "/build/assets/Create-30vdD_6X.js"
+    "/build/assets/Create-Br2zXq_B.js"
   ],
   "resources/js/pages/Booking/Show.tsx": [
-    "/build/assets/Show-ZezWOj9X.js"
+    "/build/assets/Show-C7OrseBl.js"
   ],
   "resources/js/pages/Cabinet/BranchForm.tsx": [
-    "/build/assets/BranchForm-ChWazWqx.js"
+    "/build/assets/BranchForm-idigvl70.js"
   ],
   "resources/js/pages/Cabinet/Branches.tsx": [
-    "/build/assets/Branches-B4ctfjCt.js"
+    "/build/assets/Branches-BfcDFhZj.js"
   ],
   "resources/js/pages/Cabinet/Broadcasts.tsx": [
-    "/build/assets/Broadcasts-R0GLHDgF.js"
+    "/build/assets/Broadcasts-CMc5HWe8.js"
   ],
   "resources/js/pages/Cabinet/Calendar.tsx": [
-    "/build/assets/Calendar-DB6hb7lA.js"
+    "/build/assets/Calendar-Bjayn7dE.js"
   ],
   "resources/js/pages/Cabinet/CardBonuses.tsx": [
-    "/build/assets/CardBonuses-B0YvcGPe.js"
+    "/build/assets/CardBonuses-Brz8AdG6.js"
   ],
   "resources/js/pages/Cabinet/Dashboard.tsx": [
-    "/build/assets/Dashboard-BjxCaE3M.js"
+    "/build/assets/Dashboard-B4LOGrlj.js"
   ],
   "resources/js/pages/Cabinet/DoctorForm.tsx": [
-    "/build/assets/DoctorForm-CE9XXxqs.js"
+    "/build/assets/DoctorForm-ByFlcHxl.js"
   ],
   "resources/js/pages/Cabinet/DoctorSchedules.tsx": [
-    "/build/assets/DoctorSchedules-DET3yhDq.js"
+    "/build/assets/DoctorSchedules-BoMOM3QY.js"
   ],
   "resources/js/pages/Cabinet/Doctors.tsx": [
-    "/build/assets/Doctors-F3YLWlgi.js"
+    "/build/assets/Doctors-BvkfQWVG.js"
   ],
   "resources/js/pages/Cabinet/Documents.tsx": [
-    "/build/assets/Documents-BeanxkNd.js"
+    "/build/assets/Documents-6NrR7pGB.js"
   ],
   "resources/js/pages/Cabinet/Leads.tsx": [
-    "/build/assets/Leads-CctkDML4.js"
+    "/build/assets/Leads-DGCjIT4-.js"
   ],
   "resources/js/pages/Cabinet/Organization.tsx": [
-    "/build/assets/Organization-D5bsAEun.js"
+    "/build/assets/Organization-BM-5cwPz.js"
   ],
   "resources/js/pages/Cabinet/Payments.tsx": [
-    "/build/assets/Payments-K2T4aUED.js"
+    "/build/assets/Payments-CBWOO2Pu.js"
   ],
   "resources/js/pages/Cabinet/Photos.tsx": [
-    "/build/assets/Photos-B5XXOd_K.js"
+    "/build/assets/Photos-tf_LQyE7.js"
   ],
   "resources/js/pages/Cabinet/Posts.tsx": [
-    "/build/assets/Posts-IWi538lH.js"
+    "/build/assets/Posts-CudA0eIe.js"
   ],
   "resources/js/pages/Cabinet/Prices.tsx": [
-    "/build/assets/Prices-BoiOrynP.js"
+    "/build/assets/Prices-DmwcbnMl.js"
   ],
   "resources/js/pages/Cabinet/Promotions.tsx": [
-    "/build/assets/Promotions-CTwsr3Rz.js"
+    "/build/assets/Promotions-DliPXuOc.js"
   ],
   "resources/js/pages/Cabinet/Reviews.tsx": [
-    "/build/assets/Reviews-B55VEyRN.js"
+    "/build/assets/Reviews-ClwU8Yu5.js"
   ],
   "resources/js/pages/Cabinet/Schedule.tsx": [
-    "/build/assets/Schedule-CLwbQBEX.js"
+    "/build/assets/Schedule-CBwVRllu.js"
   ],
   "resources/js/pages/Cabinet/Settings.tsx": [
-    "/build/assets/Settings-D41ZNso_.js"
+    "/build/assets/Settings-CbY3jSuX.js"
   ],
   "resources/js/pages/Cabinet/Staff.tsx": [
-    "/build/assets/Staff-BeI7giNm.js"
+    "/build/assets/Staff-7_tQvH_7.js"
   ],
   "resources/js/pages/Cabinet/Stats.tsx": [
-    "/build/assets/Stats-CCUNBmTr.js"
+    "/build/assets/Stats-DTH2l1le.js"
   ],
   "resources/js/pages/Clinics/Index.tsx": [
-    "/build/assets/Index-DSYaWbv-.js"
+    "/build/assets/Index-C2pPXYxY.js"
   ],
   "resources/js/pages/Clinics/Show.tsx": [
-    "/build/assets/Show-ezmFWqQ9.js"
+    "/build/assets/Show-tI_XRg__.js"
   ],
   "resources/js/pages/Collections/Compare.tsx": [
-    "/build/assets/Compare-CgEBXJup.js"
+    "/build/assets/Compare-Cm3A4r02.js"
   ],
   "resources/js/pages/Collections/Favorites.tsx": [
-    "/build/assets/Favorites-C1JWKTJr.js"
+    "/build/assets/Favorites-s7hLfkY9.js"
   ],
   "resources/js/pages/Concerns/Show.tsx": [
-    "/build/assets/Show-BvNPHBA4.js"
+    "/build/assets/Show-uPdbAscn.js"
   ],
   "resources/js/pages/Directions/Index.tsx": [
-    "/build/assets/Index-D9y5Mkx3.js"
+    "/build/assets/Index-DudMsnB6.js"
   ],
   "resources/js/pages/Directions/Show.tsx": [
-    "/build/assets/Show-DTEY0Cur.js"
+    "/build/assets/Show-DxcAHvz0.js"
   ],
   "resources/js/pages/Doctors/Index.tsx": [
-    "/build/assets/Index-C4_w1uDh.js"
+    "/build/assets/Index-cDTE40My.js"
   ],
   "resources/js/pages/Doctors/Show.tsx": [
-    "/build/assets/Show-yJQYkyin.js"
+    "/build/assets/Show-I2h8Jhfq.js"
   ],
   "resources/js/pages/Error.tsx": [
-    "/build/assets/Error-C19RiLUQ.js"
+    "/build/assets/Error-Bn61fICg.js"
   ],
   "resources/js/pages/Home.tsx": [
-    "/build/assets/Home-CnC52e86.js"
+    "/build/assets/Home-BjSBWyUy.js"
   ],
   "resources/js/pages/Max/Appointments.tsx": [
-    "/build/assets/Appointments-C9ExK5Ov.js"
+    "/build/assets/Appointments-6Q1kE5mL.js"
   ],
   "resources/js/pages/Max/ClinicShow.tsx": [
-    "/build/assets/ClinicShow-DgpzqJuZ.js"
+    "/build/assets/ClinicShow-CxRoJYw6.js"
   ],
   "resources/js/pages/Max/Clinics.tsx": [
-    "/build/assets/Clinics-733uBG2L.js"
+    "/build/assets/Clinics-CIZ7EFZu.js"
   ],
   "resources/js/pages/Max/Home.tsx": [
-    "/build/assets/Home-D1ZtsOvk.js"
+    "/build/assets/Home-D7iSLkyF.js"
   ],
   "resources/js/pages/Offer/Claim.tsx": [
-    "/build/assets/Claim-Bg-kW8bw.js"
+    "/build/assets/Claim-BsXZ22_k.js"
   ],
   "resources/js/pages/Offer/Show.tsx": [
-    "/build/assets/Show-DhCd3JpW.js"
+    "/build/assets/Show-WE4UbIb9.js"
   ],
   "resources/js/pages/Offer/Unsubscribe.tsx": [
-    "/build/assets/Unsubscribe-DcJQ2KHf.js"
+    "/build/assets/Unsubscribe-DJnYbwF7.js"
   ],
   "resources/js/pages/Page.tsx": [
     "/build/assets/Page-BskXDT8U.js"
@@ -1510,12 +1542,12 @@
     "/build/assets/Index-BybvzJG4.js"
   ],
   "resources/js/pages/Reviews/Index.tsx": [
-    "/build/assets/Index-Bshvt-xk.js"
+    "/build/assets/Index-DkMFD2K7.js"
   ],
   "resources/js/pages/Search/Index.tsx": [
-    "/build/assets/Index-P58DP2yU.js"
+    "/build/assets/Index-BrHJwlXR.js"
   ],
   "resources/js/pages/Tz.tsx": [
-    "/build/assets/Tz-wdu_6i2X.js"
+    "/build/assets/Tz-BUkOG5vE.js"
   ]
 }

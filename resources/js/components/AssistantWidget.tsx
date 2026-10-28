@@ -19,14 +19,18 @@ function xsrfToken(): string {
     return match ? decodeURIComponent(match[1]) : '';
 }
 
-/** Живая сфера в духе Siri: переливающиеся цвета сайта; пока ассистент отвечает, вращается быстрее. */
-function AssistantOrb({ active = false, size = 'md' }: { active?: boolean; size?: 'sm' | 'md' }) {
+/**
+ * Знак ассистента: графитовый круг с иконкой «облачко с искрой» и живым переливающимся кольцом
+ * фирменных цветов в духе Siri; пока ассистент отвечает, кольцо вращается быстрее.
+ */
+function AssistantMark({ active = false, size = 'md' }: { active?: boolean; size?: 'sm' | 'md' }) {
     return (
-        <span className={cx('assistant-orb', `assistant-orb--${size}`, active && 'is-active')} aria-hidden="true">
-            <span className="assistant-orb__blob assistant-orb__blob--a" />
-            <span className="assistant-orb__blob assistant-orb__blob--b" />
-            <span className="assistant-orb__blob assistant-orb__blob--c" />
-            <span className="assistant-orb__gloss" />
+        <span className={cx('assistant-mark', `assistant-mark--${size}`, active && 'is-active')} aria-hidden="true">
+            <span className="assistant-mark__glow" />
+            <span className="assistant-mark__ring" />
+            <span className="assistant-mark__core">
+                <Icon name="assistant" size={size === 'sm' ? 20 : 26} strokeWidth={1.8} />
+            </span>
         </span>
     );
 }
@@ -122,9 +126,12 @@ export default function AssistantWidget() {
         const field = inputRef.current;
         if (field) {
             field.style.height = 'auto';
-            field.style.height = `${Math.min(field.scrollHeight, 120)}px`;
+            // +2px: высота строки дробная, без запаса появляется полоса прокрутки и текст уезжает вниз.
+            const contentHeight = field.scrollHeight + 2;
+            field.style.height = `${Math.min(contentHeight, 120)}px`;
+            field.style.overflowY = contentHeight > 120 ? 'auto' : 'hidden';
         }
-    }, [input]);
+    }, [input, open, showLead]);
 
     const send = useCallback(
         async (text: string) => {
@@ -245,14 +252,14 @@ export default function AssistantWidget() {
                         trackAnalyticsEvent(AnalyticsEvents.assistantOpen);
                     }}
                 >
-                    <AssistantOrb />
-                    <Icon name="sparkle" size={22} className="assistant-fab__icon" />
+                    <AssistantMark />
+                    <span className="assistant-fab__label">Спросить AI</span>
                 </button>
             ) : null}
 
             <div ref={panelRef} className={cx('assistant-panel', open && 'is-open')} role="dialog" aria-modal={open} aria-label="AI-ассистент" hidden={!open}>
                 <header className="assistant-panel__head">
-                    <AssistantOrb active={busy} size="sm" />
+                    <AssistantMark active={busy} size="sm" />
                     <div className="assistant-panel__title">
                         <strong>AI-ассистент</strong>
                         <span>{busy ? 'Подбирает ответ…' : 'Поможет найти клинику и врача'}</span>
@@ -342,7 +349,7 @@ export default function AssistantWidget() {
                             autoComplete="off"
                         />
                         <button type="submit" className="assistant-panel__send" aria-label="Отправить" disabled={busy || !input.trim()}>
-                            <Icon name="send" size={20} />
+                            <Icon name="arrow-up" size={20} strokeWidth={2.4} />
                         </button>
                     </form>
                 ) : null}

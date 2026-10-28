@@ -4488,155 +4488,122 @@
     z-index: 90;
     right: max(20px, env(safe-area-inset-right));
     bottom: calc(20px + env(safe-area-inset-bottom));
-    width: 60px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
     height: 60px;
-    padding: 0;
+    padding: 5px 22px 5px 5px;
     border: none;
     border-radius: 999px;
     background: var(--color-graphite);
-    color: #fff;
-    display: grid;
-    place-items: center;
+    color: var(--color-on-graphite);
+    font: inherit;
+    font-size: var(--fs-sm);
+    font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 10px 30px rgb(21 22 19 / 0.28), 0 0 0 4px rgb(202 246 90 / 0.18);
+    box-shadow: 0 12px 32px rgb(21 22 19 / 0.3);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-    animation: assistant-fab-in 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.3);
+    animation: assistant-fab-in 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.25);
     -webkit-tap-highlight-color: transparent;
 }
-/* Пока открыт баннер cookie, кнопка не прячется под ним, а появляется после «Понятно» */
-body:has(.cookie) .assistant-fab {
-    display: none;
-}
 .assistant-fab:hover {
-    transform: translateY(-2px) scale(1.04);
-    box-shadow: 0 14px 36px rgb(21 22 19 / 0.32), 0 0 0 6px rgb(202 246 90 / 0.24);
+    transform: translateY(-2px);
+    box-shadow: 0 16px 40px rgb(21 22 19 / 0.36), 0 0 0 4px rgb(202 246 90 / 0.35);
 }
 .assistant-fab:active {
-    transform: scale(0.94);
+    transform: scale(0.95);
 }
 .assistant-fab:focus-visible {
     outline: 3px solid var(--color-primary);
     outline-offset: 3px;
 }
-.assistant-fab::before {
-    content: '';
-    position: absolute;
-    inset: -4px;
-    border-radius: inherit;
-    border: 2px solid rgb(202 246 90 / 0.55);
-    animation: assistant-pulse 2.8s ease-out infinite;
-    pointer-events: none;
+.assistant-fab__label {
+    white-space: nowrap;
 }
-.assistant-fab .assistant-orb {
-    position: absolute;
-    inset: 5px;
-}
-.assistant-fab__icon {
-    position: relative;
-    z-index: 1;
-    color: var(--color-graphite);
-    filter: drop-shadow(0 1px 1px rgb(255 255 255 / 0.4));
+/* Пока открыт баннер cookie, кнопка не прячется под ним, а появляется после «Понятно» */
+body:has(.cookie) .assistant-fab {
+    display: none;
 }
 @media (max-width: 767px) {
     .assistant-fab {
-        width: 54px;
-        height: 54px;
         right: max(14px, env(safe-area-inset-right));
         bottom: calc(var(--tabbar-h, 56px) + 14px + env(safe-area-inset-bottom));
+        height: 58px;
+        padding: 4px;
+    }
+    .assistant-fab__label {
+        display: none;
     }
 }
 
-/* Сфера в духе Siri: три размытых пятна фирменных цветов вращаются и перетекают друг в друга */
-.assistant-orb {
+/* Знак ассистента: графитовое ядро, переливающееся кольцо и мягкое свечение в цветах сайта */
+.assistant-mark {
     position: relative;
-    display: block;
+    display: inline-grid;
+    place-items: center;
     flex: none;
-    border-radius: 999px;
-    overflow: hidden;
-    isolation: isolate;
-    background: radial-gradient(circle at 50% 50%, #e9ffb0 0%, #caf65a 45%, #8fd14a 100%);
-}
-.assistant-orb--md {
     width: 50px;
     height: 50px;
+    border-radius: 999px;
+    isolation: isolate;
 }
-.assistant-orb--sm {
+.assistant-mark--sm {
     width: 40px;
     height: 40px;
 }
-.assistant-orb__blob {
-    position: absolute;
-    width: 75%;
-    height: 75%;
-    border-radius: 45% 55% 60% 40%;
-    filter: blur(6px);
-    mix-blend-mode: multiply;
-    opacity: 0.9;
-}
-.assistant-orb__blob--a {
-    top: -12%;
-    left: -10%;
-    background: #caf65a;
-    animation: assistant-blob-a 6s ease-in-out infinite;
-}
-.assistant-orb__blob--b {
-    right: -18%;
-    top: 10%;
-    background: #3ddc97;
-    animation: assistant-blob-b 7s ease-in-out infinite;
-}
-.assistant-orb__blob--c {
-    bottom: -20%;
-    left: 12%;
-    background: #6fb7ff;
-    animation: assistant-blob-c 8s ease-in-out infinite;
-}
-.assistant-orb__gloss {
+.assistant-mark__glow,
+.assistant-mark__ring {
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background:
-        radial-gradient(circle at 32% 26%, rgb(255 255 255 / 0.85) 0%, rgb(255 255 255 / 0) 38%),
-        radial-gradient(circle at 70% 85%, rgb(21 22 19 / 0.18) 0%, rgb(21 22 19 / 0) 55%);
-    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.35);
+    background: conic-gradient(from 0deg, #caf65a, #3ddc97, #6fb7ff, #b98cff, #caf65a);
+    animation: assistant-spin 4s linear infinite;
 }
-.assistant-orb.is-active .assistant-orb__blob--a {
-    animation-duration: 1.6s;
+.assistant-mark__glow {
+    inset: 2px;
+    filter: blur(8px);
+    opacity: 0.75;
+    z-index: -1;
+    animation-name: assistant-spin, assistant-glow;
+    animation-duration: 4s, 2.6s;
+    animation-timing-function: linear, ease-in-out;
+    animation-iteration-count: infinite, infinite;
 }
-.assistant-orb.is-active .assistant-orb__blob--b {
-    animation-duration: 1.9s;
+.assistant-mark__core {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: calc(100% - 6px);
+    height: calc(100% - 6px);
+    border-radius: inherit;
+    background: radial-gradient(circle at 30% 25%, #2c2e29 0%, var(--color-graphite) 70%);
+    color: var(--color-primary);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08);
 }
-.assistant-orb.is-active .assistant-orb__blob--c {
-    animation-duration: 2.2s;
+.assistant-mark__core svg {
+    animation: assistant-twinkle 3.2s ease-in-out infinite;
 }
-.assistant-orb.is-active {
-    animation: assistant-breathe 1.2s ease-in-out infinite;
+.assistant-mark.is-active .assistant-mark__ring,
+.assistant-mark.is-active .assistant-mark__glow {
+    animation-duration: 1.1s, 1s;
 }
-@keyframes assistant-blob-a {
-    0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
-    33% { transform: translate(30%, 18%) rotate(120deg) scale(1.15); }
-    66% { transform: translate(8%, 40%) rotate(240deg) scale(0.9); }
+.assistant-mark.is-active .assistant-mark__glow {
+    opacity: 1;
 }
-@keyframes assistant-blob-b {
-    0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
-    33% { transform: translate(-35%, 25%) rotate(-120deg) scale(0.9); }
-    66% { transform: translate(-15%, -20%) rotate(-240deg) scale(1.2); }
+@keyframes assistant-spin {
+    to { transform: rotate(360deg); }
 }
-@keyframes assistant-blob-c {
-    0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1.05); }
-    50% { transform: translate(15%, -45%) rotate(180deg) scale(0.85); }
+@keyframes assistant-glow {
+    0%, 100% { opacity: 0.45; transform: scale(0.96); }
+    50% { opacity: 0.9; transform: scale(1.12); }
 }
-@keyframes assistant-breathe {
+@keyframes assistant-twinkle {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.08); }
 }
-@keyframes assistant-pulse {
-    0% { transform: scale(1); opacity: 0.8; }
-    70%, 100% { transform: scale(1.35); opacity: 0; }
-}
 @keyframes assistant-fab-in {
-    from { transform: scale(0.4); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+    from { transform: translateY(12px) scale(0.6); opacity: 0; }
+    to { transform: none; opacity: 1; }
 }
 @keyframes assistant-panel-in {
     from { transform: translateY(16px) scale(0.98); opacity: 0; }
@@ -4835,9 +4802,11 @@ body:has(.cookie) .assistant-fab {
     align-items: flex-end;
     gap: 8px;
     margin: 0 12px;
-    padding: 6px 6px 6px 16px;
+    min-height: 54px;
+    padding: 6px 6px 6px 18px;
     border: 1px solid var(--color-line-strong);
-    border-radius: 26px;
+    border-radius: 27px;
+    box-shadow: var(--shadow-soft);
     background: var(--color-surface);
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
@@ -4857,7 +4826,12 @@ body:has(.cookie) .assistant-fab {
     flex: 1;
     min-width: 0;
     max-height: 120px;
-    padding: 9px 0;
+    align-self: center;
+    min-height: 24px;
+    height: 24px;
+    padding: 0;
+    margin: 0;
+    overflow-y: hidden;
     border: none;
     background: transparent;
     color: var(--color-text);
@@ -4944,8 +4918,9 @@ body:has(.cookie) .assistant-fab {
     .assistant-fab,
     .assistant-fab::before,
     .assistant-panel,
-    .assistant-orb,
-    .assistant-orb__blob,
+    .assistant-mark__ring,
+    .assistant-mark__glow,
+    .assistant-mark__core svg,
     .assistant-typing span {
         animation: none !important;
     }
@@ -5011,6 +4986,8 @@ body:has(.cookie) .assistant-fab {
 html.is-navigating .main,
 html.is-navigating .max-app__main { opacity: 0.55; transition-delay: 0.12s; }
 html.is-navigating, html.is-navigating a { cursor: progress; }
+/* Иначе плавная прокрутка прерывается сменой страницы и новая открывается с середины */
+html.is-navigating { scroll-behavior: auto !important; }
 @media (prefers-reduced-motion: reduce) {
     .main, .max-app__main { transition: none; }
 }

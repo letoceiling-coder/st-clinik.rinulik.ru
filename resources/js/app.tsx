@@ -2,10 +2,12 @@ import '../css/app.css';
 import { createInertiaApp, router } from '@inertiajs/react';
 import { setupFastNavigation } from '@/lib/fast-navigation';
 import { registerServiceWorker } from '@/lib/pwa-install';
+import { setupTouchHover } from '@/lib/touch-hover';
 import { AnalyticsEvents, trackAnalyticsEvent } from '@/lib/analytics';
 
 registerServiceWorker();
 setupFastNavigation();
+setupTouchHover();
 
 declare global {
     interface Window {
