@@ -93,6 +93,20 @@ class User extends Authenticatable implements MustVerifyEmail
         return count($this->permissions()) > 0;
     }
 
+    /**
+     * Может ли сотрудник выдать этот набор прав: только те, что есть у него самого. Суперадмин — любые.
+     *
+     * @param  list<string>  $permissions
+     */
+    public function canGrant(array $permissions): bool
+    {
+        if ($this->isSuperadmin()) {
+            return true;
+        }
+
+        return ! in_array('*', $permissions, true) && array_diff($permissions, $this->permissions()) === [];
+    }
+
     public function usesPlaceholderEmail(): bool
     {
         return str_ends_with(strtolower((string) $this->email), '.local');

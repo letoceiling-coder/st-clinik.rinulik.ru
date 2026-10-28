@@ -60,7 +60,8 @@ class DashboardController extends AdminController
                 $s => (int) ($clinicsByStatus[$s] ?? 0),
             ])->all(),
             'queue' => $queue + ['total' => array_sum($queue)],
-            'audit' => AuditLog::with('user:id,name')->latest('id')->limit(8)->get()->map(fn ($a) => [
+            // Лента действий сотрудников — только тем, у кого есть доступ к журналу аудита.
+            'audit' => ! request()->user()?->hasPermission('admin.audit') ? [] : AuditLog::with('user:id,name')->latest('id')->limit(8)->get()->map(fn ($a) => [
                 'id' => $a->id, 'action' => $a->action, 'user' => $a->user?->name ?? 'система',
                 'at' => $a->created_at?->format('d.m H:i'),
             ]),

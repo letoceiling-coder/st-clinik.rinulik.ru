@@ -3852,21 +3852,21 @@ var ALL = [
 		label: "Записи",
 		icon: "calendar",
 		group: "Работа",
-		perm: "admin.dashboard"
+		perm: "admin.appointments"
 	},
 	{
 		href: "/admin/reports",
 		label: "Отчёты",
 		icon: "file",
 		group: "Работа",
-		perm: "admin.dashboard"
+		perm: "admin.reports"
 	},
 	{
 		href: "/admin/analytics",
 		label: "Аналитика",
 		icon: "chart",
 		group: "Работа",
-		perm: "admin.dashboard"
+		perm: "admin.analytics"
 	},
 	{
 		href: "/admin/geography",
@@ -3900,22 +3900,22 @@ var ALL = [
 		href: "/admin/site-display",
 		label: "Сайт: карта и реклама",
 		icon: "globe",
-		group: "Работа",
-		perm: "admin.promotions"
+		group: "Контент и SEO",
+		perm: "admin.site_display"
 	},
 	{
 		href: "/admin/tariffs",
 		label: "Тарифы",
 		icon: "ruble",
 		group: "Работа",
-		perm: "admin.promotions"
+		perm: "admin.tariffs"
 	},
 	{
 		href: "/admin/finance",
 		label: "Финансы",
 		icon: "chart",
 		group: "Работа",
-		perm: "admin.promotions"
+		perm: "admin.finance"
 	},
 	{
 		href: "/admin/card-bonuses",
@@ -4594,10 +4594,10 @@ var renderPromise = createInertiaApp({
 			"./pages/Admin/Promotions.tsx": () => import("./assets/Promotions-CjaMwu5E.js"),
 			"./pages/Admin/Reports.tsx": () => import("./assets/Reports-TIrifCa3.js"),
 			"./pages/Admin/Reviews.tsx": () => import("./assets/Reviews-CZppT3Ml.js"),
-			"./pages/Admin/Roles.tsx": () => import("./assets/Roles-C9r1kE7T.js"),
+			"./pages/Admin/Roles.tsx": () => import("./assets/Roles-wGzgA-Gc.js"),
 			"./pages/Admin/SiteDisplay.tsx": () => import("./assets/SiteDisplay-BlLVyKAC.js"),
 			"./pages/Admin/Tariffs.tsx": () => import("./assets/Tariffs-Dn9Xns0e.js"),
-			"./pages/Admin/UserShow.tsx": () => import("./assets/UserShow-2BHFQgf6.js"),
+			"./pages/Admin/UserShow.tsx": () => import("./assets/UserShow-DM2kQ7E4.js"),
 			"./pages/Admin/Users.tsx": () => import("./assets/Users-hdTnm7uX.js"),
 			"./pages/Auth/AcceptStaffInvite.tsx": () => import("./assets/AcceptStaffInvite-VodrJ_aE.js"),
 			"./pages/Auth/ForgotPassword.tsx": () => import("./assets/ForgotPassword-D4sBYXzF.js"),

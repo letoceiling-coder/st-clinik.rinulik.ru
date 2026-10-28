@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\Audit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Inertia\Response;
 
 class UserController extends AdminController
@@ -69,7 +70,12 @@ class UserController extends AdminController
                 'action' => $a->action,
                 'at' => $a->created_at?->format('d.m.Y H:i'),
             ]),
-            'roles' => Role::orderBy('name')->get(['slug', 'name']),
+            // Только роли, которые этот сотрудник вправе назначить.
+            'roles' => Role::orderBy('name')->get(['slug', 'name', 'permissions'])
+                ->filter(fn (Role $r) => request()->user()->canGrant($r->permissions ?? []))
+                ->map(fn (Role $r) => ['slug' => $r->slug, 'name' => $r->name])
+                ->values(),
+            'canEdit' => request()->user()->canGrant($user->permissions()) && request()->user()->id !== $user->id,
         ]);
     }
 
@@ -80,6 +86,14 @@ class UserController extends AdminController
             'role' => 'required|exists:roles,slug',
             'status' => 'required|in:active,blocked',
         ]);
+
+        // Нельзя назначить роль шире собственных прав и нельзя трогать сотрудника с правами шире своих (например, суперадмина).
+        $actor = $request->user();
+        $newRole = Role::query()->find($data['role']);
+        abort_unless($actor->canGrant($user->permissions()), 403, 'Изменить этого пользователя может только сотрудник с не меньшими правами.');
+        if (! $actor->canGrant($newRole?->permissions ?? [])) {
+            throw ValidationException::withMessages(['role' => 'Можно назначать только роли, права которых есть у вас самих.']);
+        }
 
         $user->forceFill($data)->save();
         Audit::log('user.updated', $user, $data);

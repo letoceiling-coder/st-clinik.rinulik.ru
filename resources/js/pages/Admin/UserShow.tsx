@@ -10,6 +10,7 @@ export default function UserShow({
     appointments,
     audit,
     roles,
+    canEdit,
 }: {
     user: { id: number; name: string; email: string; phone: string | null; role: string; status: string; created_at: string | null; last_login_at: string | null };
     stats: { reviews: number; appointments: number };
@@ -17,6 +18,7 @@ export default function UserShow({
     appointments: { id: number; starts_at: string | null; status: string; clinic: string | null }[];
     audit: { action: string; at: string | null }[];
     roles: { slug: string; name: string }[];
+    canEdit: boolean;
 }) {
     const form = useForm({ role: user.role, status: user.status });
 
@@ -46,20 +48,25 @@ export default function UserShow({
                 }}
             >
                 <h2 className="card-title">Роль и доступ</h2>
-                <SelectField label="Роль" value={form.data.role} onChange={(e) => form.setData('role', e.target.value)}>
-                    {roles.map((r) => (
+                {!canEdit ? (
+                    <p className="text-sm text-muted">Роль и статус этого пользователя может изменить только сотрудник с не меньшими правами (или это ваша учётная запись).</p>
+                ) : null}
+                <SelectField label="Роль" disabled={!canEdit} value={form.data.role} onChange={(e) => form.setData('role', e.target.value)}>
+                    {(roles.some((r) => r.slug === user.role) ? roles : [{ slug: user.role, name: user.role }, ...roles]).map((r) => (
                         <option key={r.slug} value={r.slug}>
                             {r.name}
                         </option>
                     ))}
                 </SelectField>
-                <SelectField label="Статус" value={form.data.status} onChange={(e) => form.setData('status', e.target.value)}>
+                <SelectField label="Статус" disabled={!canEdit} value={form.data.status} onChange={(e) => form.setData('status', e.target.value)}>
                     <option value="active">Активен</option>
                     <option value="blocked">Заблокирован</option>
                 </SelectField>
-                <Button type="submit" loading={form.processing}>
-                    Сохранить
-                </Button>
+                {canEdit ? (
+                    <Button type="submit" loading={form.processing}>
+                        Сохранить
+                    </Button>
+                ) : null}
             </form>
             <section className="card stack">
                 <h2 className="card-title">Последние отзывы</h2>

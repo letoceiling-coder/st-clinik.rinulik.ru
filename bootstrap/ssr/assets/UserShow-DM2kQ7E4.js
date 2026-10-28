@@ -4,7 +4,7 @@ import { r as PageHead, s as StatusBadge } from "./Dash-BqP8YCar.js";
 import { Link, useForm } from "@inertiajs/react";
 import { jsx, jsxs } from "react/jsx-runtime";
 //#region resources/js/pages/Admin/UserShow.tsx
-function UserShow({ user, stats, reviews, appointments, audit, roles }) {
+function UserShow({ user, stats, reviews, appointments, audit, roles, canEdit }) {
 	const form = useForm({
 		role: user.role,
 		status: user.status
@@ -45,17 +45,26 @@ function UserShow({ user, stats, reviews, appointments, audit, roles }) {
 						className: "card-title",
 						children: "Роль и доступ"
 					}),
+					!canEdit ? /* @__PURE__ */ jsx("p", {
+						className: "text-sm text-muted",
+						children: "Роль и статус этого пользователя может изменить только сотрудник с не меньшими правами (или это ваша учётная запись)."
+					}) : null,
 					/* @__PURE__ */ jsx(SelectField, {
 						label: "Роль",
+						disabled: !canEdit,
 						value: form.data.role,
 						onChange: (e) => form.setData("role", e.target.value),
-						children: roles.map((r) => /* @__PURE__ */ jsx("option", {
+						children: (roles.some((r) => r.slug === user.role) ? roles : [{
+							slug: user.role,
+							name: user.role
+						}, ...roles]).map((r) => /* @__PURE__ */ jsx("option", {
 							value: r.slug,
 							children: r.name
 						}, r.slug))
 					}),
 					/* @__PURE__ */ jsxs(SelectField, {
 						label: "Статус",
+						disabled: !canEdit,
 						value: form.data.status,
 						onChange: (e) => form.setData("status", e.target.value),
 						children: [/* @__PURE__ */ jsx("option", {
@@ -66,11 +75,11 @@ function UserShow({ user, stats, reviews, appointments, audit, roles }) {
 							children: "Заблокирован"
 						})]
 					}),
-					/* @__PURE__ */ jsx(Button, {
+					canEdit ? /* @__PURE__ */ jsx(Button, {
 						type: "submit",
 						loading: form.processing,
 						children: "Сохранить"
-					})
+					}) : null
 				]
 			}),
 			/* @__PURE__ */ jsxs("section", {
@@ -120,4 +129,4 @@ function UserShow({ user, stats, reviews, appointments, audit, roles }) {
 //#endregion
 export { UserShow as default };
 
-//# sourceMappingURL=UserShow-2BHFQgf6.js.map
+//# sourceMappingURL=UserShow-DM2kQ7E4.js.map

@@ -5169,3 +5169,147 @@ html.is-navigating { scroll-behavior: auto !important; }
     margin: 0;
     overflow-wrap: anywhere;
 }
+
+/* Админка: роли и права */
+.roles-card {
+    padding: 0;
+    overflow: hidden;
+}
+.roles-card__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 16px;
+    padding: var(--space-4) var(--space-5);
+    list-style: none;
+    cursor: pointer;
+}
+.roles-card__head::-webkit-details-marker {
+    display: none;
+}
+.roles-card__head::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid var(--color-muted);
+    border-bottom: 2px solid var(--color-muted);
+    transform: rotate(45deg);
+    transition: transform 0.2s ease;
+}
+.roles-card[open] > .roles-card__head::after {
+    transform: rotate(-135deg);
+}
+.roles-card__title {
+    display: grid;
+    gap: 2px;
+    flex: 1 1 280px;
+    min-width: 0;
+}
+.roles-card__meta {
+    display: grid;
+    justify-items: end;
+    gap: 6px;
+}
+.roles-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: flex-end;
+}
+.roles-card__body {
+    padding: 0 var(--space-5) var(--space-5);
+    border-top: 1px solid var(--color-line);
+    padding-top: var(--space-4);
+}
+.roles-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.5;
+    background: var(--color-surface-muted);
+    color: var(--color-muted);
+    white-space: nowrap;
+}
+.roles-tag--patients { background: var(--color-info-soft); color: var(--color-info); }
+.roles-tag--money { background: var(--color-warning-soft); color: var(--color-warning); }
+.roles-tag--keys,
+.roles-tag--access { background: var(--color-danger-soft); color: var(--color-danger); }
+.roles-perms {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    gap: var(--space-4);
+}
+.roles-perms__group {
+    display: grid;
+    gap: 6px;
+    align-content: start;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+}
+.roles-perms__group legend {
+    margin-bottom: 6px;
+    padding: 0;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--color-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.roles-perm {
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr);
+    gap: 10px;
+    align-items: start;
+    padding: 10px 12px;
+    border: 1px solid var(--color-line);
+    border-radius: 12px;
+    background: var(--color-surface);
+    cursor: pointer;
+}
+.roles-perm.is-on {
+    border-color: var(--color-graphite);
+    background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+}
+.roles-perm.is-locked {
+    cursor: default;
+    opacity: 0.75;
+}
+.roles-perm input {
+    width: 18px;
+    height: 18px;
+    margin: 1px 0 0;
+    accent-color: var(--color-graphite);
+}
+.roles-perm__text {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+.roles-perm__label {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+}
+.roles-perm__hint {
+    font-size: var(--fs-caption);
+    color: var(--color-muted);
+    line-height: 1.4;
+}
+.roles-site {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+    gap: var(--space-3);
+}
+.roles-site__item {
+    display: grid;
+    gap: 4px;
+}

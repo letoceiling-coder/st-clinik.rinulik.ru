@@ -306,11 +306,13 @@ Route::middleware(['clinic.owner', 'cabinet.ability'])->prefix('clinic-cabinet')
 // --- Админ-панель --------------------------------------------------------
 Route::middleware(['auth', 'perm:admin.dashboard'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [Admin\DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/appointments', [Admin\AppointmentController::class, 'index'])->name('appointments');
-    Route::get('/reports', [Admin\ReportController::class, 'index'])->name('reports');
-    Route::post('/reports', [Admin\ReportController::class, 'store'])->name('reports.store');
-    Route::get('/reports/{export}/download', [Admin\ReportController::class, 'download'])->name('reports.download')->whereNumber('export');
-    Route::get('/analytics', [Admin\AnalyticsController::class, 'index'])->name('analytics');
+    Route::get('/appointments', [Admin\AppointmentController::class, 'index'])->middleware('perm:admin.appointments')->name('appointments');
+    Route::middleware('perm:admin.reports')->group(function () {
+        Route::get('/reports', [Admin\ReportController::class, 'index'])->name('reports');
+        Route::post('/reports', [Admin\ReportController::class, 'store'])->name('reports.store');
+        Route::get('/reports/{export}/download', [Admin\ReportController::class, 'download'])->name('reports.download')->whereNumber('export');
+    });
+    Route::get('/analytics', [Admin\AnalyticsController::class, 'index'])->middleware('perm:admin.analytics')->name('analytics');
 
     Route::middleware('perm:admin.dictionaries')->group(function () {
         Route::get('/geography', [Admin\GeographyController::class, 'index'])->name('geography');
@@ -474,20 +476,26 @@ Route::middleware(['auth', 'perm:admin.dashboard'])->prefix('admin')->name('admi
         Route::delete('/contacts/{contact}', [Admin\ParserController::class, 'destroyContact'])->name('contacts.destroy')->whereNumber('contact');
     });
 
-    Route::middleware('perm:admin.promotions')->group(function () {
+    Route::middleware('perm:admin.site_display')->group(function () {
         Route::get('/site-display', [Admin\SiteDisplayController::class, 'index'])->name('site-display');
         Route::put('/site-display', [Admin\SiteDisplayController::class, 'update'])->name('site-display.update');
+    });
+
+    Route::middleware('perm:admin.promotions')->group(function () {
         Route::get('/card-bonuses', [Admin\CardBonusTypeController::class, 'index'])->name('card-bonuses');
         Route::put('/card-bonuses', [Admin\CardBonusTypeController::class, 'update'])->name('card-bonuses.update');
         Route::get('/clinic-card-appearance', [Admin\ClinicCardAppearanceController::class, 'index'])->name('clinic-card-appearance');
         Route::put('/clinic-card-appearance', [Admin\ClinicCardAppearanceController::class, 'update'])->name('clinic-card-appearance.update');
     });
 
-    Route::middleware('perm:admin.promotions')->group(function () {
+    Route::middleware('perm:admin.tariffs')->group(function () {
         Route::get('/tariffs', [Admin\TariffController::class, 'index'])->name('tariffs.index');
         Route::post('/tariffs', [Admin\TariffController::class, 'store'])->name('tariffs.store');
         Route::put('/tariffs/trial', [Admin\TariffController::class, 'trial'])->name('tariffs.trial');
         Route::put('/tariffs/{tariff}', [Admin\TariffController::class, 'update'])->name('tariffs.update')->whereNumber('tariff');
+    });
+
+    Route::middleware('perm:admin.finance')->group(function () {
         Route::get('/finance', [Admin\FinanceController::class, 'index'])->name('finance.index');
         Route::put('/finance/settings', [Admin\FinanceController::class, 'updateSettings'])->name('finance.settings');
         Route::post('/finance/payments/{payment}/refund', [Admin\FinanceController::class, 'refund'])->name('finance.refund')->whereNumber('payment');
