@@ -315,7 +315,7 @@ class AssistantChatService
             $lines[] = '— Районы города: '.$districts->implode(', ').'.';
         }
 
-        $popular = Service::query()->where('is_active', true)->orderBy('sort')->limit(14)->pluck('name');
+        $popular = Service::query()->where('is_active', true)->orderByDesc('is_popular')->orderBy('id')->limit(14)->pluck('name');
         if ($popular->isNotEmpty()) {
             $lines[] = '— Примеры услуг в каталоге: '.$popular->implode(', ').'.';
         }
