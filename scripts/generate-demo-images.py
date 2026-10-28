@@ -99,7 +99,7 @@ def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     RAW.mkdir(parents=True, exist_ok=True)
     attributions: list[str] = [
-        "Demo images for StomKlinik prototype.",
+        "Demo images for MirKlinik prototype.",
         "Sources: Openverse (CC0 / CC BY / CC BY-SA). Not for production without license review.",
         "",
     ]

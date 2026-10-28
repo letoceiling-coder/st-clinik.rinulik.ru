@@ -51,7 +51,7 @@ class PaymentService
         $init = $this->tbank->initPayment(
             amount: (int) $payment->amount,
             orderId: sprintf('pay-%d-%d', $payment->id, now()->timestamp),
-            description: (string) ($payment->description ?? 'Оплата на СтомКлиник'),
+            description: (string) ($payment->description ?? 'Оплата на МирКлиник'),
             metadata: ['payment_id' => (string) $payment->id],
             successUrl: route('cabinet.payments.return', ['payment' => $payment->id]),
             failUrl: route('cabinet.payments.index'),

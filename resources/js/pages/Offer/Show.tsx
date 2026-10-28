@@ -87,7 +87,7 @@ export default function OfferShow({ offer, clinic, stats, tariffs, plans, prepar
             <section className="offer-stats" aria-label="Клиника и город">
                 <Stat label="Рейтинг на Яндекс Картах" value={stats.yandex_rating ? stats.yandex_rating.toFixed(1).replace('.', ',') : '—'} hint={`${stats.yandex_reviews} отзывов`} />
                 <Stat label={`Стоматологий${stats.city ? ` в городе ${stats.city}` : ''}`} value={String(stats.competitors)} hint="ваши конкуренты за пациента" />
-                <Stat label="Клиник уже на СтомКлиник" value={String(stats.platform_clinics)} hint="в этом городе" />
+                <Stat label="Клиник уже на МирКлиник" value={String(stats.platform_clinics)} hint="в этом городе" />
                 <Stat label="Просмотров карточек клиник" value={stats.platform_views} hint="в этом городе" />
             </section>
 

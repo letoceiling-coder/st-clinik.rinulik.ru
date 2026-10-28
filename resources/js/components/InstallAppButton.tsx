@@ -52,7 +52,7 @@ export default function InstallAppButton({ className, variant = 'icon' }: { clas
                 </button>
             )}
 
-            <Drawer open={hintOpen} onClose={() => setHintOpen(false)} title="Установить СтомКлиник">
+            <Drawer open={hintOpen} onClose={() => setHintOpen(false)} title="Установить МирКлиник">
                 <div className="stack install-hint">
                     <p className="text-sm text-muted">
                         Добавьте сайт на рабочий стол или домашний экран — запуск в один тап, без адресной строки.

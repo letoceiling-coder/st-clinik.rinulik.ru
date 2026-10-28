@@ -51,7 +51,7 @@ class ClaimVerification
         $phone = $this->phone($offer) ?? throw new RuntimeException('У клиники нет мобильного номера для подтверждения.');
         $code = (string) random_int(100000, 999999);
         Cache::put($this->key($offer, $user), ['hash' => hash('sha256', $code), 'attempts' => 0], now()->addMinutes(self::TTL_MINUTES));
-        $this->sms->send($phone, "СтомКлиник: код подтверждения {$code}. Никому его не сообщайте.");
+        $this->sms->send($phone, "МирКлиник: код подтверждения {$code}. Никому его не сообщайте.");
     }
 
     public function verify(Offer $offer, User $user, string $code): bool

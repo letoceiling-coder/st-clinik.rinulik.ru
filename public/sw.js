@@ -12,7 +12,7 @@ self.addEventListener('fetch', () => {
 });
 
 self.addEventListener('push', (event) => {
-    let data = { title: 'СтомКлиник', body: '', url: '/' };
+    let data = { title: 'МирКлиник', body: '', url: '/' };
     try {
         if (event.data) {
             data = { ...data, ...event.data.json() };

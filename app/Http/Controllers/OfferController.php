@@ -234,7 +234,7 @@ class OfferController extends Controller
     {
         $offer = Offer::findByToken($token);
         abort_unless($offer, 404);
-        abort_unless($offer->isAvailable(), 410, 'Срок действия предложения истёк. Свяжитесь с менеджером СтомКлиник — пришлём актуальное.');
+        abort_unless($offer->isAvailable(), 410, 'Срок действия предложения истёк. Свяжитесь с менеджером МирКлиник — пришлём актуальное.');
 
         return $offer;
     }

@@ -32,7 +32,7 @@ function PremiumCardPreview({ skinClass }: { skinClass: string }) {
             </div>
             <div className="clinic-card__body">
                 <h3 className="clinic-card__title">
-                    <span>СтомКлиник «Пример»</span>
+                    <span>МирКлиник «Пример»</span>
                 </h3>
                 <p className="clinic-card__address text-sm">ул. Примерная, 12 · 500 м</p>
                 <div className="clinic-card__prices-wrap">

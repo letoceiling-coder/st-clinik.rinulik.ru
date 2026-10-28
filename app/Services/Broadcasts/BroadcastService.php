@@ -427,7 +427,7 @@ class BroadcastService
         $html .= '<p style="font-size:12px;color:#666"><a href="'.e($unsub).'">'.e($unsubLabel).'</a></p>';
 
         return [
-            'subject' => $prefix.($broadcast->name ?: 'СтомКлиник'),
+            'subject' => $prefix.($broadcast->name ?: 'МирКлиник'),
             'plain' => $plain,
             'html' => $html,
         ];

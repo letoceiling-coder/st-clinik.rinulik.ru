@@ -171,7 +171,7 @@ class IntegrationController extends AdminController
             );
         }
 
-        $title = 'Тест СтомКлиник';
+        $title = 'Тест МирКлиник';
         $body = 'Web Push работает — можно получать уведомления в браузере.';
         $url = route('admin.integrations.index').'#integration-web_push';
 

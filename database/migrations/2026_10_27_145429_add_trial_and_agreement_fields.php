@@ -27,7 +27,7 @@ return new class extends Migration
                 'title' => 'Соглашение с клиникой',
                 'kind' => 'legal',
                 'body' => require database_path('seeders/data/clinic-agreement.php'),
-                'meta_description' => 'Условия размещения клиники на СтомКлиник и пробного периода.',
+                'meta_description' => 'Условия размещения клиники на МирКлиник и пробного периода.',
                 'status' => 'published',
                 'created_at' => now(),
                 'updated_at' => now(),

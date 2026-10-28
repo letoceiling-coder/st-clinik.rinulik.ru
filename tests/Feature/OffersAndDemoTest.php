@@ -77,7 +77,7 @@ class OffersAndDemoTest extends TestCase
 
         $this->get($offer->shortUrl())->assertRedirect($offer->url());
         $this->get($offer->url())->assertOk()->assertHeader('X-Robots-Tag', 'noindex, nofollow, noarchive')
-            ->assertInertia(fn ($page) => $page->component('Offer/Show')->where('offer.title', $offer->clinic->name.' на СтомКлиник')->whereNot('demo_url', null));
+            ->assertInertia(fn ($page) => $page->component('Offer/Show')->where('offer.title', $offer->clinic->name.' на МирКлиник')->whereNot('demo_url', null));
         $this->assertSame(1, $offer->fresh()->views_count);
         $this->assertSame('viewed', $offer->fresh()->status);
 

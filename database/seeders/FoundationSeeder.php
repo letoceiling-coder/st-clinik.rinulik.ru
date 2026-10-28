@@ -125,7 +125,7 @@ class FoundationSeeder extends Seeder
             CmsPage::updateOrCreate(['slug' => $page['slug']], [
                 'title' => $page['title'],
                 'body' => $page['body'],
-                'meta_title' => $page['title'].' | СтомКлиник',
+                'meta_title' => $page['title'].' | МирКлиник',
                 'meta_description' => $page['meta_description'] ?? null,
                 'kind' => 'page',
                 'status' => 'published',

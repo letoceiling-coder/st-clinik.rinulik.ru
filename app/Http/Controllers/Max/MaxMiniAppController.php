@@ -45,7 +45,7 @@ class MaxMiniAppController extends Controller
         $props = $home->inertiaProps($city);
         $seoData = $this->seo->build('home', ['count' => $props['stats']['clinics_total'], 'city' => $city->name], [$schema->website()]);
 
-        return $this->page('Max/Home', $this->maxProps($props), $this->seo->private('СтомКлиник в MAX'));
+        return $this->page('Max/Home', $this->maxProps($props), $this->seo->private('МирКлиник в MAX'));
     }
 
     public function clinics(Request $request, CatalogController $catalog): Response

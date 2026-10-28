@@ -121,7 +121,7 @@ function OfferShow({ offer, clinic, stats, tariffs, plans, prepared, extra_html,
 						hint: "ваши конкуренты за пациента"
 					}),
 					/* @__PURE__ */ jsx(Stat, {
-						label: "Клиник уже на СтомКлиник",
+						label: "Клиник уже на МирКлиник",
 						value: String(stats.platform_clinics),
 						hint: "в этом городе"
 					}),
@@ -394,4 +394,4 @@ function Stat({ label, value, hint }) {
 //#endregion
 export { OfferShow as default };
 
-//# sourceMappingURL=Show-WE4UbIb9.js.map
+//# sourceMappingURL=Show-CTRFah0o.js.map

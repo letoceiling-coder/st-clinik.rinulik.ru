@@ -14,7 +14,7 @@ export default function OfferUnsubscribe({ contact, done }: { contact: string; d
                 <h1 className="offer-section-title">Отписка от предложений</h1>
                 {done ? (
                     <Alert tone="success" icon="check-circle">
-                        Готово: на {contact} больше не будут приходить предложения СтомКлиник.
+                        Готово: на {contact} больше не будут приходить предложения МирКлиник.
                     </Alert>
                 ) : (
                     <>

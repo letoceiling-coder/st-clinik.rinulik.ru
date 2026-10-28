@@ -666,7 +666,7 @@ class DemoSeeder extends Seeder
             ['lead_status', 'Заявка подтверждена', 'Клиника подтвердила вашу запись. Приходите за 10 минут до приёма.', '/account/leads'],
             ['review_published', 'Ваш отзыв опубликован', 'Спасибо! Отзыв прошёл модерацию и виден всем пользователям.', '/account/reviews'],
             ['review_pending', 'Отзыв на проверке', 'Модератор проверит отзыв в течение 48 часов.', '/account/reviews'],
-            ['system', 'Добро пожаловать в СтомКлиник', 'Сохраняйте клиники в избранное и сравнивайте цены «от».', '/favorites'],
+            ['system', 'Добро пожаловать в МирКлиник', 'Сохраняйте клиники в избранное и сравнивайте цены «от».', '/favorites'],
         ] as $i => [$type, $title, $body, $url]) {
             UserNotification::create([
                 'user_id' => $user->id, 'type' => $type, 'title' => $title, 'body' => $body, 'url' => $url,

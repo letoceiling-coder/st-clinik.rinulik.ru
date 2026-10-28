@@ -24,7 +24,7 @@ function OfferUnsubscribe({ contact, done }) {
 				children: [
 					"Готово: на ",
 					contact,
-					" больше не будут приходить предложения СтомКлиник."
+					" больше не будут приходить предложения МирКлиник."
 				]
 			}) : /* @__PURE__ */ jsxs(Fragment, { children: [/* @__PURE__ */ jsxs("p", { children: [
 				"Больше не присылать коммерческие предложения на ",
@@ -41,4 +41,4 @@ function OfferUnsubscribe({ contact, done }) {
 //#endregion
 export { OfferUnsubscribe as default };
 
-//# sourceMappingURL=Unsubscribe-DJnYbwF7.js.map
+//# sourceMappingURL=Unsubscribe-CgsUXKWu.js.map

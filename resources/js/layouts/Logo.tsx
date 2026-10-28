@@ -14,7 +14,7 @@ export function LogoMark({ size = 36 }: { size?: number }) {
 }
 
 export default function Logo({ to = '/', suffix, mobileSuffix }: { to?: string; suffix?: string; mobileSuffix?: string }) {
-    const appName = usePage<SharedProps>().props.app?.name ?? 'СтомКлиник';
+    const appName = usePage<SharedProps>().props.app?.name ?? 'МирКлиник';
     const shortSuffix = mobileSuffix ?? suffix;
 
     return (

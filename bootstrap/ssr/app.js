@@ -2336,7 +2336,7 @@ function InstallAppButton({ className, variant = "icon" }) {
 	}), /* @__PURE__ */ jsx(Drawer, {
 		open: hintOpen,
 		onClose: () => setHintOpen(false),
-		title: "Установить СтомКлиник",
+		title: "Установить МирКлиник",
 		children: /* @__PURE__ */ jsxs("div", {
 			className: "stack install-hint",
 			children: [
@@ -2628,7 +2628,7 @@ function LogoMark({ size = 36 }) {
 	});
 }
 function Logo({ to = "/", suffix, mobileSuffix }) {
-	const appName = usePage().props.app?.name ?? "СтомКлиник";
+	const appName = usePage().props.app?.name ?? "МирКлиник";
 	const shortSuffix = mobileSuffix ?? suffix;
 	return /* @__PURE__ */ jsxs(Link, {
 		href: to,
@@ -3102,7 +3102,7 @@ function Footer() {
 			children: [/* @__PURE__ */ jsx("p", { children: "Информация на сайте носит справочный характер и не является медицинской консультацией или публичной офертой. Цены указаны «от», окончательную стоимость лечения называет врач после осмотра. Имеются противопоказания, необходима консультация специалиста." }), /* @__PURE__ */ jsxs("p", { children: [
 				"Не отправляйте через сайт диагнозы, результаты анализов и медицинские документы. © ",
 				(/* @__PURE__ */ new Date()).getFullYear(),
-				" СтомКлиник."
+				" МирКлиник."
 			] })]
 		})]
 	});
@@ -4572,7 +4572,7 @@ var renderPromise = createInertiaApp({
 			"./pages/Admin/Campaign.tsx": () => import("./assets/Campaign-DhuKECZv.js"),
 			"./pages/Admin/Campaigns.tsx": () => import("./assets/Campaigns-zLxPF8CX.js"),
 			"./pages/Admin/CardBonuses.tsx": () => import("./assets/CardBonuses-AaayDnuv.js"),
-			"./pages/Admin/ClinicCardAppearance.tsx": () => import("./assets/ClinicCardAppearance-DCm0FI1y.js"),
+			"./pages/Admin/ClinicCardAppearance.tsx": () => import("./assets/ClinicCardAppearance-Bneyzihc.js"),
 			"./pages/Admin/ClinicShow.tsx": () => import("./assets/ClinicShow-D8vuEzvq.js"),
 			"./pages/Admin/Clinics.tsx": () => import("./assets/Clinics-BnoExTk9.js"),
 			"./pages/Admin/Complaints.tsx": () => import("./assets/Complaints-B9XTmXxE.js"),
@@ -4647,8 +4647,8 @@ var renderPromise = createInertiaApp({
 			"./pages/Max/Clinics.tsx": () => import("./assets/Clinics-ChXK9DnH.js"),
 			"./pages/Max/Home.tsx": () => import("./assets/Home-D7iSLkyF.js"),
 			"./pages/Offer/Claim.tsx": () => import("./assets/Claim-BsXZ22_k.js"),
-			"./pages/Offer/Show.tsx": () => import("./assets/Show-WE4UbIb9.js"),
-			"./pages/Offer/Unsubscribe.tsx": () => import("./assets/Unsubscribe-DJnYbwF7.js"),
+			"./pages/Offer/Show.tsx": () => import("./assets/Show-CTRFah0o.js"),
+			"./pages/Offer/Unsubscribe.tsx": () => import("./assets/Unsubscribe-CgsUXKWu.js"),
 			"./pages/Page.tsx": () => import("./assets/Page-BskXDT8U.js"),
 			"./pages/Prices/Index.tsx": () => import("./assets/Index-BybvzJG4.js"),
 			"./pages/Reviews/Index.tsx": () => import("./assets/Index-DkMFD2K7.js"),

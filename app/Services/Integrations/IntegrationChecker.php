@@ -206,7 +206,7 @@ class IntegrationChecker
         }
 
         if ($mailer === 'mail' && ($v['mailer'] ?? 'log') === 'log') {
-            Mail::mailer('log')->raw('Тестовое письмо СтомКлиник.', fn ($m) => $m->to($adminEmail)->subject('Проверка почты'));
+            Mail::mailer('log')->raw('Тестовое письмо МирКлиник.', fn ($m) => $m->to($adminEmail)->subject('Проверка почты'));
 
             return CheckResult::ok('Выбран режим «только в лог»: письмо записано в журнал, реальная отправка выключена.', [
                 ['label' => 'Отправка', 'value' => 'выключена', 'ok' => false],
@@ -220,7 +220,7 @@ class IntegrationChecker
         $from = (string) $v['from_address'];
         $name = (string) ($v['from_name'] ?? config('app.name'));
         Mail::mailer($mailer === 'mail' ? 'smtp' : 'offers')->raw(
-            "Это тестовое письмо из центра интеграций СтомКлиник.\nЕсли вы его получили — отправка через {$v['host']} работает.",
+            "Это тестовое письмо из центра интеграций МирКлиник.\nЕсли вы его получили — отправка через {$v['host']} работает.",
             fn ($m) => $m->from($from, $name)->to($adminEmail)->subject('Проверка почты: '.config("integrations.groups.{$this->groupFor($mailer)}.title")),
         );
 
@@ -520,7 +520,7 @@ class IntegrationChecker
             'send_default_pii' => false,
         ])->getClient();
 
-        $eventId = $client->captureMessage('Проверка подключения из центра интеграций СтомКлиник', Severity::info());
+        $eventId = $client->captureMessage('Проверка подключения из центра интеграций МирКлиник', Severity::info());
         $client->flush();
 
         return $eventId !== null

@@ -27,7 +27,7 @@ class OfferTemplateFactory extends Factory
     {
         return $this->afterCreating(fn (OfferTemplate $template) => $template->versions()->create([
             'version' => 1,
-            'web_title' => '{org.name} на СтомКлиник',
+            'web_title' => '{org.name} на МирКлиник',
             'web_body' => "Здравствуйте, {org.name}!\n\nРейтинг {org.rating}, отзывов {org.reviews}. Демо: {demo_link}",
             'email_subject' => 'Предложение для {org.name}',
             'email_body' => "Здравствуйте!\n\nКП для {org.name} из города {city}: {offer_link}",

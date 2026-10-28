@@ -94,7 +94,7 @@ class ParserOrganizationPhotoImporter
             return Http::timeout(90)
                 ->withOptions(['verify' => $verify])
                 ->withHeaders([
-                    'User-Agent' => 'Mozilla/5.0 (compatible; StomKlinikImporter/1.0)',
+                    'User-Agent' => 'Mozilla/5.0 (compatible; MirKlinikImporter/1.0)',
                     'Accept' => 'image/*,*/*;q=0.8',
                 ])
                 ->get($url);

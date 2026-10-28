@@ -41,7 +41,7 @@ function PremiumCardPreview({ skinClass }) {
 			children: [
 				/* @__PURE__ */ jsx("h3", {
 					className: "clinic-card__title",
-					children: /* @__PURE__ */ jsx("span", { children: "СтомКлиник «Пример»" })
+					children: /* @__PURE__ */ jsx("span", { children: "МирКлиник «Пример»" })
 				}),
 				/* @__PURE__ */ jsx("p", {
 					className: "clinic-card__address text-sm",
@@ -147,4 +147,4 @@ function ClinicCardAppearance({ variant, variants }) {
 //#endregion
 export { ClinicCardAppearance as default };
 
-//# sourceMappingURL=ClinicCardAppearance-DCm0FI1y.js.map
+//# sourceMappingURL=ClinicCardAppearance-Bneyzihc.js.map
