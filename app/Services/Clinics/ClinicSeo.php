@@ -18,16 +18,38 @@ class ClinicSeo
     public function vars(Clinic $clinic): array
     {
         $clinic->loadMissing('city:id,name');
+        $reviews = (int) $clinic->reviews_count;
+        $doctors = (int) ($clinic->doctors_count ?? $clinic->doctors()->published()->count());
 
         return [
             'name' => $clinic->name,
             'city' => $clinic->city?->name,
             'address' => $this->addressWithoutCity((string) $clinic->address, $clinic->city?->name),
-            'rating' => $clinic->reviews_count ? number_format((float) $clinic->rating, 1, ',', '') : 'нет оценок',
-            'reviews' => (int) $clinic->reviews_count,
-            'doctors' => (int) ($clinic->doctors_count ?? $clinic->doctors()->published()->count()),
+            'rating' => $reviews ? number_format((float) $clinic->rating, 1, ',', '') : 'нет оценок',
+            'reviews' => $reviews,
+            'reviews_text' => $reviews ? Text::plural($reviews, 'отзыв', 'отзыва', 'отзывов') : 'нет отзывов',
+            'doctors' => $doctors,
+            'doctors_text' => Text::plural($doctors, 'врач', 'врача', 'врачей'),
             'price' => $clinic->min_price ? Text::money((int) $clinic->min_price) : 'по запросу',
+            'summary' => $this->summary($clinic, $reviews, $doctors),
         ];
+    }
+
+    /**
+     * Связная фраза о клинике без пустых частей: «Рейтинг 5,0 по 3 отзывам, 3 врача, цены от 3 200 ₽»,
+     * «Пока без отзывов, 4 врача, цены от 3 200 ₽».
+     */
+    private function summary(Clinic $clinic, int $reviews, int $doctors): string
+    {
+        $parts = [
+            $reviews > 0
+                ? 'Рейтинг '.number_format((float) $clinic->rating, 1, ',', '').' по '.Text::plural($reviews, 'отзыву', 'отзывам', 'отзывам')
+                : 'Пока без отзывов',
+            $doctors > 0 ? Text::plural($doctors, 'врач', 'врача', 'врачей') : null,
+            $clinic->min_price ? 'цены от '.Text::money((int) $clinic->min_price) : null,
+        ];
+
+        return implode(', ', array_filter($parts));
     }
 
     /**

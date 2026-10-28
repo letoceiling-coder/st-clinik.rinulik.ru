@@ -24,4 +24,19 @@ final class Text
     {
         return $value === null ? '' : number_format($value, 0, ',', "\u{00A0}").' ₽';
     }
+
+    /** «1 отзыв», «3 отзыва», «5 отзывов»: число с правильной формой слова. */
+    public static function plural(int $count, string $one, string $few, string $many): string
+    {
+        $mod100 = abs($count) % 100;
+        $mod10 = $mod100 % 10;
+        $word = match (true) {
+            $mod100 >= 11 && $mod100 <= 14 => $many,
+            $mod10 === 1 => $one,
+            $mod10 >= 2 && $mod10 <= 4 => $few,
+            default => $many,
+        };
+
+        return $count.' '.$word;
+    }
 }

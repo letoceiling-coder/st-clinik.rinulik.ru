@@ -9,6 +9,7 @@ use App\Models\Specialty;
 use App\Models\User;
 use App\Repositories\Contracts\CatalogRepository;
 use App\Services\Clinics\ClinicSeo;
+use App\Support\Text;
 use Database\Seeders\FoundationSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -150,6 +151,28 @@ class AdminClinicManagementTest extends TestCase
         $title = $seo->auto($clinic->refresh())['title'];
 
         $this->assertSame(1, mb_substr_count($title, $clinic->city->name));
+    }
+
+    public function test_automatic_description_uses_natural_wording(): void
+    {
+        $this->assertSame('1 отзыв', Text::plural(1, 'отзыв', 'отзыва', 'отзывов'));
+        $this->assertSame('3 отзыва', Text::plural(3, 'отзыв', 'отзыва', 'отзывов'));
+        $this->assertSame('11 отзывов', Text::plural(11, 'отзыв', 'отзыва', 'отзывов'));
+        $this->assertSame('21 отзыв', Text::plural(21, 'отзыв', 'отзыва', 'отзывов'));
+
+        $seo = app(ClinicSeo::class);
+        $clinic = $this->clinic();
+        $clinic->update(['rating' => 5, 'reviews_count' => 3, 'min_price' => 3200]);
+        $this->assertSame('Рейтинг 5,0 по 3 отзывам, цены от '.Text::money(3200), $seo->vars($clinic->refresh())['summary']);
+
+        $clinic->update(['reviews_count' => 0, 'min_price' => null]);
+        $vars = $seo->vars($clinic->refresh());
+        $this->assertSame('Пока без отзывов', $vars['summary']);
+        $this->assertSame('нет отзывов', $vars['reviews_text']);
+
+        $description = $seo->auto($clinic)['description'];
+        $this->assertStringNotContainsString('нет оценок', $description);
+        $this->assertStringNotContainsString('(0 отзывов)', $description);
     }
 
     private function city(): City
