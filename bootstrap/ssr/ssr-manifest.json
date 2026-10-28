@@ -405,6 +405,9 @@
   "resources/js/components/PhotoArt.tsx": [
     "/build/assets/PhotoArt-C4p4XGJd.js"
   ],
+  "resources/js/components/ProfileWizard.tsx": [
+    "/build/assets/Dashboard-D8o3nXIB.js"
+  ],
   "resources/js/components/ReviewCard.tsx": [
     "/build/assets/ReviewCard-CuSLPQ3N.js"
   ],
@@ -1437,7 +1440,7 @@
     "/build/assets/CardBonuses-Dlv4oVWj.js"
   ],
   "resources/js/pages/Cabinet/Dashboard.tsx": [
-    "/build/assets/Dashboard-THoDt862.js"
+    "/build/assets/Dashboard-D8o3nXIB.js"
   ],
   "resources/js/pages/Cabinet/DoctorForm.tsx": [
     "/build/assets/DoctorForm-DJ16hL7W.js"

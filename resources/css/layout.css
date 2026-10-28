@@ -5463,3 +5463,110 @@ html.is-navigating { scroll-behavior: auto !important; }
         justify-content: center;
     }
 }
+
+/* Кабинет: мастер заполнения профиля */
+.wizard {
+    display: grid;
+    gap: var(--space-3);
+}
+.wizard__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4);
+}
+.wizard__head p {
+    margin: 4px 0 0;
+}
+.wizard__percent {
+    font-size: var(--fs-2xl);
+    font-weight: 700;
+    line-height: 1;
+}
+.wizard__bar {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--color-surface-muted);
+    overflow: hidden;
+}
+.wizard__bar span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--color-primary-active), var(--color-primary));
+    transition: width 0.4s ease;
+}
+.wizard__next {
+    display: grid;
+    gap: 6px;
+    justify-items: start;
+    padding: var(--space-4);
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--color-primary) 14%, var(--color-surface));
+    border: 1px solid color-mix(in srgb, var(--color-primary-active) 40%, transparent);
+}
+.wizard__next p {
+    margin: 0;
+}
+.wizard__next-label {
+    font-size: var(--fs-caption);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-muted);
+}
+.wizard__toggle {
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--color-text);
+    font: inherit;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    cursor: pointer;
+}
+.wizard__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+    gap: 8px 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.wizard__item {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr);
+    gap: 8px;
+    align-items: start;
+    color: var(--color-muted);
+}
+.wizard__item.is-done {
+    color: var(--color-success);
+}
+.wizard__item.is-pending {
+    color: var(--color-warning);
+}
+.wizard__item-text {
+    display: grid;
+    gap: 2px;
+    color: var(--color-text);
+    font-size: var(--fs-sm);
+}
+.wizard--done {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--color-success);
+}
+.wizard--done p {
+    margin: 2px 0 0;
+}
+@media (max-width: 640px) {
+    .wizard__percent {
+        font-size: var(--fs-xl);
+    }
+}

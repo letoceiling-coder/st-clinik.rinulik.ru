@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Notifications\ClinicStaffAlertNotification;
 use App\Services\Leads\LeadResponseStats;
 use App\Services\LeadService;
+use App\Services\ProfileMetrics;
 use Database\Seeders\FoundationSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
@@ -115,6 +116,21 @@ class CabinetLeadWorkflowTest extends TestCase
                 ->has('leads.data', 1)
                 ->where('response.waiting', 1)
                 ->has('staff', 2));
+    }
+
+    public function test_profile_checklist_explains_each_step_and_links_to_the_section(): void
+    {
+        $completeness = app(ProfileMetrics::class)->completeness($this->clinic);
+        $items = collect($completeness['items'])->keyBy('key');
+
+        $this->assertSame(100, $items->sum('weight'));
+        $this->assertSame('/clinic-cabinet/photos', $items['photos']['href']);
+        $this->assertSame('0 из 3', $items['photos']['progress']);
+        $this->assertNotEmpty($items['services']['why']);
+        $this->assertTrue($items['contacts']['done']);
+
+        $this->actingAs($this->owner)->get("/clinic-cabinet?branch={$this->clinic->id}")
+            ->assertInertia(fn (Assert $page) => $page->component('Cabinet/Dashboard')->has('completeness.items.0.href'));
     }
 
     private function lead(string $phone = '+79001112233'): Lead

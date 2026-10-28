@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { Kpis, PageHead, StatusBadge } from '@/components/Dash';
+import ProfileWizard, { type CompletenessItem } from '@/components/ProfileWizard';
 import { LinkButton } from '@/components/ui/Button';
 import { Alert, EmptyState } from '@/components/ui/Misc';
 
@@ -10,7 +11,7 @@ export default function Dashboard({
     recent_leads,
     subscription,
 }: {
-    completeness: { percent: number; items?: { label: string; done: boolean }[] };
+    completeness: { percent: number; items?: CompletenessItem[] };
     kpi: {
         leads_30d: number;
         leads_new: number;
@@ -33,13 +34,14 @@ export default function Dashboard({
             {moderation.clinic === 'rejected' ? <Alert tone="danger">Отклонено: {moderation.clinic_note}</Alert> : null}
             {moderation.clinic === 'pending' ? <Alert tone="warning">Филиал на модерации.</Alert> : null}
             {subscription ? (
-                <Alert tone="info">
+                <Alert tone="muted">
                     Тариф «{subscription.tariff}» до {subscription.ends_at} ({subscription.days_left} дн.).{' '}
                     <Link href="/clinic-cabinet/payments" className="link">
                         Платежи
                     </Link>
                 </Alert>
             ) : null}
+            <ProfileWizard percent={percent} items={completeness.items ?? []} />
             <Kpis
                 items={[
                     { label: 'Заявки за 30 дней', value: kpi.leads_30d },
@@ -56,9 +58,6 @@ export default function Dashboard({
                     <StatusBadge status={moderation.clinic} />
                     <span className="text-sm text-muted">врачи: {moderation.doctors_pending} · фото: {moderation.photos_pending} · документы: {moderation.documents_pending}</span>
                 </div>
-                {completeness.items?.some((i) => !i.done) ? (
-                    <p className="text-sm text-muted">Чтобы улучшить карточку: {completeness.items.filter((i) => !i.done).map((i) => i.label).join(', ')}.</p>
-                ) : null}
             </section>
             <section className="card stack">
                 <div className="row row--between">
