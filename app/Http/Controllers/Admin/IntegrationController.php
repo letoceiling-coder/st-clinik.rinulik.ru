@@ -9,6 +9,7 @@ use App\Models\NotificationSubscription;
 use App\Services\Audit;
 use App\Services\Integrations\IntegrationChecker;
 use App\Services\IntegrationSettings;
+use App\Services\Max\MaxWebhookSync;
 use App\Services\Notifications\NotificationSubscriptionService;
 use App\Services\Notifications\WebPushSender;
 use App\Support\Vapid;
@@ -104,9 +105,19 @@ class IntegrationController extends AdminController
             ]);
         }
 
-        return back()->with('success', $changed->isEmpty()
+        $message = $changed->isEmpty()
             ? 'Изменений нет.'
-            : 'Настройки «'.config("integrations.groups.{$group}.title").'» сохранены.');
+            : 'Настройки «'.config("integrations.groups.{$group}.title").'» сохранены.';
+
+        // Новый токен или секрет бота MAX — сразу переустанавливаем webhook, иначе вход и бот перестанут работать.
+        if ($group === 'max_bot' && $changed->intersect(['bot_token', 'webhook_secret'])->isNotEmpty()) {
+            $webhook = app(MaxWebhookSync::class)->sync(previousToken: $before['bot_token'] ?? null, force: true);
+            Audit::log('integration.webhook_synced', null, ['group' => $group, 'ok' => $webhook['ok'], 'removed' => $webhook['removed']], $webhook['ok'] ? 'success' : 'failure');
+
+            return back()->with($webhook['ok'] ? 'success' : 'error', $message.' '.$webhook['message']);
+        }
+
+        return back()->with('success', $message);
     }
 
     public function check(Request $request, string $group, IntegrationChecker $checker): RedirectResponse

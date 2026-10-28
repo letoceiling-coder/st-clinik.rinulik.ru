@@ -132,5 +132,8 @@ docker exec "$CONTAINER" php artisan view:clear
 docker exec "$CONTAINER" sh -c 'kill -USR2 1 2>/dev/null || true'
 docker exec "$CONTAINER" php artisan queue:restart
 
+echo "==> Syncing MAX bot webhook with current domain"
+docker exec -u www-data "${CONTAINER}" php artisan max:sync-webhook || true
+
 echo "Deploy finished. Assets:"
 grep -E 'app-.*\.(css|js)' "${APP_DIR}/public/build/manifest.json" | head -2 || true

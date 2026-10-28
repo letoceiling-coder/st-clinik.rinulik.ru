@@ -14,4 +14,6 @@ Schedule::command('parser:poll-tasks')->everyFifteenSeconds()->withoutOverlappin
 Schedule::command('notifications:appointment-reminders')->everyFiveMinutes()->withoutOverlapping()->onOneServer();
 Schedule::command('assistant:reindex-catalog')->dailyAt('04:15')->withoutOverlapping()->onOneServer();
 Schedule::command('broadcasts:dispatch-scheduled')->everyMinute()->withoutOverlapping()->onOneServer();
+// Смена домена или токена: webhook бота MAX переустанавливается сам (без изменений запросов к MAX нет).
+Schedule::command('max:sync-webhook')->hourly()->withoutOverlapping()->onOneServer();
 Schedule::command('subscriptions:process')->dailyAt('09:00')->withoutOverlapping()->onOneServer();
