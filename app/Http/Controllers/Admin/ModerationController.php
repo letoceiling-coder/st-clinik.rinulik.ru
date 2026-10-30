@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Cabinet\MediaController;
 use App\Models\Clinic;
 use App\Models\ClinicDocument;
 use App\Models\ClinicPhoto;
@@ -31,7 +32,7 @@ class ModerationController extends AdminController
             $queue[] = ['type' => 'document', 'id' => $d->id, 'title' => $d->title, 'meta' => ($d->clinic?->name).' · № '.($d->number ?: 'не указан'), 'has_file' => (bool) $d->path, 'at' => $d->created_at?->format('d.m H:i')];
         }
         foreach (ClinicPhoto::where('status', 'pending')->with('clinic:id,name')->latest()->limit(30)->get() as $p) {
-            $queue[] = ['type' => 'photo', 'id' => $p->id, 'title' => 'Фото: '.($p->caption ?: $p->kind), 'meta' => $p->clinic?->name, 'image' => $p->path ? Storage::disk('public')->url($p->path) : null, 'at' => $p->created_at?->format('d.m H:i')];
+            $queue[] = ['type' => 'photo', 'id' => $p->id, 'title' => 'Фото: '.($p->caption ?: (MediaController::PHOTO_KINDS[$p->kind] ?? 'без подписи')), 'meta' => $p->clinic?->name, 'image' => $p->path ? Storage::disk('public')->url($p->path) : null, 'at' => $p->created_at?->format('d.m H:i')];
         }
         foreach (Review::where('status', 'pending')->with('clinic:id,name')->latest()->limit(30)->get() as $r) {
             $queue[] = ['type' => 'review', 'id' => $r->id, 'title' => $r->author_name.' · '.str_repeat('★', $r->rating), 'meta' => $r->clinic?->name.($r->is_verified_visit ? ' · подтверждённый визит' : ''), 'body' => $r->body, 'flags' => $r->flags, 'at' => $r->created_at?->format('d.m H:i')];

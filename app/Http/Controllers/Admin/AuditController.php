@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\AuditLog;
+use App\Support\AuditActions;
 use Illuminate\Http\Request;
 use Inertia\Response;
 
@@ -10,20 +11,28 @@ class AuditController extends AdminController
 {
     public function index(Request $request): Response
     {
-        $action = trim((string) $request->query('action'));
+        $section = (string) $request->query('section');
+        if (! array_key_exists($section, AuditActions::SECTIONS)) {
+            $section = '';
+        }
 
         $page = AuditLog::with('user:id,name,email')
-            ->when($action !== '', fn ($b) => $b->whereLike('action', "$action%"))
+            ->when($section !== '', fn ($b) => $b->whereLike('action', $section.'.%'))
             ->latest('id')->paginate(30)->withQueryString();
 
         return $this->render('Admin/Audit', 'Журнал аудита', [
             'logs' => $page->through(fn (AuditLog $a) => [
-                'id' => $a->id, 'action' => $a->action, 'user' => $a->user ? $a->user->name.' ('.$a->user->email.')' : 'система',
-                'subject' => $a->subject_type ? $a->subject_type.' #'.$a->subject_id : null,
-                'result' => $a->result,
-                'meta' => $a->meta, 'ip' => $a->ip, 'at' => $a->created_at?->format('d.m.Y H:i:s'),
+                'id' => $a->id,
+                'action' => AuditActions::label($a->action),
+                'user' => $a->user ? $a->user->name.' ('.$a->user->email.')' : 'система',
+                'subject' => AuditActions::subject($a->subject_type, $a->subject_id),
+                'result' => AuditActions::result($a->result),
+                'meta' => $a->meta,
+                'ip' => $a->ip,
+                'at' => $a->created_at?->format('d.m.Y H:i:s'),
             ])->toArray(),
-            'filters' => array_filter(['action' => $action]),
+            'sections' => AuditActions::SECTIONS,
+            'filters' => array_filter(['section' => $section]),
         ]);
     }
 }

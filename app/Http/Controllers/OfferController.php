@@ -104,7 +104,11 @@ class OfferController extends Controller
             'review_options' => ['doctors' => [], 'services' => []],
             'breadcrumbs' => [['Главная', url('/')], [$clinic->city?->name ?? 'Город', url('/')], [$clinic->name, $offer->shortUrl()]],
             'clinic_follow' => ['subscribed' => false, 'can_subscribe' => false],
-            'preview' => ['offer_url' => $offer->shortUrl()],
+            'preview' => [
+                'note' => 'Так страница клиники будет выглядеть для пациентов после подключения и проверки модератором. Запись и отзывы пока отключены.',
+                'back_url' => $offer->shortUrl(),
+                'back_label' => 'Вернуться к предложению',
+            ],
         ], app(Seo::class)->private('Предпросмотр: '.$clinic->name));
     }
 

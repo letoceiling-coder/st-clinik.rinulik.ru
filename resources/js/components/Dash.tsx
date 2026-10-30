@@ -56,15 +56,32 @@ function kpiColumns(count: number): number {
     return Math.min(count, 5);
 }
 
-export function Kpis({ items }: { items: { label: string; value: ReactNode; hint?: string }[] }) {
+export type KpiItem = { label: string; value: ReactNode; hint?: string; href?: string };
+
+/** Карточка показателя; с href вся карточка ведёт на страницу (ссылка растянута на карточку). */
+export function KpiCard({ item, muted = false }: { item: KpiItem; muted?: boolean }) {
     return (
-        <dl className="kpi-grid kpi-grid--balanced" style={{ '--kpi-cols': kpiColumns(items.length) } as CSSProperties}>
+        <div className={cx('kpi card', muted && 'card--muted', item.href && 'kpi--link')}>
+            <dt>
+                {item.href ? (
+                    <Link href={item.href} className="kpi__link">
+                        {item.label}
+                    </Link>
+                ) : (
+                    item.label
+                )}
+            </dt>
+            <dd>{item.value}</dd>
+            {item.hint ? <span className="text-xs text-muted">{item.hint}</span> : null}
+        </div>
+    );
+}
+
+export function Kpis({ items, muted = false, balanced = true }: { items: KpiItem[]; muted?: boolean; balanced?: boolean }) {
+    return (
+        <dl className={cx('kpi-grid', balanced && 'kpi-grid--balanced')} style={balanced ? ({ '--kpi-cols': kpiColumns(items.length) } as CSSProperties) : undefined}>
             {items.map((i) => (
-                <div key={i.label} className="kpi card">
-                    <dt>{i.label}</dt>
-                    <dd>{i.value}</dd>
-                    {i.hint ? <span className="text-xs text-muted">{i.hint}</span> : null}
-                </div>
+                <KpiCard key={i.label} item={i} muted={muted} />
             ))}
         </dl>
     );

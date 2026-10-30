@@ -16,6 +16,17 @@ class Clinic extends Model
 
     public const STATUSES = ['draft', 'pending', 'approved', 'published', 'rejected', 'hidden', 'blocked'];
 
+    /** @var array<string, string> */
+    public const STATUS_LABELS = [
+        'draft' => 'Черновик',
+        'pending' => 'На модерации',
+        'approved' => 'Одобрено',
+        'published' => 'Опубликовано',
+        'rejected' => 'Отклонено',
+        'hidden' => 'Скрыто',
+        'blocked' => 'Заблокирован',
+    ];
+
     /** @var list<string> */
     public const VISIBLE_STATUSES = ['published'];
 

@@ -65,7 +65,7 @@ class OfferProposalTest extends TestCase
             ->assertHeader('X-Robots-Tag', 'noindex, nofollow, noarchive')
             ->assertInertia(fn ($page) => $page->component('Clinics/Show')
                 ->where('clinic.slug', $offer->clinic->slug)
-                ->where('preview.offer_url', $offer->shortUrl()));
+                ->where('preview.back_url', $offer->shortUrl()));
 
         $this->get(route('clinics.show', $offer->clinic->slug))->assertNotFound();
 

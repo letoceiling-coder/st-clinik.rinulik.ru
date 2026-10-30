@@ -28,7 +28,7 @@ interface Props {
     breadcrumbs: Crumb[];
     clinic_follow: { subscribed: boolean; can_subscribe: boolean };
     /** Предпросмотр черновика из КП: запись и отзывы отключены. */
-    preview?: { offer_url: string } | null;
+    preview?: { note: string; back_url: string; back_label: string } | null;
 }
 
 /** Индекс группы услуг; −1 — вкладка «Все». */
@@ -166,10 +166,10 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
                 <div className="container preview-banner" role="status">
                     <Icon name="eye" size={18} />
                     <span>
-                        <b>Предпросмотр.</b> Так страница клиники будет выглядеть для пациентов после подключения и проверки модератором. Запись и отзывы пока отключены.
+                        <b>Предпросмотр.</b> {preview.note}
                     </span>
-                    <a className="link" href={preview.offer_url}>
-                        Вернуться к предложению
+                    <a className="link" href={preview.back_url}>
+                        {preview.back_label}
                     </a>
                 </div>
             ) : (

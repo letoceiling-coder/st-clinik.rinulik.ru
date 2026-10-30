@@ -1,4 +1,4 @@
-import { router, useForm } from '@inertiajs/react';
+import { Link, router, useForm, usePage } from '@inertiajs/react';
 import { PageHead, StatusBadge } from '@/components/Dash';
 import { Button } from '@/components/ui/Button';
 import { Check, TextArea } from '@/components/ui/Fields';
@@ -19,10 +19,23 @@ export default function Moderation({
     content_moderation_settings: { moderate_review_replies: boolean; moderate_promotions: boolean };
 }) {
     const settings = useForm({ ...content_moderation_settings });
+    const activeType = new URLSearchParams(usePage().url.split('?')[1] ?? '').get('type') ?? '';
+    const counts = queue.reduce<Record<string, number>>((acc, item) => ({ ...acc, [item.type]: (acc[item.type] ?? 0) + 1 }), {});
+    const visible = activeType ? queue.filter((item) => item.type === activeType) : queue;
 
     return (
         <div className="stack-lg">
             <PageHead title="Очередь модерации" text={`${queue.length} объектов ждут решения.`} />
+            <nav className="dict-tabs" aria-label="Тип объектов">
+                <Link href="/admin/moderation" className={activeType ? 'chip' : 'chip is-active'} preserveScroll>
+                    Все · {queue.length}
+                </Link>
+                {Object.entries(typeLabels).map(([type, label]) => (
+                    <Link key={type} href={`/admin/moderation?type=${type}`} className={type === activeType ? 'chip is-active' : 'chip'} preserveScroll>
+                        {label} · {counts[type] ?? 0}
+                    </Link>
+                ))}
+            </nav>
             <form
                 className="card stack"
                 onSubmit={(e) => {
@@ -45,7 +58,7 @@ export default function Moderation({
                     Сохранить
                 </Button>
             </form>
-            {queue.length === 0 ? <EmptyState title="Очередь пуста" /> : queue.map((item) => <Card key={`${item.type}-${item.id}`} item={item} label={typeLabels[item.type] ?? item.type} />)}
+            {visible.length === 0 ? <EmptyState title={activeType ? 'В этом разделе очередь пуста' : 'Очередь пуста'} /> : visible.map((item) => <Card key={`${item.type}-${item.id}`} item={item} label={typeLabels[item.type] ?? item.type} />)}
         </div>
     );
 }

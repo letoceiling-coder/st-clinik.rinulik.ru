@@ -8,6 +8,7 @@ use App\Models\Review;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\Audit;
+use App\Support\AuditActions;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -67,7 +68,7 @@ class UserController extends AdminController
                 'clinic' => $a->clinic?->name,
             ]),
             'audit' => AuditLog::where('user_id', $user->id)->latest('id')->limit(15)->get()->map(fn (AuditLog $a) => [
-                'action' => $a->action,
+                'action' => AuditActions::label($a->action),
                 'at' => $a->created_at?->format('d.m.Y H:i'),
             ]),
             // Только роли, которые этот сотрудник вправе назначить.
