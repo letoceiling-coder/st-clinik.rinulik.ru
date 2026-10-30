@@ -59,6 +59,12 @@ class SensitiveTextGuard
         return 'Уберите из текста: '.implode(', ', $labels).'. Диагнозы, документы и лишние персональные данные в сервисе не принимаются — их врач запросит на приёме.';
     }
 
+    /** Человекочитаемое название сработавшего правила (для модератора). */
+    public static function flagLabel(string $flag): string
+    {
+        return $flag === 'abusive' ? 'грубые выражения' : (self::LABELS[$flag] ?? 'подозрительный текст');
+    }
+
     /** Для отзывов: контакты/ссылки/документы отправляют отзыв на ручную проверку. */
     public function reviewFlags(string $text): array
     {

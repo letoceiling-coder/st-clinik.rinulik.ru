@@ -357,6 +357,7 @@ Route::middleware(['auth', 'perm:admin.dashboard'])->prefix('admin')->name('admi
         Route::post('/moderation/settings', [Admin\ModerationController::class, 'updateSettings'])->name('moderation.settings');
         Route::post('/moderation/{type}/{id}', [Admin\ModerationController::class, 'decide'])->name('moderation.decide')->whereNumber('id');
         Route::get('/moderation/documents/{document}', [Admin\ModerationController::class, 'document'])->name('moderation.document')->whereNumber('document');
+        Route::get('/moderation/documents/{document}/view', [Admin\ModerationController::class, 'viewDocument'])->name('moderation.document.view')->whereNumber('document');
     });
 
     Route::middleware('perm:admin.duplicates')->group(function () {

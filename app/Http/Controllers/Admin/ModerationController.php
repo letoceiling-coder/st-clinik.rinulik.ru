@@ -2,13 +2,9 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Cabinet\MediaController;
-use App\Models\Clinic;
 use App\Models\ClinicDocument;
-use App\Models\ClinicPhoto;
-use App\Models\Doctor;
-use App\Models\Review;
 use App\Services\ContentModerationSettings;
+use App\Services\ModerationQueue;
 use App\Services\ModerationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,46 +14,11 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ModerationController extends AdminController
 {
-    public function index(): Response
+    public function index(ModerationQueue $queue): Response
     {
-        $queue = [];
-
-        foreach (Clinic::where('status', 'pending')->with('city:id,name')->latest()->limit(30)->get() as $c) {
-            $queue[] = ['type' => 'clinic', 'id' => $c->id, 'title' => $c->name, 'meta' => $c->city?->name.', '.$c->address, 'body' => $c->description, 'at' => $c->updated_at?->format('d.m H:i')];
-        }
-        foreach (Doctor::where('status', 'pending')->with('clinic:id,name')->latest()->limit(30)->get() as $d) {
-            $queue[] = ['type' => 'doctor', 'id' => $d->id, 'title' => $d->name, 'meta' => $d->position.' · '.$d->clinic?->name, 'body' => $d->bio, 'at' => $d->updated_at?->format('d.m H:i')];
-        }
-        foreach (ClinicDocument::where('status', 'pending')->with('clinic:id,name')->latest()->limit(30)->get() as $d) {
-            $queue[] = ['type' => 'document', 'id' => $d->id, 'title' => $d->title, 'meta' => ($d->clinic?->name).' · № '.($d->number ?: 'не указан'), 'has_file' => (bool) $d->path, 'at' => $d->created_at?->format('d.m H:i')];
-        }
-        foreach (ClinicPhoto::where('status', 'pending')->with('clinic:id,name')->latest()->limit(30)->get() as $p) {
-            $queue[] = ['type' => 'photo', 'id' => $p->id, 'title' => 'Фото: '.($p->caption ?: (MediaController::PHOTO_KINDS[$p->kind] ?? 'без подписи')), 'meta' => $p->clinic?->name, 'image' => $p->path ? Storage::disk('public')->url($p->path) : null, 'at' => $p->created_at?->format('d.m H:i')];
-        }
-        foreach (Review::where('status', 'pending')->with('clinic:id,name')->latest()->limit(30)->get() as $r) {
-            $queue[] = ['type' => 'review', 'id' => $r->id, 'title' => $r->author_name.' · '.str_repeat('★', $r->rating), 'meta' => $r->clinic?->name.($r->is_verified_visit ? ' · подтверждённый визит' : ''), 'body' => $r->body, 'flags' => $r->flags, 'at' => $r->created_at?->format('d.m H:i')];
-        }
-        foreach (Review::where('reply_status', 'pending')->with('clinic:id,name')->latest()->limit(30)->get() as $r) {
-            $queue[] = [
-                'type' => 'review_reply',
-                'id' => $r->id,
-                'title' => 'Ответ · '.$r->clinic?->name,
-                'meta' => 'к отзыву '.$r->author_name.' · '.str_repeat('★', $r->rating),
-                'body' => $r->reply_text,
-                'at' => $r->updated_at?->format('d.m H:i'),
-            ];
-        }
-
         return $this->render('Admin/Moderation', 'Очередь модерации', [
-            'queue' => collect($queue)->sortByDesc('at')->values(),
-            'typeLabels' => [
-                'clinic' => 'Клиника',
-                'doctor' => 'Врач',
-                'document' => 'Документ',
-                'photo' => 'Фото',
-                'review' => 'Отзыв',
-                'review_reply' => 'Ответ на отзыв',
-            ],
+            'queue' => $queue->items(),
+            'typeLabels' => ModerationQueue::TYPE_LABELS,
             'content_moderation_settings' => app(ContentModerationSettings::class)->all(),
         ]);
     }
@@ -98,5 +59,17 @@ class ModerationController extends AdminController
         abort_unless($document->path && Storage::disk('local')->exists($document->path), 404);
 
         return Storage::disk('local')->download($document->path);
+    }
+
+    /** Файл документа для просмотра прямо в браузере (PDF или изображение), без скачивания. */
+    public function viewDocument(ClinicDocument $document): StreamedResponse
+    {
+        abort_unless($document->path && Storage::disk('local')->exists($document->path), 404);
+
+        return Storage::disk('local')->response($document->path, null, [
+            'Content-Disposition' => 'inline',
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-store',
+        ]);
     }
 }
