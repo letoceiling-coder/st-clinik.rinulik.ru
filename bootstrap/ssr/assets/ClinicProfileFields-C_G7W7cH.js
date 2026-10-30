@@ -15,6 +15,9 @@ function useClinicProfileForm(profile, propertyTypes, extra = {}) {
 		district_id: b.district_id ?? "",
 		address: b.address ?? "",
 		metro: b.metro ?? "",
+		directions_note: b.directions_note ?? "",
+		parking: b.parking ?? "",
+		warranty: b.warranty ?? "",
 		lat: b.lat ?? "",
 		lng: b.lng ?? "",
 		phone: b.phone ?? "",
@@ -134,6 +137,23 @@ function ClinicProfileFields({ form, options, phoneRequired = true, showCoordina
 					value: form.data.metro,
 					onChange: (e) => form.setData("metro", e.target.value)
 				}),
+				/* @__PURE__ */ jsx(TextField, {
+					label: "Парковка",
+					placeholder: "Например: бесплатная у входа",
+					maxLength: 160,
+					value: form.data.parking,
+					onChange: (e) => form.setData("parking", e.target.value),
+					error: form.errors.parking
+				}),
+				/* @__PURE__ */ jsx(TextArea, {
+					className: "span-2",
+					label: "Как найти вход",
+					hint: "Этаж, вывеска, вход со двора, домофон — это увидят пациенты в блоке «Как добраться».",
+					maxLength: 500,
+					value: form.data.directions_note,
+					onChange: (e) => form.setData("directions_note", e.target.value),
+					error: form.errors.directions_note
+				}),
 				/* @__PURE__ */ jsx(PhoneField, {
 					label: "Телефон",
 					required: phoneRequired,
@@ -207,6 +227,15 @@ function ClinicProfileFields({ form, options, phoneRequired = true, showCoordina
 					hint: "Например: не принимаем детей младше 3 лет, нет наркоза.",
 					value: form.data.restrictions,
 					onChange: (e) => form.setData("restrictions", e.target.value)
+				}),
+				/* @__PURE__ */ jsx(TextArea, {
+					className: "span-2",
+					label: "Гарантии",
+					hint: "Например: пломбы — 1 год, коронки — 3 года, импланты — пожизненно от производителя. Условия гарантии.",
+					maxLength: 1500,
+					value: form.data.warranty,
+					onChange: (e) => form.setData("warranty", e.target.value),
+					error: form.errors.warranty
 				}),
 				/* @__PURE__ */ jsx(TextArea, {
 					className: "span-2",
@@ -290,4 +319,4 @@ function ClinicProfileFields({ form, options, phoneRequired = true, showCoordina
 //#endregion
 export { useClinicProfileForm as n, ClinicProfileFields as t };
 
-//# sourceMappingURL=ClinicProfileFields-DPwNqPUN.js.map
+//# sourceMappingURL=ClinicProfileFields-C_G7W7cH.js.map

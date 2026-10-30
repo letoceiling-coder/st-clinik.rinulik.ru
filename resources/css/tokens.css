@@ -24,6 +24,18 @@
     --color-on-primary: #151613;
     --color-primary-gradient: linear-gradient(135deg, #caf65a 0%, #bff042 100%);
 
+    /* Логотип: пять семейств сфер, светлый и глубокий тон каждого (градиент сверху-справа вниз-влево) */
+    --color-logo-teal-light: #12d8d3;
+    --color-logo-teal-deep: #0393a0;
+    --color-logo-petrol-light: #0396a3;
+    --color-logo-petrol-deep: #034a64;
+    --color-logo-emerald-light: #30d384;
+    --color-logo-emerald-deep: #04926f;
+    --color-logo-lime-light: #c6f242;
+    --color-logo-lime-deep: #7dd630;
+    --color-logo-fresh-light: #cff659;
+    --color-logo-fresh-deep: #36c462;
+
     --color-on-graphite: #f5f4f0;
     --color-page: #f5f4f0;
     --color-surface-elevated: #ffffff;

@@ -1,7 +1,7 @@
 import { n as Button } from "./Button-C2BxTtRt.js";
 import { s as Alert } from "../app.js";
 import { r as PageHead } from "./Dash-cIdZIfDR.js";
-import { n as useClinicProfileForm, t as ClinicProfileFields } from "./ClinicProfileFields-DPwNqPUN.js";
+import { n as useClinicProfileForm, t as ClinicProfileFields } from "./ClinicProfileFields-C_G7W7cH.js";
 import { Link } from "@inertiajs/react";
 import { jsx, jsxs } from "react/jsx-runtime";
 //#region resources/js/pages/Cabinet/BranchForm.tsx
@@ -53,4 +53,4 @@ function BranchForm({ branchForm, ...options }) {
 //#endregion
 export { BranchForm as default };
 
-//# sourceMappingURL=BranchForm-DIcGssnL.js.map
+//# sourceMappingURL=BranchForm-DP0Cd9RN.js.map

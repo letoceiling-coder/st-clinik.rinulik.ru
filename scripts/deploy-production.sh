@@ -49,7 +49,7 @@ docker run --rm \
     -v "${APP_DIR}/public:/src:ro" \
     -v "${PUBLIC_VOLUME}:/vol" \
     alpine sh -c '
-        for f in favicon.svg manifest.webmanifest sw.js robots.txt; do
+        for f in favicon.svg favicon.ico manifest.webmanifest sw.js robots.txt; do
             if [ -f "/src/${f}" ]; then
                 cp "/src/${f}" "/vol/${f}"
             fi

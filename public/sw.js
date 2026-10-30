@@ -25,7 +25,7 @@ self.addEventListener('push', (event) => {
         self.registration.showNotification(data.title, {
             body: data.body,
             data: { url: data.url },
-            icon: '/favicon.svg',
+            icon: '/icons/icon-192.png',
         }),
     );
 });

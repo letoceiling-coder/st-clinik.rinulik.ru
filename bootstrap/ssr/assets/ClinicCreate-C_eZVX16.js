@@ -1,6 +1,6 @@
 import { n as Button } from "./Button-C2BxTtRt.js";
 import { S as SelectField, s as Alert, v as Check } from "../app.js";
-import { n as useClinicProfileForm, t as ClinicProfileFields } from "./ClinicProfileFields-DPwNqPUN.js";
+import { n as useClinicProfileForm, t as ClinicProfileFields } from "./ClinicProfileFields-C_G7W7cH.js";
 import { Link } from "@inertiajs/react";
 import { jsx, jsxs } from "react/jsx-runtime";
 //#region resources/js/pages/Admin/ClinicCreate.tsx
@@ -87,4 +87,4 @@ function ClinicCreate({ organizations, ...options }) {
 //#endregion
 export { ClinicCreate as default };
 
-//# sourceMappingURL=ClinicCreate-CvHpF5CW.js.map
+//# sourceMappingURL=ClinicCreate-C_eZVX16.js.map

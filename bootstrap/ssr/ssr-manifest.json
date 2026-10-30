@@ -216,7 +216,7 @@
     "/build/assets/ClinicParts-DnKsCgEp.js"
   ],
   "resources/js/components/ClinicProfileFields.tsx": [
-    "/build/assets/ClinicProfileFields-DPwNqPUN.js"
+    "/build/assets/ClinicProfileFields-C_G7W7cH.js"
   ],
   "resources/js/components/CollectionButtons.tsx": [
     "/build/assets/CollectionButtons-DPxrOg7y.js"
@@ -489,6 +489,102 @@
   ],
   "resources/js/components/auth/SocialOAuthButtons.tsx": [
     "/build/assets/SocialOAuthButtons-BfmrBF_z.js"
+  ],
+  "resources/js/components/brand/BrandMark.tsx": [
+    "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
+    "/build/assets/geist-cyrillic-ext-400-normal-ChfpGzr5.woff",
+    "/build/assets/geist-cyrillic-400-normal-DXusLSnH.woff2",
+    "/build/assets/geist-cyrillic-400-normal-DkrqoNl2.woff",
+    "/build/assets/geist-vietnamese-400-normal-C4gMWAkH.woff2",
+    "/build/assets/geist-vietnamese-400-normal-C8xY9-dI.woff",
+    "/build/assets/geist-latin-ext-400-normal-CND6cjiG.woff2",
+    "/build/assets/geist-latin-ext-400-normal-Bz1pQMyt.woff",
+    "/build/assets/geist-latin-400-normal-B40WzpMT.woff2",
+    "/build/assets/geist-latin-400-normal-akEymXtG.woff",
+    "/build/assets/geist-cyrillic-ext-500-normal-UpgxCE-h.woff2",
+    "/build/assets/geist-cyrillic-ext-500-normal-BXrH8YSv.woff",
+    "/build/assets/geist-cyrillic-500-normal-NWpm63d5.woff2",
+    "/build/assets/geist-cyrillic-500-normal-BboVsk8R.woff",
+    "/build/assets/geist-vietnamese-500-normal-DEhtl5QD.woff2",
+    "/build/assets/geist-vietnamese-500-normal-_b1ojCbH.woff",
+    "/build/assets/geist-latin-ext-500-normal-BovoTgeE.woff2",
+    "/build/assets/geist-latin-ext-500-normal-C9fx-R30.woff",
+    "/build/assets/geist-latin-500-normal-CTWBw9NS.woff2",
+    "/build/assets/geist-latin-500-normal-BDXIbFrL.woff",
+    "/build/assets/geist-cyrillic-ext-600-normal-Cr7e20Aw.woff2",
+    "/build/assets/geist-cyrillic-ext-600-normal-PR76dHFV.woff",
+    "/build/assets/geist-cyrillic-600-normal-BeW5VFD_.woff2",
+    "/build/assets/geist-cyrillic-600-normal-CnEeIcMC.woff",
+    "/build/assets/geist-vietnamese-600-normal-BFUgqsz8.woff2",
+    "/build/assets/geist-vietnamese-600-normal-B5MZcNo4.woff",
+    "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
+    "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
+    "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
+  ],
+  "resources/js/components/brand/logoRenderer.ts": [
+    "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
+    "/build/assets/geist-cyrillic-ext-400-normal-ChfpGzr5.woff",
+    "/build/assets/geist-cyrillic-400-normal-DXusLSnH.woff2",
+    "/build/assets/geist-cyrillic-400-normal-DkrqoNl2.woff",
+    "/build/assets/geist-vietnamese-400-normal-C4gMWAkH.woff2",
+    "/build/assets/geist-vietnamese-400-normal-C8xY9-dI.woff",
+    "/build/assets/geist-latin-ext-400-normal-CND6cjiG.woff2",
+    "/build/assets/geist-latin-ext-400-normal-Bz1pQMyt.woff",
+    "/build/assets/geist-latin-400-normal-B40WzpMT.woff2",
+    "/build/assets/geist-latin-400-normal-akEymXtG.woff",
+    "/build/assets/geist-cyrillic-ext-500-normal-UpgxCE-h.woff2",
+    "/build/assets/geist-cyrillic-ext-500-normal-BXrH8YSv.woff",
+    "/build/assets/geist-cyrillic-500-normal-NWpm63d5.woff2",
+    "/build/assets/geist-cyrillic-500-normal-BboVsk8R.woff",
+    "/build/assets/geist-vietnamese-500-normal-DEhtl5QD.woff2",
+    "/build/assets/geist-vietnamese-500-normal-_b1ojCbH.woff",
+    "/build/assets/geist-latin-ext-500-normal-BovoTgeE.woff2",
+    "/build/assets/geist-latin-ext-500-normal-C9fx-R30.woff",
+    "/build/assets/geist-latin-500-normal-CTWBw9NS.woff2",
+    "/build/assets/geist-latin-500-normal-BDXIbFrL.woff",
+    "/build/assets/geist-cyrillic-ext-600-normal-Cr7e20Aw.woff2",
+    "/build/assets/geist-cyrillic-ext-600-normal-PR76dHFV.woff",
+    "/build/assets/geist-cyrillic-600-normal-BeW5VFD_.woff2",
+    "/build/assets/geist-cyrillic-600-normal-CnEeIcMC.woff",
+    "/build/assets/geist-vietnamese-600-normal-BFUgqsz8.woff2",
+    "/build/assets/geist-vietnamese-600-normal-B5MZcNo4.woff",
+    "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
+    "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
+    "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
+  ],
+  "resources/js/components/brand/logoSpheres.ts": [
+    "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
+    "/build/assets/geist-cyrillic-ext-400-normal-ChfpGzr5.woff",
+    "/build/assets/geist-cyrillic-400-normal-DXusLSnH.woff2",
+    "/build/assets/geist-cyrillic-400-normal-DkrqoNl2.woff",
+    "/build/assets/geist-vietnamese-400-normal-C4gMWAkH.woff2",
+    "/build/assets/geist-vietnamese-400-normal-C8xY9-dI.woff",
+    "/build/assets/geist-latin-ext-400-normal-CND6cjiG.woff2",
+    "/build/assets/geist-latin-ext-400-normal-Bz1pQMyt.woff",
+    "/build/assets/geist-latin-400-normal-B40WzpMT.woff2",
+    "/build/assets/geist-latin-400-normal-akEymXtG.woff",
+    "/build/assets/geist-cyrillic-ext-500-normal-UpgxCE-h.woff2",
+    "/build/assets/geist-cyrillic-ext-500-normal-BXrH8YSv.woff",
+    "/build/assets/geist-cyrillic-500-normal-NWpm63d5.woff2",
+    "/build/assets/geist-cyrillic-500-normal-BboVsk8R.woff",
+    "/build/assets/geist-vietnamese-500-normal-DEhtl5QD.woff2",
+    "/build/assets/geist-vietnamese-500-normal-_b1ojCbH.woff",
+    "/build/assets/geist-latin-ext-500-normal-BovoTgeE.woff2",
+    "/build/assets/geist-latin-ext-500-normal-C9fx-R30.woff",
+    "/build/assets/geist-latin-500-normal-CTWBw9NS.woff2",
+    "/build/assets/geist-latin-500-normal-BDXIbFrL.woff",
+    "/build/assets/geist-cyrillic-ext-600-normal-Cr7e20Aw.woff2",
+    "/build/assets/geist-cyrillic-ext-600-normal-PR76dHFV.woff",
+    "/build/assets/geist-cyrillic-600-normal-BeW5VFD_.woff2",
+    "/build/assets/geist-cyrillic-600-normal-CnEeIcMC.woff",
+    "/build/assets/geist-vietnamese-600-normal-BFUgqsz8.woff2",
+    "/build/assets/geist-vietnamese-600-normal-B5MZcNo4.woff",
+    "/build/assets/geist-latin-ext-600-normal-CVFbg5dS.woff2",
+    "/build/assets/geist-latin-ext-600-normal-TmIUreF9.woff",
+    "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
+    "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/components/offers/OfferSendPanels.tsx": [
     "/build/assets/Offer-D6IClcmq.js"
@@ -1314,10 +1410,10 @@
     "/build/assets/ClinicCardAppearance-D_EGFJra.js"
   ],
   "resources/js/pages/Admin/ClinicCreate.tsx": [
-    "/build/assets/ClinicCreate-CvHpF5CW.js"
+    "/build/assets/ClinicCreate-C_eZVX16.js"
   ],
   "resources/js/pages/Admin/ClinicShow.tsx": [
-    "/build/assets/ClinicShow-DfguWMQu.js"
+    "/build/assets/ClinicShow-DIHYSCwV.js"
   ],
   "resources/js/pages/Admin/Clinics.tsx": [
     "/build/assets/Clinics-C8K7CE5J.js"
@@ -1428,7 +1524,7 @@
     "/build/assets/Show-24HJp27l.js"
   ],
   "resources/js/pages/Cabinet/BranchForm.tsx": [
-    "/build/assets/BranchForm-DIcGssnL.js"
+    "/build/assets/BranchForm-DP0Cd9RN.js"
   ],
   "resources/js/pages/Cabinet/Branches.tsx": [
     "/build/assets/Branches-DrTeIpLn.js"

@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="{{ config('app.name') }}">
     <link rel="manifest" href="/manifest.webmanifest">
-    <link rel="apple-touch-icon" href="/favicon.svg">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=2">
     @php($seo = $seo ?? null)
     <title>{{ $seo['title'] ?? config('app.name') }}</title>
     @if (!empty($seo['description']))
@@ -28,7 +28,8 @@
         <meta property="og:locale" content="{{ $seo['og']['locale'] }}">
         <meta name="twitter:card" content="summary">
     @endif
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/favicon.ico?v=2" sizes="32x32">
+    <link rel="icon" href="/favicon.svg?v=2" type="image/svg+xml">
     @foreach (($seo['jsonld'] ?? []) as $schema)
         <script type="application/ld+json">{!! json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) !!}</script>
     @endforeach

@@ -126,7 +126,7 @@ function Footer() {
         <footer className="footer">
             <div className="container footer__grid">
                 <div className="footer__brand">
-                    <Logo />
+                    <Logo animated={false} />
                     <p className="text-sm text-muted">Сервис поиска стоматологических клиник и врачей по всей России. Сравнивайте цены, читайте проверенные отзывы и записывайтесь онлайн.</p>
                 </div>
                 <nav aria-label="Каталог">

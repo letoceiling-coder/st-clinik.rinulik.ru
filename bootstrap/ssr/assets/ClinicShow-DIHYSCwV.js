@@ -2,7 +2,7 @@ import { s as money } from "./format-BP5psl3Q.js";
 import { i as LinkButton, n as Button } from "./Button-C2BxTtRt.js";
 import { C as TextArea, S as SelectField, s as Alert, v as Check, w as TextField } from "../app.js";
 import { o as STATUS, s as StatusBadge } from "./Dash-cIdZIfDR.js";
-import { n as useClinicProfileForm, t as ClinicProfileFields } from "./ClinicProfileFields-DPwNqPUN.js";
+import { n as useClinicProfileForm, t as ClinicProfileFields } from "./ClinicProfileFields-C_G7W7cH.js";
 import { Link, router, useForm } from "@inertiajs/react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 //#region resources/js/pages/Admin/ClinicShow.tsx
@@ -300,4 +300,4 @@ function ClinicShow({ clinic, statuses, seoAuto, branchForm, ...options }) {
 //#endregion
 export { ClinicShow as default };
 
-//# sourceMappingURL=ClinicShow-DfguWMQu.js.map
+//# sourceMappingURL=ClinicShow-DIHYSCwV.js.map
