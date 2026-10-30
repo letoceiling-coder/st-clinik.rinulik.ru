@@ -46,6 +46,9 @@ class OfferRenderer
         '{unsubscribe_link}' => 'Ссылка для отписки',
     ];
 
+    /** Показатели, строки с которыми не показываются, если значения нет или оно нулевое. */
+    public const OPTIONAL_METRICS = ['{org.rating}', '{org.reviews}', '{competitors_in_city}', '{platform.clinics_in_city}', '{platform.visitors_in_city}'];
+
     /** Рекомендуемый предел: два SMS-сегмента кириллицей. */
     public const SMS_MAX_SEGMENTS = 2;
 
@@ -63,8 +66,20 @@ class OfferRenderer
     public function render(array $content, Clinic $clinic, array $links): array
     {
         $vars = $this->variables($clinic, $links);
-        // Строки, от которых после подстановки остались только знаки препинания (пустые {manager.name}, {manager.phone}), убираем.
-        $fill = fn (?string $text) => preg_replace('/^[ \t]*[,.·:;–—-]*[ \t]*$/mu', '', strtr((string) $text, $vars)) ?? '';
+        $missing = $this->missingMetrics($vars);
+        // Строки с показателями, которых у клиники нет («рейтинг — и 0 отзывов»), убираем целиком;
+        // строки, от которых после подстановки остались только знаки препинания (пустые {manager.name}, {manager.phone}), тоже.
+        $fill = function (?string $text) use ($vars, $missing): string {
+            $text = (string) $text;
+            if ($missing !== []) {
+                $text = implode("\n", array_filter(
+                    preg_split('/\R/u', $text) ?: [],
+                    fn (string $line) => ! collect($missing)->contains(fn (string $var) => str_contains($line, $var)),
+                ));
+            }
+
+            return preg_replace('/^[ \t]*[,.·:;–—-]*[ \t]*$/mu', '', strtr($text, $vars)) ?? '';
+        };
 
         $emailText = $fill($content['email_body'] ?? '');
         if (! str_contains((string) ($content['email_body'] ?? ''), '{unsubscribe_link}') && ($links['unsubscribe_link'] ?? '') !== '') {
@@ -122,6 +137,18 @@ class OfferRenderer
             '{manager.phone}' => $manager['phone'],
             '{unsubscribe_link}' => $links['unsubscribe_link'] ?? '',
         ];
+    }
+
+    /**
+     * @param  array<string, string>  $vars
+     * @return list<string>
+     */
+    private function missingMetrics(array $vars): array
+    {
+        return array_values(array_filter(
+            self::OPTIONAL_METRICS,
+            fn (string $var) => in_array(trim($vars[$var] ?? ''), ['', '—', '0'], true),
+        ));
     }
 
     /** @return list<array{name: string, description: string|null, price: int|null, days: int}> */
@@ -208,6 +235,7 @@ class OfferRenderer
     public function toPlain(string $text): string
     {
         $text = preg_replace('/\*\*(.+?)\*\*/u', '$1', str_replace("\r", '', $text)) ?? $text;
+        $text = preg_replace('~\[([^\]]+)\]\((https?://[^\s)]+)\)~u', '$1: $2', $text) ?? $text;
         $text = preg_replace('/^#{1,2} /mu', '', $text) ?? $text;
 
         return trim(preg_replace('/^- /mu', '• ', $text) ?? $text);
@@ -233,10 +261,20 @@ class OfferRenderer
         $escaped = e($text);
         $escaped = preg_replace('/\*\*(.+?)\*\*/u', '<strong>$1</strong>', $escaped) ?? $escaped;
 
-        return preg_replace_callback(
-            '~https?://[^\s<]+~u',
+        // [текст](ссылка) — ссылка с подписью; прячем её от автоссылок ниже, чтобы не обернуть дважды.
+        $named = [];
+        $escaped = preg_replace_callback('~\[([^\]]+)\]\((https?://[^\s)]+)\)~u', function (array $m) use (&$named) {
+            $named[] = '<a href="'.$m[2].'" target="_blank" rel="noopener">'.$m[1].'</a>';
+
+            return "\u{1}".(count($named) - 1)."\u{1}";
+        }, $escaped) ?? $escaped;
+
+        $linked = preg_replace_callback(
+            '~https?://[^\s<\x{1}]+~u',
             fn (array $m) => '<a href="'.$m[0].'" target="_blank" rel="noopener">'.$m[0].'</a>',
             $escaped,
         ) ?? $escaped;
+
+        return preg_replace_callback("~\u{1}(\\d+)\u{1}~u", fn (array $m) => $named[(int) $m[1]], $linked) ?? $linked;
     }
 }

@@ -14,7 +14,7 @@ var FIELDS = [
 		key: "web_body",
 		label: "Текст страницы КП",
 		rows: 12,
-		hint: "Пустая строка — новый абзац, «# » и «## » — заголовки, «- » — пункт списка, **жирный**. Ссылки становятся кликабельными."
+		hint: "Пустая строка — новый абзац, «# » и «## » — заголовки, «- » — пункт списка, **жирный**, [текст ссылки](адрес). Ссылки становятся кликабельными."
 	},
 	{
 		key: "email_subject",
@@ -97,9 +97,25 @@ function AdminOfferTemplate({ template, defaults, variables, sample_clinics, sms
 		test.transform((d) => ({
 			...d,
 			...content,
-			clinic_id: clinicId
+			clinic_id: clinicId,
+			template_id: template?.id ?? null
 		}));
 		test.post("/admin/offers/templates/test", { preserveScroll: true });
+	};
+	const [usingRecommended, setUsingRecommended] = useState(false);
+	const applyRecommended = () => {
+		form.setData((data) => ({
+			...data,
+			...defaults
+		}));
+		setUsingRecommended(true);
+	};
+	const restoreOwn = () => {
+		form.setData((data) => ({
+			...data,
+			...contentOf(template, defaults)
+		}));
+		setUsingRecommended(false);
 	};
 	const rendered = preview.response;
 	return /* @__PURE__ */ jsxs("div", {
@@ -118,7 +134,7 @@ function AdminOfferTemplate({ template, defaults, variables, sample_clinics, sms
 				className: "stack",
 				onSubmit: submit,
 				children: [
-					/* @__PURE__ */ jsx(Panel, { children: /* @__PURE__ */ jsxs("div", {
+					/* @__PURE__ */ jsxs(Panel, { children: [/* @__PURE__ */ jsxs("div", {
 						className: "offers-form-grid",
 						children: [/* @__PURE__ */ jsx(TextField, {
 							label: "Название шаблона",
@@ -134,7 +150,40 @@ function AdminOfferTemplate({ template, defaults, variables, sample_clinics, sms
 								onChange: (e) => form.setData("is_active", e.target.checked)
 							})
 						})]
-					}) }),
+					}), template ? /* @__PURE__ */ jsx("div", {
+						className: "stack",
+						style: { marginTop: 16 },
+						children: usingRecommended ? /* @__PURE__ */ jsxs(Alert, {
+							tone: "success",
+							children: [
+								"Подставлен рекомендуемый текст: выгоды для клиники, пробный период без риска и понятные шаги. Нажмите «Сохранить», чтобы применить его; ваш прежний текст останется в истории версий.",
+								" ",
+								/* @__PURE__ */ jsx("button", {
+									type: "button",
+									className: "link",
+									onClick: restoreOwn,
+									children: "Вернуть мой текст"
+								})
+							]
+						}) : /* @__PURE__ */ jsxs("div", {
+							className: "row row--wrap",
+							style: {
+								gap: 12,
+								alignItems: "center"
+							},
+							children: [/* @__PURE__ */ jsx(Button, {
+								type: "button",
+								variant: "outline",
+								size: "sm",
+								icon: "sparkle",
+								onClick: applyRecommended,
+								children: "Подставить рекомендуемый текст"
+							}), /* @__PURE__ */ jsx("span", {
+								className: "text-sm text-muted",
+								children: "Продающий текст для всех каналов: страница КП, письмо, SMS, мессенджеры и скрипт звонка."
+							})]
+						})
+					}) : null] }),
 					/* @__PURE__ */ jsx(Panel, {
 						title: "Переменные",
 						children: /* @__PURE__ */ jsxs("div", {
@@ -313,7 +362,7 @@ function AdminOfferTemplate({ template, defaults, variables, sample_clinics, sms
 							}),
 							/* @__PURE__ */ jsx("p", {
 								className: "text-xs text-muted",
-								children: "Ссылки в предпросмотре условные — настоящие создаются вместе с КП."
+								children: "Ссылки в предпросмотре условные. В тестовом письме и SMS они настоящие — рабочее КП выбранной клиники."
 							})
 						]
 					})
@@ -362,4 +411,4 @@ function AdminOfferTemplate({ template, defaults, variables, sample_clinics, sms
 //#endregion
 export { AdminOfferTemplate as default };
 
-//# sourceMappingURL=OfferTemplate-XPmOutNN.js.map
+//# sourceMappingURL=OfferTemplate-B8JQcvM9.js.map

@@ -39,7 +39,7 @@ interface Props {
 
 const FIELDS: { key: Field; label: string; rows?: number; hint?: string }[] = [
     { key: 'web_title', label: 'Заголовок страницы КП' },
-    { key: 'web_body', label: 'Текст страницы КП', rows: 12, hint: 'Пустая строка — новый абзац, «# » и «## » — заголовки, «- » — пункт списка, **жирный**. Ссылки становятся кликабельными.' },
+    { key: 'web_body', label: 'Текст страницы КП', rows: 12, hint: 'Пустая строка — новый абзац, «# » и «## » — заголовки, «- » — пункт списка, **жирный**, [текст ссылки](адрес). Ссылки становятся кликабельными.' },
     { key: 'email_subject', label: 'Тема письма' },
     { key: 'email_body', label: 'Текст письма', rows: 8, hint: 'Из него собираются HTML и текстовая версии. Ссылка на отписку добавится автоматически, если не вставить {unsubscribe_link}.' },
     { key: 'sms_text', label: 'SMS', rows: 2, hint: 'Не больше 2 SMS (134 знака кириллицей). Используйте {offer_link} — это короткая ссылка.' },
@@ -96,8 +96,18 @@ export default function AdminOfferTemplate({ template, defaults, variables, samp
 
     const sendTest = () => {
         if (clinicId === '') return;
-        test.transform((d) => ({ ...d, ...content, clinic_id: clinicId }));
+        test.transform((d) => ({ ...d, ...content, clinic_id: clinicId, template_id: template?.id ?? null }));
         test.post('/admin/offers/templates/test', { preserveScroll: true });
+    };
+
+    const [usingRecommended, setUsingRecommended] = useState(false);
+    const applyRecommended = () => {
+        form.setData((data) => ({ ...data, ...defaults }));
+        setUsingRecommended(true);
+    };
+    const restoreOwn = () => {
+        form.setData((data) => ({ ...data, ...contentOf(template, defaults) }));
+        setUsingRecommended(false);
     };
 
     const rendered = preview.response;
@@ -123,6 +133,25 @@ export default function AdminOfferTemplate({ template, defaults, variables, samp
                                 <Check label="Доступен для кампаний" checked={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.checked)} />
                             </div>
                         </div>
+                        {template ? (
+                            <div className="stack" style={{ marginTop: 16 }}>
+                                {usingRecommended ? (
+                                    <Alert tone="success">
+                                        Подставлен рекомендуемый текст: выгоды для клиники, пробный период без риска и понятные шаги. Нажмите «Сохранить», чтобы применить его; ваш прежний текст останется в истории версий.{' '}
+                                        <button type="button" className="link" onClick={restoreOwn}>
+                                            Вернуть мой текст
+                                        </button>
+                                    </Alert>
+                                ) : (
+                                    <div className="row row--wrap" style={{ gap: 12, alignItems: 'center' }}>
+                                        <Button type="button" variant="outline" size="sm" icon="sparkle" onClick={applyRecommended}>
+                                            Подставить рекомендуемый текст
+                                        </Button>
+                                        <span className="text-sm text-muted">Продающий текст для всех каналов: страница КП, письмо, SMS, мессенджеры и скрипт звонка.</span>
+                                    </div>
+                                )}
+                            </div>
+                        ) : null}
                     </Panel>
 
                     <Panel title="Переменные">
@@ -238,7 +267,7 @@ export default function AdminOfferTemplate({ template, defaults, variables, samp
                             ) : (
                                 <pre className="offers-plain">{(tab === 'messenger' ? rendered.messenger : rendered.call_script) || 'Текст не задан.'}</pre>
                             )}
-                            <p className="text-xs text-muted">Ссылки в предпросмотре условные — настоящие создаются вместе с КП.</p>
+                            <p className="text-xs text-muted">Ссылки в предпросмотре условные. В тестовом письме и SMS они настоящие — рабочее КП выбранной клиники.</p>
                         </div>
                     </Panel>
 
