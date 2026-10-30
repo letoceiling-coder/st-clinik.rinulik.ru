@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Clinic;
 use App\Models\ClinicPost;
 use App\Support\Schedule;
 use Illuminate\Http\Request;
