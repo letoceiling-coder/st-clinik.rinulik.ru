@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use Carbon\CarbonImmutable;
+
 final class Schedule
 {
     public const DAYS = ['mon' => 'Пн', 'tue' => 'Вт', 'wed' => 'Ср', 'thu' => 'Чт', 'fri' => 'Пт', 'sat' => 'Сб', 'sun' => 'Вс'];
@@ -37,6 +39,52 @@ final class Schedule
         }
 
         return ($day['open'] ?? '').'–'.($day['close'] ?? '');
+    }
+
+    /**
+     * «Открыто до 21:00», «Закроется в 21:00», «Закрыто · откроется завтра в 09:00».
+     * null — график не заполнен.
+     *
+     * @return array{open: bool, closing_soon: bool, label: string}|null
+     */
+    public static function openState(?array $schedule, bool $is247 = false, ?\DateTimeInterface $at = null): ?array
+    {
+        if ($is247) {
+            return ['open' => true, 'closing_soon' => false, 'label' => 'Открыто круглосуточно'];
+        }
+        if (! $schedule) {
+            return null;
+        }
+
+        $now = CarbonImmutable::instance($at ?? now())->timezone(config('app.timezone'));
+        $minutes = $now->hour * 60 + $now->minute;
+        $today = $schedule[self::weekdayKey($now)] ?? null;
+
+        if ($today && isset($today['open'], $today['close'])) {
+            $open = self::timeToMinutes($today['open']);
+            $close = self::timeToMinutes($today['close']);
+            if ($minutes >= $open && $minutes < $close) {
+                $soon = $close - $minutes <= 60 && $close < 24 * 60;
+
+                return ['open' => true, 'closing_soon' => $soon, 'label' => ($soon ? 'Закроется в ' : 'Открыто до ').$today['close']];
+            }
+            if ($minutes < $open) {
+                return ['open' => false, 'closing_soon' => false, 'label' => 'Закрыто · откроется в '.$today['open']];
+            }
+        }
+
+        $names = ['mon' => 'в пн', 'tue' => 'во вт', 'wed' => 'в ср', 'thu' => 'в чт', 'fri' => 'в пт', 'sat' => 'в сб', 'sun' => 'в вс'];
+        for ($i = 1; $i <= 7; $i++) {
+            $day = $now->addDays($i);
+            $key = self::weekdayKey($day);
+            if (! empty($schedule[$key]['open'])) {
+                $when = $i === 1 ? 'завтра' : $names[$key];
+
+                return ['open' => false, 'closing_soon' => false, 'label' => "Закрыто · откроется {$when} в {$schedule[$key]['open']}"];
+            }
+        }
+
+        return ['open' => false, 'closing_soon' => false, 'label' => 'Закрыто'];
     }
 
     public static function today(?array $schedule, bool $is247 = false): string

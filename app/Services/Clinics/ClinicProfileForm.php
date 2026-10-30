@@ -21,7 +21,7 @@ class ClinicProfileForm
 
     /** Поля профиля, которые редактирует форма (кроме свойств-флагов и направлений). */
     private const FIELDS = [
-        'id', 'name', 'tagline', 'description', 'address', 'metro', 'lat', 'lng', 'phone', 'email', 'website', 'founded_year',
+        'id', 'name', 'tagline', 'description', 'address', 'metro', 'directions_note', 'parking', 'warranty', 'lat', 'lng', 'phone', 'email', 'website', 'founded_year',
         'city_id', 'district_id', 'license_number', 'license_issuer', 'restrictions', 'payment_methods', 'achievements',
         'accepts_children', 'children_age_from', 'installment_months', 'status', 'moderation_note',
     ];
@@ -69,6 +69,9 @@ class ClinicProfileForm
             'district_id' => 'nullable|exists:districts,id',
             'address' => 'required|string|max:200',
             'metro' => 'nullable|string|max:80',
+            'directions_note' => 'nullable|string|max:500',
+            'parking' => 'nullable|string|max:160',
+            'warranty' => 'nullable|string|max:1500',
             'lat' => 'nullable|numeric|between:-90,90',
             'lng' => 'nullable|numeric|between:-180,180',
             'phone' => [$phoneRequired ? 'required' : 'nullable', 'string', 'max:32', new RussianPhone],

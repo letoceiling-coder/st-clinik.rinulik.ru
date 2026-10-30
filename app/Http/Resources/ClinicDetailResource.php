@@ -51,6 +51,11 @@ class ClinicDetailResource extends ClinicResource
                 'type' => $d->type, 'title' => $d->title, 'number' => $d->number, 'issued_at' => $d->issued_at?->toDateString(),
             ])->values(),
             'week' => Schedule::week($c->schedule),
+            'open_state' => Schedule::openState($c->schedule, (bool) $c->is_24_7),
+            'directions_note' => $c->directions_note,
+            'parking' => $c->parking,
+            'warranty' => $c->warranty,
+            'routes' => $this->routes($c),
             'photos' => $c->photos->map(fn ($p) => [
                 'kind' => $p->kind,
                 'caption' => $p->caption,
@@ -75,5 +80,26 @@ class ClinicDetailResource extends ClinicResource
                 'image_url' => $post->image_path ? Storage::disk('public')->url($post->image_path) : null,
             ])->values(),
         ]);
+    }
+
+    /**
+     * Кнопки маршрута в навигаторах: по координатам, если есть, иначе по адресу.
+     *
+     * @return array{yandex: string, gis: string}
+     */
+    private function routes(Clinic $c): array
+    {
+        $address = trim(($c->city?->name ? $c->city->name.', ' : '').$c->address);
+        if ($c->lat !== null && $c->lng !== null) {
+            return [
+                'yandex' => 'https://yandex.ru/maps/?rtext=~'.$c->lat.','.$c->lng.'&rtt=auto',
+                'gis' => 'https://2gis.ru/routeSearch/rsType/car/to/'.$c->lng.','.$c->lat,
+            ];
+        }
+
+        return [
+            'yandex' => 'https://yandex.ru/maps/?text='.rawurlencode($address),
+            'gis' => 'https://2gis.ru/search/'.rawurlencode($address),
+        ];
     }
 }

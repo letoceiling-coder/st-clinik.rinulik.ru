@@ -33,6 +33,9 @@ export function useClinicProfileForm(profile: ClinicProfile | null, propertyType
         district_id: (b.district_id as number) ?? '',
         address: (b.address as string) ?? '',
         metro: (b.metro as string) ?? '',
+        directions_note: (b.directions_note as string) ?? '',
+        parking: (b.parking as string) ?? '',
+        warranty: (b.warranty as string) ?? '',
         lat: (b.lat as number) ?? '',
         lng: (b.lng as number) ?? '',
         phone: (b.phone as string) ?? '',
@@ -119,6 +122,8 @@ export default function ClinicProfileFields({
                 </SelectField>
                 <TextField className="span-2" label="Адрес" required value={form.data.address} onChange={(e) => form.setData('address', e.target.value)} error={form.errors.address} />
                 <TextField label="Метро" value={form.data.metro} onChange={(e) => form.setData('metro', e.target.value)} />
+                <TextField label="Парковка" placeholder="Например: бесплатная у входа" maxLength={160} value={form.data.parking} onChange={(e) => form.setData('parking', e.target.value)} error={form.errors.parking} />
+                <TextArea className="span-2" label="Как найти вход" hint="Этаж, вывеска, вход со двора, домофон — это увидят пациенты в блоке «Как добраться»." maxLength={500} value={form.data.directions_note} onChange={(e) => form.setData('directions_note', e.target.value)} error={form.errors.directions_note} />
                 <PhoneField label="Телефон" required={phoneRequired} value={form.data.phone} onChange={(e) => form.setData('phone', e.target.value)} error={form.errors.phone} />
                 <TextField label="E-mail" type="email" value={form.data.email} onChange={(e) => form.setData('email', e.target.value)} error={form.errors.email} />
                 <TextField label="Сайт" value={form.data.website} placeholder="https://" onChange={(e) => form.setData('website', e.target.value)} error={form.errors.website} />
@@ -137,6 +142,7 @@ export default function ClinicProfileFields({
                 <TextField label="Кем выдана" value={form.data.license_issuer} onChange={(e) => form.setData('license_issuer', e.target.value)} />
                 <TextField label="Дата лицензии" type="date" value={form.data.license_date} onChange={(e) => form.setData('license_date', e.target.value)} error={form.errors.license_date} />
                 <TextArea className="span-2" label="Ограничения приёма" hint="Например: не принимаем детей младше 3 лет, нет наркоза." value={form.data.restrictions} onChange={(e) => form.setData('restrictions', e.target.value)} />
+                <TextArea className="span-2" label="Гарантии" hint="Например: пломбы — 1 год, коронки — 3 года, импланты — пожизненно от производителя. Условия гарантии." maxLength={1500} value={form.data.warranty} onChange={(e) => form.setData('warranty', e.target.value)} error={form.errors.warranty} />
                 <TextArea className="span-2" label="Достижения (каждое с новой строки)" value={form.data.achievements} onChange={(e) => form.setData('achievements', e.target.value)} />
             </section>
 
