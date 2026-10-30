@@ -22,7 +22,7 @@ export default function Logo({
     const shortSuffix = mobileSuffix ?? suffix;
 
     return (
-        <Link href={to} className="logo" aria-label={`${appName} — на главную`}>
+        <Link href={to} className={animated ? 'logo logo--brand' : 'logo'} aria-label={`${appName} — на главную`}>
             {animated ? <BrandMark size={40} /> : <LogoMark />}
             <span className="logo__text">{appName}</span>
             {suffix ? <span className="logo__suffix hide-mobile">{suffix}</span> : null}

@@ -3236,7 +3236,7 @@ function Logo({ to = "/", suffix, mobileSuffix, animated = true }) {
 	const shortSuffix = mobileSuffix ?? suffix;
 	return /* @__PURE__ */ jsxs(Link, {
 		href: to,
-		className: "logo",
+		className: animated ? "logo logo--brand" : "logo",
 		"aria-label": `${appName} — на главную`,
 		children: [
 			animated ? /* @__PURE__ */ jsx(BrandMark, { size: 40 }) : /* @__PURE__ */ jsx(LogoMark, {}),
