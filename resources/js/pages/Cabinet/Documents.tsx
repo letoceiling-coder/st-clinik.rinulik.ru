@@ -2,6 +2,7 @@ import { router, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { PageHead, StatusBadge, Table } from '@/components/Dash';
 import { Button } from '@/components/ui/Button';
+import FileDropzone from '@/components/ui/FileDropzone';
 import { SelectField, TextField } from '@/components/ui/Fields';
 import { Alert, EmptyState } from '@/components/ui/Misc';
 
@@ -25,11 +26,17 @@ export default function Documents({ documents, types }: { documents: Doc[]; type
                 <TextField label="Номер" value={form.data.number} onChange={(e) => form.setData('number', e.target.value)} />
                 <TextField label="Выдан" type="date" value={form.data.issued_at} onChange={(e) => form.setData('issued_at', e.target.value)} />
                 <TextField label="Действует до" type="date" value={form.data.expires_at} onChange={(e) => form.setData('expires_at', e.target.value)} />
-                <div className="field">
-                    <label className="field__label" htmlFor="doc">Файл PDF/JPG</label>
-                    <input id="doc" className="input" type="file" onChange={(e) => form.setData('file', e.target.files?.[0] ?? null)} />
-                    {form.errors.file ? <p className="field__error">{form.errors.file}</p> : null}
-                </div>
+                <FileDropzone
+                    className="span-2"
+                    label="Скан или фото документа"
+                    title="Перетащите файл сюда"
+                    hint="PDF, JPG или PNG, до 8 МБ"
+                    accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+                    value={form.data.file}
+                    onChange={(file) => form.setData('file', file)}
+                    error={form.errors.file}
+                    compact
+                />
                 <Button type="submit" loading={form.processing}>Загрузить</Button>
             </form>
             {documents.length === 0 ? <EmptyState title="Документов нет" /> : (

@@ -625,7 +625,7 @@
     "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/components/ui/FileDropzone.tsx": [
-    "/build/assets/FileDropzone-CiBd0Lal.js"
+    "/build/assets/FileDropzone-CZ2V2XXS.js"
   ],
   "resources/js/components/ui/Misc.tsx": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -1425,7 +1425,7 @@
     "/build/assets/Dashboard-BNl_NxZ6.js"
   ],
   "resources/js/pages/Admin/Dictionary.tsx": [
-    "/build/assets/Dictionary-DQtV1QH3.js"
+    "/build/assets/Dictionary-Gdy37BMa.js"
   ],
   "resources/js/pages/Admin/Doctors.tsx": [
     "/build/assets/Doctors-D98ONitv.js"
@@ -1437,7 +1437,7 @@
     "/build/assets/Finance-uLJGP_d1.js"
   ],
   "resources/js/pages/Admin/Geography.tsx": [
-    "/build/assets/Geography-DvmrwSnJ.js"
+    "/build/assets/Geography-Cw4Wq7xY.js"
   ],
   "resources/js/pages/Admin/Integrations.tsx": [
     "/build/assets/Integrations-DnNrZv4f.js"
@@ -1542,7 +1542,7 @@
     "/build/assets/Dashboard-Bf40up59.js"
   ],
   "resources/js/pages/Cabinet/DoctorForm.tsx": [
-    "/build/assets/DoctorForm-Bf7SPLs6.js"
+    "/build/assets/DoctorForm-CC2loMuM.js"
   ],
   "resources/js/pages/Cabinet/DoctorSchedules.tsx": [
     "/build/assets/DoctorSchedules-CV-B_Blq.js"
@@ -1551,7 +1551,7 @@
     "/build/assets/Doctors-BG7A7IZ1.js"
   ],
   "resources/js/pages/Cabinet/Documents.tsx": [
-    "/build/assets/Documents-DBObHyVy.js"
+    "/build/assets/Documents-C_373OWg.js"
   ],
   "resources/js/pages/Cabinet/Leads.tsx": [
     "/build/assets/Leads-R9khBBKe.js"
@@ -1563,13 +1563,13 @@
     "/build/assets/Payments-BQkCw9nG.js"
   ],
   "resources/js/pages/Cabinet/Photos.tsx": [
-    "/build/assets/Photos-Bhe2-55M.js"
+    "/build/assets/Photos-BpHSGZTm.js"
   ],
   "resources/js/pages/Cabinet/Posts.tsx": [
-    "/build/assets/Posts-BC5RvG5J.js"
+    "/build/assets/Posts-C-_30NxI.js"
   ],
   "resources/js/pages/Cabinet/Prices.tsx": [
-    "/build/assets/Prices-Fam2CJJQ.js"
+    "/build/assets/Prices-CeLWRf17.js"
   ],
   "resources/js/pages/Cabinet/Promotions.tsx": [
     "/build/assets/Promotions-DdkUGVcr.js"

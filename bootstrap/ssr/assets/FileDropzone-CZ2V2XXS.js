@@ -3,19 +3,32 @@ import { n as cx } from "./format-BP5psl3Q.js";
 import { useEffect, useId, useRef, useState } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
 //#region resources/js/components/ui/FileDropzone.tsx
+/** Подходит ли файл под accept: расширения (.csv), точные MIME-типы и шаблоны вида image/*. */
+function matchesAccept(file, accept) {
+	const rules = accept.split(",").map((rule) => rule.trim().toLowerCase()).filter(Boolean);
+	if (rules.length === 0) return true;
+	const name = file.name.toLowerCase();
+	const type = file.type.toLowerCase();
+	return rules.some((rule) => {
+		if (rule.startsWith(".")) return name.endsWith(rule);
+		if (rule.endsWith("/*")) return type.startsWith(rule.slice(0, -1));
+		return type === rule;
+	});
+}
 function pickFile(files, accept) {
 	const file = files?.[0];
-	if (!file) return null;
-	if (accept === "image/*" && !file.type.startsWith("image/")) return null;
-	return file;
+	return file && matchesAccept(file, accept) ? file : null;
 }
-function FileDropzone({ label = "Файл", hint, error, accept = "image/*", value, onChange, previewUrl, compact = false, className }) {
+function formatSize(bytes) {
+	return bytes < 1048576 ? `${Math.max(1, Math.round(bytes / 1024))} КБ` : `${(bytes / 1024 / 1024).toFixed(1).replace(".", ",")} МБ`;
+}
+function FileDropzone({ label = "Файл", hint, error, accept = "image/*", value, onChange, previewUrl, compact = false, className, title }) {
 	const id = useId();
 	const inputRef = useRef(null);
 	const [dragging, setDragging] = useState(false);
 	const [localPreview, setLocalPreview] = useState(null);
 	useEffect(() => {
-		if (!value) {
+		if (!value || !value.type.startsWith("image/")) {
 			setLocalPreview(null);
 			return;
 		}
@@ -86,22 +99,18 @@ function FileDropzone({ label = "Файл", hint, error, accept = "image/*", val
 							className: "file-dropzone__icon",
 							"aria-hidden": "true",
 							children: /* @__PURE__ */ jsx(Icon, {
-								name: "upload",
+								name: value ? "file" : "upload",
 								size: 22
 							})
 						}),
 						/* @__PURE__ */ jsx("span", {
 							className: "file-dropzone__title",
-							children: dragging ? "Отпустите файл" : "Перетащите фото сюда"
+							children: dragging ? "Отпустите файл" : value ? value.name : title ?? (accept.startsWith("image/") ? "Перетащите фото сюда" : "Перетащите файл сюда")
 						}),
 						/* @__PURE__ */ jsx("span", {
 							className: "file-dropzone__text",
-							children: "или нажмите, чтобы выбрать"
-						}),
-						value ? /* @__PURE__ */ jsx("span", {
-							className: "file-dropzone__name",
-							children: value.name
-						}) : null
+							children: value ? `${formatSize(value.size)} · нажмите, чтобы заменить` : "или нажмите, чтобы выбрать"
+						})
 					]
 				})]
 			}),
@@ -131,4 +140,4 @@ function FileDropzone({ label = "Файл", hint, error, accept = "image/*", val
 //#endregion
 export { FileDropzone as t };
 
-//# sourceMappingURL=FileDropzone-CiBd0Lal.js.map
+//# sourceMappingURL=FileDropzone-CZ2V2XXS.js.map

@@ -1,6 +1,7 @@
 import { n as Button } from "./Button-C2BxTtRt.js";
 import { C as SelectField, T as TextField, c as Alert, f as EmptyState } from "../app.js";
 import { c as Table, r as PageHead, s as StatusBadge } from "./Dash-C8plSzIc.js";
+import { t as FileDropzone } from "./FileDropzone-CZ2V2XXS.js";
 import { router, useForm } from "@inertiajs/react";
 import { jsx, jsxs } from "react/jsx-runtime";
 //#region resources/js/pages/Cabinet/Documents.tsx
@@ -65,25 +66,16 @@ function Documents({ documents, types }) {
 						value: form.data.expires_at,
 						onChange: (e) => form.setData("expires_at", e.target.value)
 					}),
-					/* @__PURE__ */ jsxs("div", {
-						className: "field",
-						children: [
-							/* @__PURE__ */ jsx("label", {
-								className: "field__label",
-								htmlFor: "doc",
-								children: "Файл PDF/JPG"
-							}),
-							/* @__PURE__ */ jsx("input", {
-								id: "doc",
-								className: "input",
-								type: "file",
-								onChange: (e) => form.setData("file", e.target.files?.[0] ?? null)
-							}),
-							form.errors.file ? /* @__PURE__ */ jsx("p", {
-								className: "field__error",
-								children: form.errors.file
-							}) : null
-						]
+					/* @__PURE__ */ jsx(FileDropzone, {
+						className: "span-2",
+						label: "Скан или фото документа",
+						title: "Перетащите файл сюда",
+						hint: "PDF, JPG или PNG, до 8 МБ",
+						accept: ".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png",
+						value: form.data.file,
+						onChange: (file) => form.setData("file", file),
+						error: form.errors.file,
+						compact: true
 					}),
 					/* @__PURE__ */ jsx(Button, {
 						type: "submit",
@@ -130,4 +122,4 @@ function Documents({ documents, types }) {
 //#endregion
 export { Documents as default };
 
-//# sourceMappingURL=Documents-DBObHyVy.js.map
+//# sourceMappingURL=Documents-C_373OWg.js.map

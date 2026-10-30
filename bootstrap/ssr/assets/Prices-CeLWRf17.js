@@ -2,7 +2,7 @@ import { s as money } from "./format-BP5psl3Q.js";
 import { n as Button, t as AnchorButton } from "./Button-C2BxTtRt.js";
 import { C as SelectField, T as TextField, c as Alert, f as EmptyState, y as Check } from "../app.js";
 import { c as Table, r as PageHead } from "./Dash-C8plSzIc.js";
-import { t as FileDropzone } from "./FileDropzone-CiBd0Lal.js";
+import { t as FileDropzone } from "./FileDropzone-CZ2V2XXS.js";
 import { router, useForm, usePage } from "@inertiajs/react";
 import { jsx, jsxs } from "react/jsx-runtime";
 //#region resources/js/pages/Cabinet/Prices.tsx
@@ -203,4 +203,4 @@ function Prices({ prices, services }) {
 //#endregion
 export { Prices as default };
 
-//# sourceMappingURL=Prices-Fam2CJJQ.js.map
+//# sourceMappingURL=Prices-CeLWRf17.js.map

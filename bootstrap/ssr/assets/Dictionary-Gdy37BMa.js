@@ -1,7 +1,7 @@
 import { n as Button } from "./Button-C2BxTtRt.js";
 import { C as SelectField, O as Modal, S as SearchInput, T as TextField, w as TextArea, y as Check } from "../app.js";
 import { c as Table, i as PagerSafe, r as PageHead, t as FilterBar } from "./Dash-C8plSzIc.js";
-import { t as FileDropzone } from "./FileDropzone-CiBd0Lal.js";
+import { t as FileDropzone } from "./FileDropzone-CZ2V2XXS.js";
 import { Link, router, useForm } from "@inertiajs/react";
 import { useEffect, useState } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
@@ -250,4 +250,4 @@ function DictForm({ fields, resource, initial, onDone }) {
 //#endregion
 export { Dictionary as default };
 
-//# sourceMappingURL=Dictionary-DQtV1QH3.js.map
+//# sourceMappingURL=Dictionary-Gdy37BMa.js.map

@@ -1,5 +1,6 @@
 import { n as Button } from "./Button-C2BxTtRt.js";
 import { r as PageHead } from "./Dash-C8plSzIc.js";
+import { t as FileDropzone } from "./FileDropzone-CZ2V2XXS.js";
 import { useForm } from "@inertiajs/react";
 import { jsx, jsxs } from "react/jsx-runtime";
 //#region resources/js/pages/Admin/Geography.tsx
@@ -76,17 +77,22 @@ function Geography({ stats, csv_help }) {
 						className: "text-sm text-muted",
 						children: csv_help
 					}),
-					/* @__PURE__ */ jsx("input", {
-						type: "file",
+					/* @__PURE__ */ jsx(FileDropzone, {
+						label: "Файл CSV",
+						title: "Перетащите CSV-файл сюда",
+						hint: "Только .csv в кодировке UTF-8",
 						accept: ".csv,text/csv",
-						onChange: (e) => form.setData("file", e.target.files?.[0] ?? null)
+						value: form.data.file,
+						onChange: (file) => form.setData("file", file),
+						error: form.errors.file,
+						compact: true
 					}),
-					/* @__PURE__ */ jsx(Button, {
+					/* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsx(Button, {
 						type: "submit",
 						loading: form.processing,
 						disabled: !form.data.file,
 						children: "Загрузить"
-					})
+					}) })
 				]
 			})
 		]
@@ -95,4 +101,4 @@ function Geography({ stats, csv_help }) {
 //#endregion
 export { Geography as default };
 
-//# sourceMappingURL=Geography-DvmrwSnJ.js.map
+//# sourceMappingURL=Geography-Cw4Wq7xY.js.map

@@ -1,6 +1,7 @@
 import { useForm } from '@inertiajs/react';
 import { PageHead } from '@/components/Dash';
 import { Button } from '@/components/ui/Button';
+import FileDropzone from '@/components/ui/FileDropzone';
 
 type Stats = { regions: number; cities: number; cities_active: number };
 
@@ -49,10 +50,21 @@ export default function Geography({ stats, csv_help }: { stats: Stats; csv_help:
             >
                 <h2 className="card-title">Импорт городов (CSV)</h2>
                 <p className="text-sm text-muted">{csv_help}</p>
-                <input type="file" accept=".csv,text/csv" onChange={(e) => form.setData('file', e.target.files?.[0] ?? null)} />
-                <Button type="submit" loading={form.processing} disabled={!form.data.file}>
-                    Загрузить
-                </Button>
+                <FileDropzone
+                    label="Файл CSV"
+                    title="Перетащите CSV-файл сюда"
+                    hint="Только .csv в кодировке UTF-8"
+                    accept=".csv,text/csv"
+                    value={form.data.file}
+                    onChange={(file) => form.setData('file', file)}
+                    error={form.errors.file}
+                    compact
+                />
+                <div>
+                    <Button type="submit" loading={form.processing} disabled={!form.data.file}>
+                        Загрузить
+                    </Button>
+                </div>
             </form>
         </div>
     );

@@ -1,7 +1,7 @@
 import { n as Button } from "./Button-C2BxTtRt.js";
 import { C as SelectField, T as TextField, f as EmptyState, u as Badge, w as TextArea, y as Check } from "../app.js";
 import { r as PageHead, s as StatusBadge } from "./Dash-C8plSzIc.js";
-import { t as FileDropzone } from "./FileDropzone-CiBd0Lal.js";
+import { t as FileDropzone } from "./FileDropzone-CZ2V2XXS.js";
 import { router, useForm } from "@inertiajs/react";
 import { useState } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
@@ -310,4 +310,4 @@ function Posts({ posts, types }) {
 //#endregion
 export { Posts as default };
 
-//# sourceMappingURL=Posts-BC5RvG5J.js.map
+//# sourceMappingURL=Posts-C-_30NxI.js.map

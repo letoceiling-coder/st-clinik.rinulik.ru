@@ -3,16 +3,35 @@ import type { DragEvent } from 'react';
 import Icon from '@/components/Icon';
 import { cx } from '@/lib/format';
 
+/** Подходит ли файл под accept: расширения (.csv), точные MIME-типы и шаблоны вида image/*. */
+function matchesAccept(file: File, accept: string): boolean {
+    const rules = accept.split(',').map((rule) => rule.trim().toLowerCase()).filter(Boolean);
+    if (rules.length === 0) {
+        return true;
+    }
+    const name = file.name.toLowerCase();
+    const type = file.type.toLowerCase();
+
+    return rules.some((rule) => {
+        if (rule.startsWith('.')) {
+            return name.endsWith(rule);
+        }
+        if (rule.endsWith('/*')) {
+            return type.startsWith(rule.slice(0, -1));
+        }
+
+        return type === rule;
+    });
+}
+
 function pickFile(files: FileList | null | undefined, accept: string): File | null {
     const file = files?.[0];
-    if (!file) {
-        return null;
-    }
-    if (accept === 'image/*' && !file.type.startsWith('image/')) {
-        return null;
-    }
 
-    return file;
+    return file && matchesAccept(file, accept) ? file : null;
+}
+
+function formatSize(bytes: number): string {
+    return bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} КБ` : `${(bytes / 1024 / 1024).toFixed(1).replace('.', ',')} МБ`;
 }
 
 export default function FileDropzone({
@@ -25,6 +44,7 @@ export default function FileDropzone({
     previewUrl,
     compact = false,
     className,
+    title,
 }: {
     label?: string;
     hint?: string;
@@ -35,6 +55,8 @@ export default function FileDropzone({
     previewUrl?: string | null;
     compact?: boolean;
     className?: string;
+    /** Заголовок в пустом поле; по умолчанию — про фото или про файл, в зависимости от accept. */
+    title?: string;
 }) {
     const id = useId();
     const inputRef = useRef<HTMLInputElement>(null);
@@ -42,7 +64,7 @@ export default function FileDropzone({
     const [localPreview, setLocalPreview] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!value) {
+        if (!value || !value.type.startsWith('image/')) {
             setLocalPreview(null);
             return undefined;
         }
@@ -118,13 +140,14 @@ export default function FileDropzone({
                 ) : (
                     <div className="file-dropzone__body">
                         <span className="file-dropzone__icon" aria-hidden="true">
-                            <Icon name="upload" size={22} />
+                            <Icon name={value ? 'file' : 'upload'} size={22} />
                         </span>
                         <span className="file-dropzone__title">
-                            {dragging ? 'Отпустите файл' : 'Перетащите фото сюда'}
+                            {dragging ? 'Отпустите файл' : value ? value.name : (title ?? (accept.startsWith('image/') ? 'Перетащите фото сюда' : 'Перетащите файл сюда'))}
                         </span>
-                        <span className="file-dropzone__text">или нажмите, чтобы выбрать</span>
-                        {value ? <span className="file-dropzone__name">{value.name}</span> : null}
+                        <span className="file-dropzone__text">
+                            {value ? `${formatSize(value.size)} · нажмите, чтобы заменить` : 'или нажмите, чтобы выбрать'}
+                        </span>
                     </div>
                 )}
             </div>

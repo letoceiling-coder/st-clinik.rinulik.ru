@@ -1,7 +1,7 @@
 import { n as Button } from "./Button-C2BxTtRt.js";
 import { T as TextField, w as TextArea, y as Check } from "../app.js";
 import { r as PageHead } from "./Dash-C8plSzIc.js";
-import { t as FileDropzone } from "./FileDropzone-CiBd0Lal.js";
+import { t as FileDropzone } from "./FileDropzone-CZ2V2XXS.js";
 import { useForm } from "@inertiajs/react";
 import { jsx, jsxs } from "react/jsx-runtime";
 //#region resources/js/pages/Cabinet/DoctorForm.tsx
@@ -150,4 +150,4 @@ function DoctorForm({ doctorForm, specialties, weekdays }) {
 //#endregion
 export { DoctorForm as default };
 
-//# sourceMappingURL=DoctorForm-Bf7SPLs6.js.map
+//# sourceMappingURL=DoctorForm-CC2loMuM.js.map

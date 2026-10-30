@@ -2,7 +2,7 @@ import { n as Button } from "./Button-C2BxTtRt.js";
 import { C as SelectField, T as TextField, f as EmptyState } from "../app.js";
 import { r as PageHead, s as StatusBadge } from "./Dash-C8plSzIc.js";
 import { r as PhotoArt } from "./PhotoArt-C4p4XGJd.js";
-import { t as FileDropzone } from "./FileDropzone-CiBd0Lal.js";
+import { t as FileDropzone } from "./FileDropzone-CZ2V2XXS.js";
 import { router, useForm } from "@inertiajs/react";
 import { useState } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
@@ -196,4 +196,4 @@ function Photos({ photos, kinds }) {
 //#endregion
 export { Photos as default };
 
-//# sourceMappingURL=Photos-Bhe2-55M.js.map
+//# sourceMappingURL=Photos-BpHSGZTm.js.map
