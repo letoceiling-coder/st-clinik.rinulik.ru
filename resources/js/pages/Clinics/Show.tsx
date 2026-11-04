@@ -27,6 +27,8 @@ interface Props {
     review_options: { doctors: { id: number; name: string }[]; services: { id: number; name: string }[] };
     breadcrumbs: Crumb[];
     clinic_follow: { subscribed: boolean; can_subscribe: boolean };
+    /** Ближайшее свободное время и скорость ответа клиники; нет в предпросмотре. */
+    visit?: { next_slot: { date: string; time: string; label: string } | null; response: string | null };
     /** Предпросмотр черновика из КП: запись и отзывы отключены. */
     preview?: { note: string; back_url: string; back_label: string } | null;
 }
@@ -95,7 +97,7 @@ function PostCard({ post }: { post: ClinicPostData }) {
     );
 }
 
-export default function ClinicShow({ clinic, reviews, review_filters, distribution, similar, concerns, review_options, breadcrumbs, clinic_follow, preview = null }: Props) {
+export default function ClinicShow({ clinic, reviews, review_filters, distribution, similar, concerns, review_options, breadcrumbs, clinic_follow, visit, preview = null }: Props) {
     const isPreview = preview !== null;
     const lead = useLead();
     const { url } = usePage();
@@ -207,10 +209,17 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
                                 {clinic.district ? ` · ${clinic.district}` : ''}
                                 {clinic.metro ? ` · м. ${clinic.metro}` : ''}
                             </span>
-                            <span className="meta-item">
-                                <Icon name="clock" size={18} />
-                                {clinic.today}
-                            </span>
+                            {clinic.open_state ? (
+                                <span className={cx('meta-item open-state', clinic.open_state.open ? (clinic.open_state.closing_soon ? 'is-soon' : 'is-open') : 'is-closed')}>
+                                    <span className="open-state__dot" aria-hidden="true" />
+                                    {clinic.open_state.label}
+                                </span>
+                            ) : (
+                                <span className="meta-item">
+                                    <Icon name="clock" size={18} />
+                                    {clinic.today}
+                                </span>
+                            )}
                         </div>
                     </header>
 
@@ -223,9 +232,23 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
                         <strong className="booking__price-value">{priceFrom(clinic.min_price)}</strong>
                         <span className="booking__price-note">Окончательную стоимость называет врач после осмотра.</span>
                     </div>
+                    {visit?.next_slot ? (
+                        <div className="booking__slot">
+                            <Icon name="calendar" size={18} />
+                            <span>
+                                Ближайшее время: <b>{visit.next_slot.label}</b>
+                            </span>
+                        </div>
+                    ) : null}
                     <Button size="lg" block disabled={isPreview} onClick={() => open()}>
                         Записаться онлайн
                     </Button>
+                    {visit?.response ? (
+                        <p className="booking__response">
+                            <Icon name="flash" size={16} />
+                            {visit.response}
+                        </p>
+                    ) : null}
                     <Button variant="ghost" block disabled={isPreview} onClick={() => lead.callback({ slug: clinic.slug, name: clinic.name, phone: clinic.phone, doctors: review_options.doctors, services: review_options.services, source: 'clinic_callback' })}>
                         Перезвоните мне
                     </Button>
@@ -321,6 +344,14 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
                         <Alert tone="warning" icon="alert">
                             <b>Ограничения приёма.</b> {clinic.restrictions}
                         </Alert>
+                    ) : null}
+                    {clinic.warranty ? (
+                        <div className="card clinic-warranty">
+                            <h3>
+                                <Icon name="shield" size={20} /> Гарантии
+                            </h3>
+                            <p>{clinic.warranty}</p>
+                        </div>
                     ) : null}
                     {concerns.length > 0 ? (
                         <div>
@@ -437,8 +468,18 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
                                     <span>
                                         {clinic.address}
                                         {clinic.metro ? <span className="text-muted"> · м. {clinic.metro}</span> : null}
+                                        {clinic.directions_note ? <span className="contact-list__note">{clinic.directions_note}</span> : null}
                                     </span>
                                 </li>
+                                {clinic.parking ? (
+                                    <li>
+                                        <Icon name="card" size={20} />
+                                        <span>
+                                            <span className="text-muted">Парковка: </span>
+                                            {clinic.parking}
+                                        </span>
+                                    </li>
+                                ) : null}
                                 {clinic.phone ? (
                                     <li>
                                         <Icon name="phone" size={20} />
@@ -464,6 +505,16 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
                                     </li>
                                 ) : null}
                             </ul>
+                            {clinic.routes ? (
+                                <div className="clinic-routes">
+                                    <a className="btn btn--outline btn--sm" href={clinic.routes.yandex} target="_blank" rel="noopener noreferrer">
+                                        <Icon name="pin" size={16} /> Маршрут в Яндекс Картах
+                                    </a>
+                                    <a className="btn btn--outline btn--sm" href={clinic.routes.gis} target="_blank" rel="noopener noreferrer">
+                                        <Icon name="external" size={16} /> Открыть в 2ГИС
+                                    </a>
+                                </div>
+                            ) : null}
                             {clinic.lat && clinic.lng ? (
                                 <div className="clinic-map">
                                     <YandexMap

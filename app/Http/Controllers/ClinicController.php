@@ -12,6 +12,7 @@ use App\Repositories\Contracts\ClinicRepository;
 use App\Repositories\Contracts\ReviewRepository;
 use App\Services\Broadcasts\ClinicFollowerService;
 use App\Services\Clinics\ClinicSeo;
+use App\Services\Clinics\ClinicVisitInfo;
 use App\Services\SchemaOrg;
 use App\Services\Seo;
 use Illuminate\Http\Request;
@@ -74,6 +75,7 @@ class ClinicController extends Controller
                 'subscribed' => ($user = $request->user()) ? $followers->isFollowing($user, $clinic) : false,
                 'can_subscribe' => $request->user() !== null,
             ],
+            'visit' => app(ClinicVisitInfo::class)->forClinic($clinic),
         ], $seoData);
     }
 

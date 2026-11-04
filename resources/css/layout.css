@@ -5709,3 +5709,22 @@ html.is-navigating { scroll-behavior: auto !important; }
     overflow-wrap: anywhere;
     white-space: pre-wrap;
 }
+
+/* Страница клиники: «Открыто сейчас», ближайшее время, как добраться, гарантии */
+.open-state { align-items: center; font-weight: 600; }
+.open-state__dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: var(--color-muted); }
+.open-state.is-open { color: var(--color-success); }
+.open-state.is-open .open-state__dot { background: var(--color-success); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success) 20%, transparent); }
+.open-state.is-soon { color: var(--color-warning); }
+.open-state.is-soon .open-state__dot { background: var(--color-warning); }
+.open-state.is-closed { color: var(--color-muted); }
+.booking__slot { display: flex; gap: 8px; align-items: center; font-size: 14px; padding: 10px 12px; border-radius: 12px; background: var(--color-primary-soft, rgba(0,0,0,.04)); }
+.booking__slot svg { flex: none; color: var(--color-primary); }
+.booking__response { display: flex; gap: 6px; align-items: center; margin: 0; font-size: 13px; color: var(--color-muted); }
+.booking__response svg { flex: none; color: var(--color-success); }
+.contact-list__note { display: block; margin-top: 4px; font-size: 14px; color: var(--color-muted); }
+.clinic-routes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.clinic-warranty { margin-top: 16px; }
+.clinic-warranty h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 18px; }
+.clinic-warranty h3 svg { color: var(--color-success); }
+.clinic-warranty p { margin: 0; white-space: pre-line; }

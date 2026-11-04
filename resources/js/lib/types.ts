@@ -219,6 +219,12 @@ export interface ClinicDetailData extends ClinicCardData {
     organization: { name: string; legal_name: string | null } | null;
     documents: { type: string; title: string; number: string | null; issued_at: string | null }[];
     week: { key: string; day: string; hours: string; today: boolean }[];
+    /** «Открыто до 21:00» / «Закрыто · откроется завтра в 09:00»; null — график не заполнен. */
+    open_state?: { open: boolean; closing_soon: boolean; label: string } | null;
+    directions_note?: string | null;
+    parking?: string | null;
+    warranty?: string | null;
+    routes?: { yandex: string; gis: string };
     doctors: DoctorData[];
     prices: { group: string; items: PriceItem[] }[];
     posts: ClinicPostData[];
