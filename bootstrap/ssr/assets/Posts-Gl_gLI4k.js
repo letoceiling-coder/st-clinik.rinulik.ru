@@ -24,7 +24,8 @@ function PostCard({ post, types }) {
 		form.transform((data) => ({
 			...data,
 			_method: "put"
-		})).post(`/clinic-cabinet/posts/${post.id}`, {
+		}));
+		form.post(`/clinic-cabinet/posts/${post.id}`, {
 			forceFormData: true,
 			preserveScroll: true,
 			onSuccess: () => {
@@ -310,4 +311,4 @@ function Posts({ posts, types }) {
 //#endregion
 export { Posts as default };
 
-//# sourceMappingURL=Posts-C-_30NxI.js.map
+//# sourceMappingURL=Posts-Gl_gLI4k.js.map

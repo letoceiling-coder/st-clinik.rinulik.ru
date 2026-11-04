@@ -108,7 +108,8 @@ export default function AdminAssistant({
             city_id: kbForm.data.city_id === '' ? null : Number(kbForm.data.city_id),
         };
         if (editId) {
-            kbForm.transform(() => payload).put(`/admin/assistant/kb/${editId}`, {
+            kbForm.transform(() => payload);
+            kbForm.put(`/admin/assistant/kb/${editId}`, {
                 onSuccess: () => {
                     setEditId(null);
                     kbForm.reset();
@@ -116,7 +117,8 @@ export default function AdminAssistant({
                 },
             });
         } else {
-            kbForm.transform(() => payload).post('/admin/assistant/kb', {
+            kbForm.transform(() => payload);
+            kbForm.post('/admin/assistant/kb', {
                 onSuccess: () => {
                     kbForm.reset();
                     kbForm.setData({ ...emptyKb });

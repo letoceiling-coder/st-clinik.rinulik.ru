@@ -284,7 +284,7 @@ export default function BroadcastShow(props: Props) {
                             </tr>
                         ))}
                     </Table>
-                    <PagerSafe links={recipients.links} />
+                    <PagerSafe page={recipients} />
                 </Panel>
             ) : null}
 

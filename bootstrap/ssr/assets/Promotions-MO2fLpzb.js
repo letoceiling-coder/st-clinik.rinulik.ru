@@ -51,14 +51,16 @@ function AdminPromotions({ products, packages, prices, settings, pending_orders,
 			...d,
 			city_id: d.city_id === "" ? null : Number(d.city_id),
 			price: Number(d.price)
-		})).post("/admin/promotions/prices", { preserveScroll: true });
+		}));
+		priceForm.post("/admin/promotions/prices", { preserveScroll: true });
 	};
 	const saveLimit = (e) => {
 		e.preventDefault();
 		limitForm.transform((d) => ({
 			...d,
 			city_id: d.city_id === "" ? null : Number(d.city_id)
-		})).post("/admin/promotions/settings", { preserveScroll: true });
+		}));
+		limitForm.post("/admin/promotions/settings", { preserveScroll: true });
 	};
 	const saveProduct = (e) => {
 		e.preventDefault();
@@ -429,4 +431,4 @@ function AdminPromotions({ products, packages, prices, settings, pending_orders,
 //#endregion
 export { AdminPromotions as default };
 
-//# sourceMappingURL=Promotions-B6U89lJA.js.map
+//# sourceMappingURL=Promotions-MO2fLpzb.js.map

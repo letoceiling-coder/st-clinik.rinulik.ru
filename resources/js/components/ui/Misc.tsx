@@ -75,7 +75,7 @@ export function ErrorState({ title = 'Что-то пошло не так', text,
     );
 }
 
-export function Alert({ tone, icon, children }: { tone?: 'warning' | 'danger' | 'success' | 'muted'; icon?: IconName; children: ReactNode }) {
+export function Alert({ tone, icon, children }: { tone?: 'warning' | 'danger' | 'success' | 'muted' | 'info'; icon?: IconName; children: ReactNode }) {
     const defaultIcon: IconName = tone === 'warning' || tone === 'danger' ? 'alert' : tone === 'success' ? 'check-circle' : 'info';
     return (
         <div className={cx('alert', tone && `alert--${tone}`)} role={tone === 'danger' ? 'alert' : undefined}>

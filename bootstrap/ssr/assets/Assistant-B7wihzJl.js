@@ -44,15 +44,20 @@ function AdminAssistant({ settings, metrics, recentConversations, kbEntries, cit
 			...kbForm.data,
 			city_id: kbForm.data.city_id === "" ? null : Number(kbForm.data.city_id)
 		};
-		if (editId) kbForm.transform(() => payload).put(`/admin/assistant/kb/${editId}`, { onSuccess: () => {
-			setEditId(null);
-			kbForm.reset();
-			kbForm.setData({ ...emptyKb });
-		} });
-		else kbForm.transform(() => payload).post("/admin/assistant/kb", { onSuccess: () => {
-			kbForm.reset();
-			kbForm.setData({ ...emptyKb });
-		} });
+		if (editId) {
+			kbForm.transform(() => payload);
+			kbForm.put(`/admin/assistant/kb/${editId}`, { onSuccess: () => {
+				setEditId(null);
+				kbForm.reset();
+				kbForm.setData({ ...emptyKb });
+			} });
+		} else {
+			kbForm.transform(() => payload);
+			kbForm.post("/admin/assistant/kb", { onSuccess: () => {
+				kbForm.reset();
+				kbForm.setData({ ...emptyKb });
+			} });
+		}
 	};
 	return /* @__PURE__ */ jsxs(Fragment, { children: [
 		/* @__PURE__ */ jsx(PageHead, {
@@ -322,4 +327,4 @@ function AdminAssistant({ settings, metrics, recentConversations, kbEntries, cit
 //#endregion
 export { AdminAssistant as default };
 
-//# sourceMappingURL=Assistant-D0RyWCAl.js.map
+//# sourceMappingURL=Assistant-B7wihzJl.js.map

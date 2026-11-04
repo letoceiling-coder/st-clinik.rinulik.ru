@@ -113,12 +113,14 @@ export default function AdminPromotions({ products, packages, prices, settings, 
 
     const savePrice = (e: FormEvent) => {
         e.preventDefault();
-        priceForm.transform((d) => ({ ...d, city_id: d.city_id === '' ? null : Number(d.city_id), price: Number(d.price) })).post('/admin/promotions/prices', { preserveScroll: true });
+        priceForm.transform((d) => ({ ...d, city_id: d.city_id === '' ? null : Number(d.city_id), price: Number(d.price) }));
+        priceForm.post('/admin/promotions/prices', { preserveScroll: true });
     };
 
     const saveLimit = (e: FormEvent) => {
         e.preventDefault();
-        limitForm.transform((d) => ({ ...d, city_id: d.city_id === '' ? null : Number(d.city_id) })).post('/admin/promotions/settings', { preserveScroll: true });
+        limitForm.transform((d) => ({ ...d, city_id: d.city_id === '' ? null : Number(d.city_id) }));
+        limitForm.post('/admin/promotions/settings', { preserveScroll: true });
     };
 
     const saveProduct = (e: FormEvent) => {

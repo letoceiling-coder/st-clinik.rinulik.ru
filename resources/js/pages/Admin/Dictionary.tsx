@@ -144,8 +144,10 @@ function DictForm({ fields, resource, initial, onDone }: { fields: Field[]; reso
             preserveScroll: true,
         };
         if (isEdit) {
-            form.post(`/admin/dictionaries/${resource}/${initial!.id}`, { ...opts, _method: 'put' });
+            form.transform((data) => ({ ...data, _method: 'put' }));
+            form.post(`/admin/dictionaries/${resource}/${initial!.id}`, opts);
         } else {
+            form.transform((data) => data);
             form.post(`/admin/dictionaries/${resource}`, opts);
         }
     };

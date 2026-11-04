@@ -37,7 +37,8 @@ function PostCard({ post, types }: { post: Post; types: Record<string, string> }
 
     const save = (event: FormEvent) => {
         event.preventDefault();
-        form.transform((data) => ({ ...data, _method: 'put' })).post(`/clinic-cabinet/posts/${post.id}`, {
+        form.transform((data) => ({ ...data, _method: 'put' }));
+        form.post(`/clinic-cabinet/posts/${post.id}`, {
             forceFormData: true,
             preserveScroll: true,
             onSuccess: () => {

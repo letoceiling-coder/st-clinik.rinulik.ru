@@ -26,7 +26,8 @@ function PhotoCard({ photo, kinds }: { photo: Photo; kinds: Record<string, strin
 
     const save = (event: FormEvent) => {
         event.preventDefault();
-        form.transform((data) => ({ ...data, _method: 'put' })).post(`/clinic-cabinet/photos/${photo.id}`, {
+        form.transform((data) => ({ ...data, _method: 'put' }));
+        form.post(`/clinic-cabinet/photos/${photo.id}`, {
             forceFormData: true,
             preserveScroll: true,
             onSuccess: () => {

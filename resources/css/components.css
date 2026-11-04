@@ -966,6 +966,10 @@
     background: var(--color-surface-muted);
     color: var(--color-muted);
 }
+.alert--info {
+    background: var(--color-info-soft);
+    color: var(--color-info);
+}
 
 /* ---------- Скроллбары ---------- */
 .scrollbar-pretty {

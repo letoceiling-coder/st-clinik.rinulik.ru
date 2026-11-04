@@ -19,7 +19,8 @@ function PhotoCard({ photo, kinds }) {
 		form.transform((data) => ({
 			...data,
 			_method: "put"
-		})).post(`/clinic-cabinet/photos/${photo.id}`, {
+		}));
+		form.post(`/clinic-cabinet/photos/${photo.id}`, {
 			forceFormData: true,
 			preserveScroll: true,
 			onSuccess: () => {
@@ -196,4 +197,4 @@ function Photos({ photos, kinds }) {
 //#endregion
 export { Photos as default };
 
-//# sourceMappingURL=Photos-BpHSGZTm.js.map
+//# sourceMappingURL=Photos-DuvVaeTp.js.map

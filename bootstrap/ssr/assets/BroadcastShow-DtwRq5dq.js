@@ -298,7 +298,7 @@ function BroadcastShow(props) {
 							children: r.error ?? ""
 						})
 					] }, r.id))
-				}), /* @__PURE__ */ jsx(PagerSafe, { links: recipients.links })]
+				}), /* @__PURE__ */ jsx(PagerSafe, { page: recipients })]
 			}) : null,
 			estimate.sample.length > 0 ? /* @__PURE__ */ jsx(Panel, {
 				title: "Пример аудитории",
@@ -317,4 +317,4 @@ function BroadcastShow(props) {
 //#endregion
 export { BroadcastShow as default };
 
-//# sourceMappingURL=BroadcastShow-C1DTvEti.js.map
+//# sourceMappingURL=BroadcastShow-DtwRq5dq.js.map

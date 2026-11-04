@@ -135,11 +135,16 @@ function DictForm({ fields, resource, initial, onDone }) {
 			},
 			preserveScroll: true
 		};
-		if (isEdit) form.post(`/admin/dictionaries/${resource}/${initial.id}`, {
-			...opts,
-			_method: "put"
-		});
-		else form.post(`/admin/dictionaries/${resource}`, opts);
+		if (isEdit) {
+			form.transform((data) => ({
+				...data,
+				_method: "put"
+			}));
+			form.post(`/admin/dictionaries/${resource}/${initial.id}`, opts);
+		} else {
+			form.transform((data) => data);
+			form.post(`/admin/dictionaries/${resource}`, opts);
+		}
 	};
 	return /* @__PURE__ */ jsxs("form", {
 		className: "form-grid dict-form",
@@ -250,4 +255,4 @@ function DictForm({ fields, resource, initial, onDone }) {
 //#endregion
 export { Dictionary as default };
 
-//# sourceMappingURL=Dictionary-Gdy37BMa.js.map
+//# sourceMappingURL=Dictionary-D5YdMVhF.js.map
