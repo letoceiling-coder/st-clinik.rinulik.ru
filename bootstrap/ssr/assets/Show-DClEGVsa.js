@@ -303,7 +303,7 @@ function PostCard({ post }) {
 		})]
 	});
 }
-function ClinicShow({ clinic, reviews, review_filters, distribution, similar, concerns, review_options, breadcrumbs, clinic_follow, preview = null }) {
+function ClinicShow({ clinic, reviews, review_filters, distribution, similar, concerns, review_options, breadcrumbs, clinic_follow, visit, preview = null }) {
 	const isPreview = preview !== null;
 	const lead = useLead();
 	const { url } = usePage();
@@ -481,7 +481,13 @@ function ClinicShow({ clinic, reviews, review_filters, distribution, similar, co
 											clinic.metro ? ` · м. ${clinic.metro}` : ""
 										]
 									}),
-									/* @__PURE__ */ jsxs("span", {
+									clinic.open_state ? /* @__PURE__ */ jsxs("span", {
+										className: cx("meta-item open-state", clinic.open_state.open ? clinic.open_state.closing_soon ? "is-soon" : "is-open" : "is-closed"),
+										children: [/* @__PURE__ */ jsx("span", {
+											className: "open-state__dot",
+											"aria-hidden": "true"
+										}), clinic.open_state.label]
+									}) : /* @__PURE__ */ jsxs("span", {
 										className: "meta-item",
 										children: [/* @__PURE__ */ jsx(Icon, {
 											name: "clock",
@@ -516,6 +522,13 @@ function ClinicShow({ clinic, reviews, review_filters, distribution, similar, co
 								})
 							]
 						}),
+						visit?.next_slot ? /* @__PURE__ */ jsxs("div", {
+							className: "booking__slot",
+							children: [/* @__PURE__ */ jsx(Icon, {
+								name: "calendar",
+								size: 18
+							}), /* @__PURE__ */ jsxs("span", { children: ["Ближайшее время: ", /* @__PURE__ */ jsx("b", { children: visit.next_slot.label })] })]
+						}) : null,
 						/* @__PURE__ */ jsx(Button, {
 							size: "lg",
 							block: true,
@@ -523,6 +536,13 @@ function ClinicShow({ clinic, reviews, review_filters, distribution, similar, co
 							onClick: () => open(),
 							children: "Записаться онлайн"
 						}),
+						visit?.response ? /* @__PURE__ */ jsxs("p", {
+							className: "booking__response",
+							children: [/* @__PURE__ */ jsx(Icon, {
+								name: "flash",
+								size: 16
+							}), visit.response]
+						}) : null,
 						/* @__PURE__ */ jsx(Button, {
 							variant: "ghost",
 							block: true,
@@ -648,6 +668,13 @@ function ClinicShow({ clinic, reviews, review_filters, distribution, similar, co
 									" ",
 									clinic.restrictions
 								]
+							}) : null,
+							clinic.warranty ? /* @__PURE__ */ jsxs("div", {
+								className: "card clinic-warranty",
+								children: [/* @__PURE__ */ jsxs("h3", { children: [/* @__PURE__ */ jsx(Icon, {
+									name: "shield",
+									size: 20
+								}), " Гарантии"] }), /* @__PURE__ */ jsx("p", { children: clinic.warranty })]
 							}) : null,
 							concerns.length > 0 ? /* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx("h3", { children: "С чем обращаются в эту клинику" }), /* @__PURE__ */ jsx(ConcernChips, {
 								concerns,
@@ -813,58 +840,97 @@ function ClinicShow({ clinic, reviews, review_filters, distribution, similar, co
 								className: "two-col two-col--even",
 								children: [/* @__PURE__ */ jsxs("div", {
 									className: "card",
-									children: [/* @__PURE__ */ jsxs("ul", {
-										className: "contact-list",
-										children: [
-											/* @__PURE__ */ jsxs("li", { children: [/* @__PURE__ */ jsx(Icon, {
-												name: "pin",
-												size: 20
-											}), /* @__PURE__ */ jsxs("span", { children: [clinic.address, clinic.metro ? /* @__PURE__ */ jsxs("span", {
-												className: "text-muted",
-												children: [" · м. ", clinic.metro]
-											}) : null] })] }),
-											clinic.phone ? /* @__PURE__ */ jsxs("li", { children: [/* @__PURE__ */ jsx(Icon, {
-												name: "phone",
-												size: 20
-											}), /* @__PURE__ */ jsx("a", {
-												href: phoneHref(clinic.phone),
-												className: "link",
-												children: clinic.phone
-											})] }) : null,
-											clinic.email ? /* @__PURE__ */ jsxs("li", { children: [/* @__PURE__ */ jsx(Icon, {
-												name: "mail",
-												size: 20
-											}), /* @__PURE__ */ jsx("a", {
-												href: `mailto:${clinic.email}`,
-												className: "link",
-												children: clinic.email
-											})] }) : null,
-											clinic.website ? /* @__PURE__ */ jsxs("li", { children: [/* @__PURE__ */ jsx(Icon, {
-												name: "globe",
-												size: 20
-											}), /* @__PURE__ */ jsx("a", {
-												href: clinic.website,
-												className: "link",
-												rel: "nofollow noopener noreferrer",
+									children: [
+										/* @__PURE__ */ jsxs("ul", {
+											className: "contact-list",
+											children: [
+												/* @__PURE__ */ jsxs("li", { children: [/* @__PURE__ */ jsx(Icon, {
+													name: "pin",
+													size: 20
+												}), /* @__PURE__ */ jsxs("span", { children: [
+													clinic.address,
+													clinic.metro ? /* @__PURE__ */ jsxs("span", {
+														className: "text-muted",
+														children: [" · м. ", clinic.metro]
+													}) : null,
+													clinic.directions_note ? /* @__PURE__ */ jsx("span", {
+														className: "contact-list__note",
+														children: clinic.directions_note
+													}) : null
+												] })] }),
+												clinic.parking ? /* @__PURE__ */ jsxs("li", { children: [/* @__PURE__ */ jsx(Icon, {
+													name: "card",
+													size: 20
+												}), /* @__PURE__ */ jsxs("span", { children: [/* @__PURE__ */ jsx("span", {
+													className: "text-muted",
+													children: "Парковка: "
+												}), clinic.parking] })] }) : null,
+												clinic.phone ? /* @__PURE__ */ jsxs("li", { children: [/* @__PURE__ */ jsx(Icon, {
+													name: "phone",
+													size: 20
+												}), /* @__PURE__ */ jsx("a", {
+													href: phoneHref(clinic.phone),
+													className: "link",
+													children: clinic.phone
+												})] }) : null,
+												clinic.email ? /* @__PURE__ */ jsxs("li", { children: [/* @__PURE__ */ jsx(Icon, {
+													name: "mail",
+													size: 20
+												}), /* @__PURE__ */ jsx("a", {
+													href: `mailto:${clinic.email}`,
+													className: "link",
+													children: clinic.email
+												})] }) : null,
+												clinic.website ? /* @__PURE__ */ jsxs("li", { children: [/* @__PURE__ */ jsx(Icon, {
+													name: "globe",
+													size: 20
+												}), /* @__PURE__ */ jsx("a", {
+													href: clinic.website,
+													className: "link",
+													rel: "nofollow noopener noreferrer",
+													target: "_blank",
+													children: clinic.website.replace(/^https?:\/\//, "")
+												})] }) : null
+											]
+										}),
+										clinic.routes ? /* @__PURE__ */ jsxs("div", {
+											className: "clinic-routes",
+											children: [/* @__PURE__ */ jsxs("a", {
+												className: "btn btn--outline btn--sm",
+												href: clinic.routes.yandex,
 												target: "_blank",
-												children: clinic.website.replace(/^https?:\/\//, "")
-											})] }) : null
-										]
-									}), clinic.lat && clinic.lng ? /* @__PURE__ */ jsx("div", {
-										className: "clinic-map",
-										children: /* @__PURE__ */ jsx(YandexMap, {
-											points: [{
-												slug: clinic.slug,
-												name: clinic.name,
-												address: clinic.address,
-												lat: clinic.lat,
-												lng: clinic.lng
-											}],
-											height: 280,
-											zoom: 15,
-											activeSlug: clinic.slug
-										})
-									}) : null]
+												rel: "noopener noreferrer",
+												children: [/* @__PURE__ */ jsx(Icon, {
+													name: "pin",
+													size: 16
+												}), " Маршрут в Яндекс Картах"]
+											}), /* @__PURE__ */ jsxs("a", {
+												className: "btn btn--outline btn--sm",
+												href: clinic.routes.gis,
+												target: "_blank",
+												rel: "noopener noreferrer",
+												children: [/* @__PURE__ */ jsx(Icon, {
+													name: "external",
+													size: 16
+												}), " Открыть в 2ГИС"]
+											})]
+										}) : null,
+										clinic.lat && clinic.lng ? /* @__PURE__ */ jsx("div", {
+											className: "clinic-map",
+											children: /* @__PURE__ */ jsx(YandexMap, {
+												points: [{
+													slug: clinic.slug,
+													name: clinic.name,
+													address: clinic.address,
+													lat: clinic.lat,
+													lng: clinic.lng
+												}],
+												height: 280,
+												zoom: 15,
+												activeSlug: clinic.slug
+											})
+										}) : null
+									]
 								}), /* @__PURE__ */ jsxs("div", {
 									className: "card schedule-card",
 									children: [/* @__PURE__ */ jsxs("h3", {
@@ -952,4 +1018,4 @@ function ClinicShow({ clinic, reviews, review_filters, distribution, similar, co
 //#endregion
 export { ClinicShow as default };
 
-//# sourceMappingURL=Show-BIM8NUmG.js.map
+//# sourceMappingURL=Show-DClEGVsa.js.map
