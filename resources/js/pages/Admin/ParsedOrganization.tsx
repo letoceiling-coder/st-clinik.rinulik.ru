@@ -4,6 +4,7 @@ import { PageHead, Panel, StatusBadge } from '@/components/Dash';
 import { Button, LinkButton } from '@/components/ui/Button';
 import { SelectField, TextField } from '@/components/ui/Fields';
 import { Alert, Badge } from '@/components/ui/Misc';
+import { confirmDialog, type ConfirmOptions } from '@/lib/dialog';
 
 interface Organization {
     id: number;
@@ -122,8 +123,8 @@ export default function ParsedOrganizationPage({ organization: o, contacts, netw
     const noteForm = useForm({ status: o.status === 'imported' ? 'reviewed' : o.status, note: o.note ?? '' });
     const hasEmailTaskRunning = email_tasks.some((t) => ['queued', 'running'].includes(t.status));
 
-    const post = (url: string, data: Record<string, unknown> = {}, confirmText?: string) => {
-        if (confirmText && !window.confirm(confirmText)) return;
+    const post = async (url: string, data: Record<string, unknown> = {}, confirm?: ConfirmOptions) => {
+        if (confirm && !(await confirmDialog(confirm))) return;
         router.post(url, data as never, { preserveScroll: true });
     };
 
@@ -181,7 +182,7 @@ export default function ParsedOrganizationPage({ organization: o, contacts, netw
 
             {o.importable ? (
                 <div className="row">
-                    <Button onClick={() => post(`${base}/import`, { photos: true }, 'Создать черновик клиники из этой карточки? На сайте он не появится до публикации.')} disabled={!o.city_known}>
+                    <Button onClick={() => post(`${base}/import`, { photos: true }, { title: 'Создать черновик клиники?', message: 'На сайте он не появится до публикации.', confirmLabel: 'Создать черновик' })} disabled={!o.city_known}>
                         Импортировать как черновик
                     </Button>
                     <Button variant="outline" onClick={() => post(`${base}/import`, { photos: false })} disabled={!o.city_known}>
@@ -192,7 +193,7 @@ export default function ParsedOrganizationPage({ organization: o, contacts, netw
                             Это дубль «{o.match.name}»
                         </Button>
                     ) : null}
-                    <Button variant="ghost" onClick={() => post(`${base}/status`, { status: 'ignored' }, 'Скрыть карточку? Её можно вернуть фильтром «Скрыта».')}>
+                    <Button variant="ghost" onClick={() => post(`${base}/status`, { status: 'ignored' }, { title: 'Скрыть карточку?', message: 'Её можно вернуть фильтром «Скрыта».', confirmLabel: 'Скрыть' })}>
                         Скрыть
                     </Button>
                 </div>
@@ -282,7 +283,7 @@ export default function ParsedOrganizationPage({ organization: o, contacts, netw
                                         <Button
                                             size="sm"
                                             variant="ghost"
-                                            onClick={() => window.confirm('Удалить контакт?') && router.delete(`/admin/parser/contacts/${c.id}`, { preserveScroll: true })}
+                                            onClick={async () => (await confirmDialog({ title: 'Удалить контакт?', message: c.value, confirmLabel: 'Удалить', danger: true })) && router.delete(`/admin/parser/contacts/${c.id}`, { preserveScroll: true })}
                                         >
                                             Удалить
                                         </Button>

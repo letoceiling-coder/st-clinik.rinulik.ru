@@ -5,6 +5,7 @@ import { Button, LinkButton } from '@/components/ui/Button';
 import { Check, PhoneField, SearchInput, SelectField, TextArea, TextField } from '@/components/ui/Fields';
 import { Alert, Badge, Tabs } from '@/components/ui/Misc';
 import type { Paginated } from '@/lib/types';
+import { confirmDialog } from '@/lib/dialog';
 
 type Tab = 'offers' | 'applications' | 'templates' | 'stop-list' | 'settings';
 type Tone = 'success' | 'warning' | 'danger' | 'info' | 'primary' | undefined;
@@ -327,8 +328,8 @@ function StopListTab({ stopList, channels, stop_reasons, filters }: Props & { st
         e.preventDefault();
         form.post('/admin/offers/stop-list', { preserveScroll: true, onSuccess: () => form.reset('value', 'note') });
     };
-    const remove = (row: StopRow) => {
-        if (window.confirm(`Убрать ${row.value} из стоп-листа? На этот контакт снова смогут уходить КП.`)) {
+    const remove = async (row: StopRow) => {
+        if (await confirmDialog({ title: 'Убрать из стоп-листа?', message: `${row.value}\nНа этот контакт снова смогут уходить КП.`, confirmLabel: 'Убрать' })) {
             router.delete(`/admin/offers/stop-list/${row.id}`, { preserveScroll: true });
         }
     };

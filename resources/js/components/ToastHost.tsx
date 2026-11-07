@@ -2,6 +2,7 @@ import { usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { notify, subscribeToasts, type ToastItem } from '@/lib/toast';
 import type { SharedProps } from '@/lib/types';
+import DialogHost from './DialogHost';
 import Icon from './Icon';
 
 export default function ToastHost() {
@@ -25,6 +26,8 @@ export default function ToastHost() {
     }, [flash?.error]);
 
     return (
+        <>
+        <DialogHost />
         <div className="toasts" aria-live="polite" aria-atomic="false">
             {items.map((t) => (
                 <div key={t.id} className={`toast toast--${t.kind}`} role={t.kind === 'error' ? 'alert' : 'status'}>
@@ -36,5 +39,6 @@ export default function ToastHost() {
                 </div>
             ))}
         </div>
+        </>
     );
 }

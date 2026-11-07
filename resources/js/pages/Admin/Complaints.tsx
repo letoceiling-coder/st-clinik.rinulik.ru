@@ -3,6 +3,7 @@ import { FilterBar, PageHead, PagerSafe, StatusBadge } from '@/components/Dash';
 import { Button } from '@/components/ui/Button';
 import { SelectField } from '@/components/ui/Fields';
 import type { Paginated } from '@/lib/types';
+import { promptDialog } from '@/lib/dialog';
 
 interface Row {
     id: number; reason: string; comment: string; reporter: string; reporter_role: string; status: string;
@@ -11,8 +12,15 @@ interface Row {
 }
 
 export default function Complaints({ complaints, filters }: { complaints: Paginated<Row>; filters: { status: string } }) {
-    const decide = (id: number, decision: 'uphold' | 'reject') => {
-        const resolution = prompt('Резолюция:') ?? '';
+    const decide = async (id: number, decision: 'uphold' | 'reject') => {
+        const resolution = await promptDialog({
+            title: decision === 'uphold' ? 'Подтвердить жалобу' : 'Отклонить жалобу',
+            label: 'Резолюция',
+            placeholder: 'Необязательно',
+            multiline: true,
+            confirmLabel: decision === 'uphold' ? 'Подтвердить' : 'Отклонить',
+        });
+        if (resolution === null) return;
         router.post(`/admin/complaints/${id}/resolve`, { decision, resolution });
     };
     return (

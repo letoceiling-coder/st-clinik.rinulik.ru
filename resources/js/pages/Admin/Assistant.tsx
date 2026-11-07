@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { PageHead, Panel } from '@/components/Dash';
 import { Button } from '@/components/ui/Button';
 import { Check, SelectField, TextArea, TextField } from '@/components/ui/Fields';
+import { confirmDialog } from '@/lib/dialog';
 
 interface Metrics {
     conversations_7d: number;
@@ -303,8 +304,8 @@ export default function AdminAssistant({
                                     type="button"
                                     size="sm"
                                     variant="ghost"
-                                    onClick={() => {
-                                        if (confirm('Удалить запись?')) {
+                                    onClick={async () => {
+                                        if (await confirmDialog({ title: 'Удалить запись?', message: 'Ассистент перестанет использовать её в ответах.', confirmLabel: 'Удалить', danger: true })) {
                                             router.delete(`/admin/assistant/kb/${entry.id}`);
                                         }
                                     }}

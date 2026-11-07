@@ -2,6 +2,8 @@ import { Link, router, useForm } from '@inertiajs/react';
 import { PageHead } from '@/components/Dash';
 import { Button } from '@/components/ui/Button';
 import { Check, SelectField } from '@/components/ui/Fields';
+import { confirmDialog, promptDialog } from '@/lib/dialog';
+import { notify } from '@/lib/toast';
 
 type PaymentRow = {
     id: number;
@@ -134,22 +136,33 @@ export default function Finance({
                                             <button
                                                 type="button"
                                                 className="link text-sm"
-                                                onClick={() => router.post(`/admin/finance/payments/${p.id}/refund`)}
+                                                onClick={async () => {
+                                                    const amount = (p.refundable_amount / 100).toLocaleString('ru-RU');
+                                                    if (await confirmDialog({ title: `Вернуть ${amount} ₽?`, message: `Платёж #${p.id}. Деньги уйдут клиенту, отменить возврат нельзя.`, confirmLabel: 'Вернуть', danger: true })) {
+                                                        router.post(`/admin/finance/payments/${p.id}/refund`);
+                                                    }
+                                                }}
                                             >
                                                 Полный возврат
                                             </button>
                                             <button
                                                 type="button"
                                                 className="link text-sm"
-                                                onClick={() => {
-                                                    const rub = window.prompt(
-                                                        `Частичный возврат (₽), доступно ${(p.refundable_amount / 100).toLocaleString('ru-RU')}`,
-                                                    );
-                                                    if (rub === null || rub.trim() === '') {
+                                                onClick={async () => {
+                                                    const rub = await promptDialog({
+                                                        title: 'Частичный возврат',
+                                                        label: 'Сумма, ₽',
+                                                        message: `Доступно к возврату: ${(p.refundable_amount / 100).toLocaleString('ru-RU')} ₽.`,
+                                                        inputMode: 'decimal',
+                                                        required: true,
+                                                        confirmLabel: 'Вернуть',
+                                                    });
+                                                    if (rub === null) {
                                                         return;
                                                     }
-                                                    const kopecks = Math.round(Number(rub.replace(',', '.')) * 100);
-                                                    if (!Number.isFinite(kopecks) || kopecks <= 0) {
+                                                    const kopecks = Math.round(Number(rub.replace(/\s/g, '').replace(',', '.')) * 100);
+                                                    if (!Number.isFinite(kopecks) || kopecks <= 0 || kopecks > p.refundable_amount) {
+                                                        notify('Введите сумму больше нуля и не больше доступной к возврату.', 'error');
                                                         return;
                                                     }
                                                     router.post(`/admin/finance/payments/${p.id}/refund`, { amount: kopecks });

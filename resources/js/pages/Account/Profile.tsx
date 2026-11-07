@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Check, PhoneField, SelectField, TextField } from '@/components/ui/Fields';
 import { Alert } from '@/components/ui/Misc';
 import { subscribeToWebPush, unsubscribeFromWebPush } from '@/lib/web-push';
+import { confirmDialog } from '@/lib/dialog';
 
 type NotificationPrefRow = {
     key: string;
@@ -244,8 +245,8 @@ export default function Profile({
                                 type="button"
                                 variant="outline"
                                 size="sm"
-                                onClick={() => {
-                                    if (confirm('Отвязать этот способ входа?')) {
+                                onClick={async () => {
+                                    if (await confirmDialog({ title: 'Отвязать этот способ входа?', message: 'Войти через него больше не получится, пока не привяжете снова.', confirmLabel: 'Отвязать' })) {
                                         router.delete(`/account/social/${acc.provider}`);
                                     }
                                 }}
@@ -277,9 +278,11 @@ export default function Profile({
             </form>
             <form
                 className="card stack"
-                onSubmit={(e) => {
+                onSubmit={async (e) => {
                     e.preventDefault();
-                    if (confirm('Удалить аккаунт и персональные данные? Это нельзя отменить.')) del.delete('/account');
+                    if (await confirmDialog({ title: 'Удалить аккаунт?', message: 'Профиль, заявки и отзывы будут удалены. Это нельзя отменить.', confirmLabel: 'Удалить аккаунт', danger: true })) {
+                        del.delete('/account');
+                    }
                 }}
             >
                 <h2 className="card-title">Удаление аккаунта</h2>

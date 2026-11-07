@@ -1404,11 +1404,11 @@ function SearchBox({ variant = "header", placeholder = "Клиника, врач
 }
 //#endregion
 //#region resources/js/lib/toast.ts
-var seq = 0;
+var seq$1 = 0;
 var subs = /* @__PURE__ */ new Set();
 function notify(text, kind = "info") {
 	const item = {
-		id: ++seq,
+		id: ++seq$1,
 		text,
 		kind
 	};
@@ -1419,6 +1419,117 @@ function subscribeToasts(fn) {
 	return () => {
 		subs.delete(fn);
 	};
+}
+//#endregion
+//#region resources/js/lib/dialog.ts
+var seq = 0;
+var host = null;
+function registerDialogHost(fn) {
+	host = fn;
+	return () => {
+		if (host === fn) host = null;
+	};
+}
+function confirmDialog(options) {
+	return new Promise((resolve) => {
+		if (!host) {
+			resolve(window.confirm([options.title, options.message].filter(Boolean).join("\n\n")));
+			return;
+		}
+		host({
+			id: ++seq,
+			kind: "confirm",
+			options,
+			resolve
+		});
+	});
+}
+/** Возвращает введённый текст или null, если пользователь отменил. */
+function promptDialog(options) {
+	return new Promise((resolve) => {
+		if (!host) {
+			resolve(window.prompt(options.title, options.defaultValue ?? ""));
+			return;
+		}
+		host({
+			id: ++seq,
+			kind: "prompt",
+			options,
+			resolve
+		});
+	});
+}
+//#endregion
+//#region resources/js/components/DialogHost.tsx
+/** Очередь диалогов подтверждения и ввода: показывает по одному, остальные ждут. */
+function DialogHost() {
+	const [queue, setQueue] = useState([]);
+	const [value, setValue] = useState("");
+	const current = queue[0] ?? null;
+	useEffect(() => registerDialogHost((request) => setQueue((q) => [...q, request])), []);
+	useEffect(() => {
+		if (current?.kind === "prompt") setValue(current.options.defaultValue ?? "");
+	}, [current?.id]);
+	if (!current) return null;
+	const { options } = current;
+	const close = (confirmed) => {
+		if (current.kind === "confirm") current.resolve(confirmed);
+		else current.resolve(confirmed ? value.trim() : null);
+		setQueue((q) => q.slice(1));
+	};
+	const blocked = current.kind === "prompt" && current.options.required === true && value.trim() === "";
+	const submit = (e) => {
+		e.preventDefault();
+		if (!blocked) close(true);
+	};
+	return /* @__PURE__ */ jsx(Modal, {
+		open: true,
+		sheet: false,
+		onClose: () => close(false),
+		title: options.title,
+		footer: /* @__PURE__ */ jsxs(Fragment, { children: [/* @__PURE__ */ jsx(Button, {
+			variant: "ghost",
+			onClick: () => close(false),
+			"data-autofocus": current.kind === "confirm" && options.danger ? "" : void 0,
+			children: options.cancelLabel ?? "Отмена"
+		}), /* @__PURE__ */ jsx(Button, {
+			type: "submit",
+			form: `dialog-${current.id}`,
+			variant: options.danger ? "danger" : "primary",
+			disabled: blocked,
+			"data-autofocus": current.kind === "confirm" && !options.danger ? "" : void 0,
+			children: options.confirmLabel ?? (current.kind === "prompt" ? "Сохранить" : "Подтвердить")
+		})] }),
+		children: /* @__PURE__ */ jsxs("form", {
+			id: `dialog-${current.id}`,
+			className: "dialog",
+			onSubmit: submit,
+			children: [options.message ? /* @__PURE__ */ jsx("p", {
+				className: "dialog__message",
+				children: options.message
+			}) : null, current.kind === "prompt" ? current.options.multiline ? /* @__PURE__ */ jsx(TextArea, {
+				label: current.options.label,
+				placeholder: current.options.placeholder,
+				value,
+				rows: 4,
+				maxLength: 2e3,
+				required: current.options.required,
+				"data-autofocus": "",
+				onChange: (e) => setValue(e.target.value),
+				onKeyDown: (e) => {
+					if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) submit(e);
+				}
+			}) : /* @__PURE__ */ jsx(TextField, {
+				label: current.options.label,
+				placeholder: current.options.placeholder,
+				value,
+				inputMode: current.options.inputMode,
+				required: current.options.required,
+				"data-autofocus": "",
+				onChange: (e) => setValue(e.target.value)
+			}) : null]
+		})
+	}, current.id);
 }
 //#endregion
 //#region resources/js/components/ToastHost.tsx
@@ -1435,7 +1546,7 @@ function ToastHost() {
 	useEffect(() => {
 		if (flash?.error) notify(flash.error, "error");
 	}, [flash?.error]);
-	return /* @__PURE__ */ jsx("div", {
+	return /* @__PURE__ */ jsxs(Fragment, { children: [/* @__PURE__ */ jsx(DialogHost, {}), /* @__PURE__ */ jsx("div", {
 		className: "toasts",
 		"aria-live": "polite",
 		"aria-atomic": "false",
@@ -1459,7 +1570,7 @@ function ToastHost() {
 				})
 			]
 		}, t.id))
-	});
+	})] });
 }
 //#endregion
 //#region resources/js/lib/auth.ts
@@ -5164,108 +5275,108 @@ if (typeof window !== "undefined") router.on("navigate", (event) => {
 var renderPromise = createInertiaApp({
 	resolve: async (name, page) => {
 		const pages = /* #__PURE__ */ Object.assign({
-			"./pages/Account/Appointments.tsx": () => import("./assets/Appointments-DaX8PruM.js"),
-			"./pages/Account/Compare.tsx": () => import("./assets/Compare-tWU4z9al.js"),
-			"./pages/Account/Favorites.tsx": () => import("./assets/Favorites-Byvj9bRT.js"),
-			"./pages/Account/History.tsx": () => import("./assets/History-CVOMwmz5.js"),
-			"./pages/Account/Leads.tsx": () => import("./assets/Leads-BRQvR5z-.js"),
-			"./pages/Account/Notifications.tsx": () => import("./assets/Notifications-rtWa88dZ.js"),
-			"./pages/Account/Overview.tsx": () => import("./assets/Overview-AiNqG1kt.js"),
-			"./pages/Account/Profile.tsx": () => import("./assets/Profile-CmiTy00a.js"),
-			"./pages/Account/Reviews.tsx": () => import("./assets/Reviews-P7NXLTah.js"),
-			"./pages/Admin/Analytics.tsx": () => import("./assets/Analytics-EuEC8svk.js"),
-			"./pages/Admin/Appointments.tsx": () => import("./assets/Appointments-VDV29EIQ.js"),
-			"./pages/Admin/Assistant.tsx": () => import("./assets/Assistant-B7wihzJl.js"),
-			"./pages/Admin/AssistantConversation.tsx": () => import("./assets/AssistantConversation-CbSflSHy.js"),
-			"./pages/Admin/Audit.tsx": () => import("./assets/Audit-DkAcbx4_.js"),
-			"./pages/Admin/BroadcastShow.tsx": () => import("./assets/BroadcastShow-DtwRq5dq.js"),
-			"./pages/Admin/Broadcasts.tsx": () => import("./assets/Broadcasts-BUAqtMak.js"),
-			"./pages/Admin/Campaign.tsx": () => import("./assets/Campaign-CHsJQJqs.js"),
-			"./pages/Admin/Campaigns.tsx": () => import("./assets/Campaigns-Dipfzias.js"),
-			"./pages/Admin/CardBonuses.tsx": () => import("./assets/CardBonuses-CiPoZr__.js"),
-			"./pages/Admin/ClinicCardAppearance.tsx": () => import("./assets/ClinicCardAppearance-CXHUJjme.js"),
-			"./pages/Admin/ClinicCreate.tsx": () => import("./assets/ClinicCreate-DHAg1eFh.js"),
-			"./pages/Admin/ClinicShow.tsx": () => import("./assets/ClinicShow-ixduDh8_.js"),
-			"./pages/Admin/Clinics.tsx": () => import("./assets/Clinics-zevuFAGn.js"),
-			"./pages/Admin/Complaints.tsx": () => import("./assets/Complaints-BAaB4dzD.js"),
-			"./pages/Admin/Dashboard.tsx": () => import("./assets/Dashboard-BNl_NxZ6.js"),
-			"./pages/Admin/Dictionary.tsx": () => import("./assets/Dictionary-D5YdMVhF.js"),
-			"./pages/Admin/Doctors.tsx": () => import("./assets/Doctors-D98ONitv.js"),
-			"./pages/Admin/Duplicates.tsx": () => import("./assets/Duplicates-Dj7WRCGp.js"),
-			"./pages/Admin/Finance.tsx": () => import("./assets/Finance-uLJGP_d1.js"),
-			"./pages/Admin/Geography.tsx": () => import("./assets/Geography-Cw4Wq7xY.js"),
-			"./pages/Admin/Integrations.tsx": () => import("./assets/Integrations-DnNrZv4f.js"),
-			"./pages/Admin/MaxPublish.tsx": () => import("./assets/MaxPublish-BREXZV9H.js"),
-			"./pages/Admin/Moderation.tsx": () => import("./assets/Moderation-B01To8oR.js"),
-			"./pages/Admin/Offer.tsx": () => import("./assets/Offer-U4hc2Let.js"),
-			"./pages/Admin/OfferTemplate.tsx": () => import("./assets/OfferTemplate-B8JQcvM9.js"),
-			"./pages/Admin/Offers.tsx": () => import("./assets/Offers-CjBlmR6m.js"),
-			"./pages/Admin/ParsedOrganization.tsx": () => import("./assets/ParsedOrganization-DCby3N4_.js"),
-			"./pages/Admin/Parser.tsx": () => import("./assets/Parser-D7CAnL5E.js"),
-			"./pages/Admin/Promotions.tsx": () => import("./assets/Promotions-MO2fLpzb.js"),
-			"./pages/Admin/Reports.tsx": () => import("./assets/Reports-C0NPvimi.js"),
-			"./pages/Admin/Reviews.tsx": () => import("./assets/Reviews-D7yTyY4Q.js"),
-			"./pages/Admin/Roles.tsx": () => import("./assets/Roles-BVF4jAH_.js"),
-			"./pages/Admin/SiteDisplay.tsx": () => import("./assets/SiteDisplay-DRyWB_Nz.js"),
-			"./pages/Admin/SystemHealth.tsx": () => import("./assets/SystemHealth-D4cNQ2IK.js"),
-			"./pages/Admin/Tariffs.tsx": () => import("./assets/Tariffs-C97A1V_1.js"),
-			"./pages/Admin/UserShow.tsx": () => import("./assets/UserShow-1GqJ2eTO.js"),
-			"./pages/Admin/Users.tsx": () => import("./assets/Users-zGofeIMv.js"),
+			"./pages/Account/Appointments.tsx": () => import("./assets/Appointments-Be2sr1vP.js"),
+			"./pages/Account/Compare.tsx": () => import("./assets/Compare-CA1cxeoL.js"),
+			"./pages/Account/Favorites.tsx": () => import("./assets/Favorites-CxVUBjGU.js"),
+			"./pages/Account/History.tsx": () => import("./assets/History-D6pJR1zg.js"),
+			"./pages/Account/Leads.tsx": () => import("./assets/Leads-DjIETUKX.js"),
+			"./pages/Account/Notifications.tsx": () => import("./assets/Notifications-It9yHjqn.js"),
+			"./pages/Account/Overview.tsx": () => import("./assets/Overview-iWw-LsbU.js"),
+			"./pages/Account/Profile.tsx": () => import("./assets/Profile-C8jdK7D-.js"),
+			"./pages/Account/Reviews.tsx": () => import("./assets/Reviews-BrI1_Zhx.js"),
+			"./pages/Admin/Analytics.tsx": () => import("./assets/Analytics-DVI_6xt_.js"),
+			"./pages/Admin/Appointments.tsx": () => import("./assets/Appointments-BnqVjQq3.js"),
+			"./pages/Admin/Assistant.tsx": () => import("./assets/Assistant-DHl57f3j.js"),
+			"./pages/Admin/AssistantConversation.tsx": () => import("./assets/AssistantConversation-D-a3-LlM.js"),
+			"./pages/Admin/Audit.tsx": () => import("./assets/Audit-BgQpG4m-.js"),
+			"./pages/Admin/BroadcastShow.tsx": () => import("./assets/BroadcastShow-DIS4PevG.js"),
+			"./pages/Admin/Broadcasts.tsx": () => import("./assets/Broadcasts-BCBXfhpZ.js"),
+			"./pages/Admin/Campaign.tsx": () => import("./assets/Campaign-CvyrRUUi.js"),
+			"./pages/Admin/Campaigns.tsx": () => import("./assets/Campaigns-ahgXc4-a.js"),
+			"./pages/Admin/CardBonuses.tsx": () => import("./assets/CardBonuses-DN0XIlzy.js"),
+			"./pages/Admin/ClinicCardAppearance.tsx": () => import("./assets/ClinicCardAppearance-D-Tkx0ln.js"),
+			"./pages/Admin/ClinicCreate.tsx": () => import("./assets/ClinicCreate-BwIWDWvQ.js"),
+			"./pages/Admin/ClinicShow.tsx": () => import("./assets/ClinicShow-npI9UPUT.js"),
+			"./pages/Admin/Clinics.tsx": () => import("./assets/Clinics-Dq-WrWPg.js"),
+			"./pages/Admin/Complaints.tsx": () => import("./assets/Complaints-CWeEDBMX.js"),
+			"./pages/Admin/Dashboard.tsx": () => import("./assets/Dashboard-BDO67SHg.js"),
+			"./pages/Admin/Dictionary.tsx": () => import("./assets/Dictionary-mgQjPsIV.js"),
+			"./pages/Admin/Doctors.tsx": () => import("./assets/Doctors-DShhT6pn.js"),
+			"./pages/Admin/Duplicates.tsx": () => import("./assets/Duplicates-Cl19m8Cc.js"),
+			"./pages/Admin/Finance.tsx": () => import("./assets/Finance-ChQZ0LWT.js"),
+			"./pages/Admin/Geography.tsx": () => import("./assets/Geography-Duj4J_Jp.js"),
+			"./pages/Admin/Integrations.tsx": () => import("./assets/Integrations-D59y97_d.js"),
+			"./pages/Admin/MaxPublish.tsx": () => import("./assets/MaxPublish-pkmDI4GD.js"),
+			"./pages/Admin/Moderation.tsx": () => import("./assets/Moderation-B6Y5xUJh.js"),
+			"./pages/Admin/Offer.tsx": () => import("./assets/Offer-D7cAEtNh.js"),
+			"./pages/Admin/OfferTemplate.tsx": () => import("./assets/OfferTemplate-BNG_UoUT.js"),
+			"./pages/Admin/Offers.tsx": () => import("./assets/Offers-C_DFPtaU.js"),
+			"./pages/Admin/ParsedOrganization.tsx": () => import("./assets/ParsedOrganization-DHQn3lgH.js"),
+			"./pages/Admin/Parser.tsx": () => import("./assets/Parser-BSTLej-S.js"),
+			"./pages/Admin/Promotions.tsx": () => import("./assets/Promotions-C6kRq7J5.js"),
+			"./pages/Admin/Reports.tsx": () => import("./assets/Reports-DR99LFET.js"),
+			"./pages/Admin/Reviews.tsx": () => import("./assets/Reviews-CH81CF3a.js"),
+			"./pages/Admin/Roles.tsx": () => import("./assets/Roles-COvbHJb2.js"),
+			"./pages/Admin/SiteDisplay.tsx": () => import("./assets/SiteDisplay-oxSazi16.js"),
+			"./pages/Admin/SystemHealth.tsx": () => import("./assets/SystemHealth-DY8rj1xZ.js"),
+			"./pages/Admin/Tariffs.tsx": () => import("./assets/Tariffs-Es3y9NmB.js"),
+			"./pages/Admin/UserShow.tsx": () => import("./assets/UserShow-DYygDRAY.js"),
+			"./pages/Admin/Users.tsx": () => import("./assets/Users-QnPfqjzG.js"),
 			"./pages/Auth/AcceptStaffInvite.tsx": () => import("./assets/AcceptStaffInvite-VodrJ_aE.js"),
-			"./pages/Auth/ForgotPassword.tsx": () => import("./assets/ForgotPassword-DzXVvt9i.js"),
-			"./pages/Auth/LinkSocial.tsx": () => import("./assets/LinkSocial-C-pxBVOa.js"),
-			"./pages/Auth/Login.tsx": () => import("./assets/Login-CUIUSQnU.js"),
-			"./pages/Auth/MaxLogin.tsx": () => import("./assets/MaxLogin-D1Y8GyoY.js"),
-			"./pages/Auth/Register.tsx": () => import("./assets/Register-CRNB_MK6.js"),
-			"./pages/Auth/RegisterClinic.tsx": () => import("./assets/RegisterClinic-BdTii8hu.js"),
-			"./pages/Auth/ResetPassword.tsx": () => import("./assets/ResetPassword-CMRfNUjN.js"),
-			"./pages/Auth/VerifyEmail.tsx": () => import("./assets/VerifyEmail-D0R-8Bsa.js"),
-			"./pages/Booking/Create.tsx": () => import("./assets/Create-C_EyFvw9.js"),
-			"./pages/Booking/Show.tsx": () => import("./assets/Show-BGBKJIfp.js"),
-			"./pages/Cabinet/BranchForm.tsx": () => import("./assets/BranchForm-qE6lm8Ei.js"),
-			"./pages/Cabinet/Branches.tsx": () => import("./assets/Branches-DJEgqdmX.js"),
-			"./pages/Cabinet/Broadcasts.tsx": () => import("./assets/Broadcasts-DMSiC15d.js"),
-			"./pages/Cabinet/Calendar.tsx": () => import("./assets/Calendar-CahxVoMV.js"),
-			"./pages/Cabinet/CardBonuses.tsx": () => import("./assets/CardBonuses-DWcPEaEV.js"),
-			"./pages/Cabinet/Dashboard.tsx": () => import("./assets/Dashboard-Bf40up59.js"),
-			"./pages/Cabinet/DoctorForm.tsx": () => import("./assets/DoctorForm-CC2loMuM.js"),
-			"./pages/Cabinet/DoctorSchedules.tsx": () => import("./assets/DoctorSchedules-CV-B_Blq.js"),
-			"./pages/Cabinet/Doctors.tsx": () => import("./assets/Doctors-BG7A7IZ1.js"),
-			"./pages/Cabinet/Documents.tsx": () => import("./assets/Documents-C_373OWg.js"),
-			"./pages/Cabinet/Leads.tsx": () => import("./assets/Leads-R9khBBKe.js"),
-			"./pages/Cabinet/Organization.tsx": () => import("./assets/Organization-i1sIZEJJ.js"),
-			"./pages/Cabinet/Payments.tsx": () => import("./assets/Payments-BQkCw9nG.js"),
-			"./pages/Cabinet/Photos.tsx": () => import("./assets/Photos-DuvVaeTp.js"),
-			"./pages/Cabinet/Posts.tsx": () => import("./assets/Posts-Gl_gLI4k.js"),
-			"./pages/Cabinet/Prices.tsx": () => import("./assets/Prices-CeLWRf17.js"),
-			"./pages/Cabinet/Promotions.tsx": () => import("./assets/Promotions-DdkUGVcr.js"),
-			"./pages/Cabinet/Reviews.tsx": () => import("./assets/Reviews-DcxWEsf9.js"),
-			"./pages/Cabinet/Schedule.tsx": () => import("./assets/Schedule-90ytJwDi.js"),
-			"./pages/Cabinet/Settings.tsx": () => import("./assets/Settings-B6Iln2or.js"),
-			"./pages/Cabinet/Staff.tsx": () => import("./assets/Staff-D7Tw2HYd.js"),
-			"./pages/Cabinet/Stats.tsx": () => import("./assets/Stats-BrdHPzeR.js"),
-			"./pages/Clinics/Index.tsx": () => import("./assets/Index-C78AvwDi.js"),
-			"./pages/Clinics/Show.tsx": () => import("./assets/Show-DClEGVsa.js"),
-			"./pages/Collections/Compare.tsx": () => import("./assets/Compare-D-y-l1lK.js"),
-			"./pages/Collections/Favorites.tsx": () => import("./assets/Favorites-oYQ0QqAh.js"),
-			"./pages/Concerns/Show.tsx": () => import("./assets/Show-TEY3uiGJ.js"),
-			"./pages/Directions/Index.tsx": () => import("./assets/Index-DFbx7JPX.js"),
-			"./pages/Directions/Show.tsx": () => import("./assets/Show-DF8WL8sh.js"),
-			"./pages/Doctors/Index.tsx": () => import("./assets/Index-CLAHT0Bz.js"),
-			"./pages/Doctors/Show.tsx": () => import("./assets/Show-BBLq-Vxr.js"),
-			"./pages/Error.tsx": () => import("./assets/Error-H9Z2MRWR.js"),
-			"./pages/Home.tsx": () => import("./assets/Home-B6-IoPpj.js"),
-			"./pages/Max/Appointments.tsx": () => import("./assets/Appointments-BnJkxfbR.js"),
-			"./pages/Max/ClinicShow.tsx": () => import("./assets/ClinicShow-DbYuV_d-.js"),
-			"./pages/Max/Clinics.tsx": () => import("./assets/Clinics-DNg66XDB.js"),
-			"./pages/Max/Home.tsx": () => import("./assets/Home-eg0eW05s.js"),
-			"./pages/Offer/Claim.tsx": () => import("./assets/Claim-DkEiKlWS.js"),
-			"./pages/Offer/Show.tsx": () => import("./assets/Show-BpJ5H6Lb.js"),
-			"./pages/Offer/Unsubscribe.tsx": () => import("./assets/Unsubscribe-CcebS-vp.js"),
+			"./pages/Auth/ForgotPassword.tsx": () => import("./assets/ForgotPassword-BfFitOPz.js"),
+			"./pages/Auth/LinkSocial.tsx": () => import("./assets/LinkSocial-DYNnL2XJ.js"),
+			"./pages/Auth/Login.tsx": () => import("./assets/Login-E--yxkr9.js"),
+			"./pages/Auth/MaxLogin.tsx": () => import("./assets/MaxLogin-Cu8hHH5g.js"),
+			"./pages/Auth/Register.tsx": () => import("./assets/Register-J82sZCv-.js"),
+			"./pages/Auth/RegisterClinic.tsx": () => import("./assets/RegisterClinic-BLuay0LN.js"),
+			"./pages/Auth/ResetPassword.tsx": () => import("./assets/ResetPassword-PXeNoFkA.js"),
+			"./pages/Auth/VerifyEmail.tsx": () => import("./assets/VerifyEmail-DdEn8zaI.js"),
+			"./pages/Booking/Create.tsx": () => import("./assets/Create-CQ0c8YPQ.js"),
+			"./pages/Booking/Show.tsx": () => import("./assets/Show-B82nVWat.js"),
+			"./pages/Cabinet/BranchForm.tsx": () => import("./assets/BranchForm-c94jYCE5.js"),
+			"./pages/Cabinet/Branches.tsx": () => import("./assets/Branches-iJYtMC2c.js"),
+			"./pages/Cabinet/Broadcasts.tsx": () => import("./assets/Broadcasts-D4HvzW-G.js"),
+			"./pages/Cabinet/Calendar.tsx": () => import("./assets/Calendar-DZpqYE0g.js"),
+			"./pages/Cabinet/CardBonuses.tsx": () => import("./assets/CardBonuses-DJgBkJyT.js"),
+			"./pages/Cabinet/Dashboard.tsx": () => import("./assets/Dashboard-D-dx8vP5.js"),
+			"./pages/Cabinet/DoctorForm.tsx": () => import("./assets/DoctorForm-BfCQihy2.js"),
+			"./pages/Cabinet/DoctorSchedules.tsx": () => import("./assets/DoctorSchedules-DmiThMhV.js"),
+			"./pages/Cabinet/Doctors.tsx": () => import("./assets/Doctors-BlHscczg.js"),
+			"./pages/Cabinet/Documents.tsx": () => import("./assets/Documents-BiMZHBkx.js"),
+			"./pages/Cabinet/Leads.tsx": () => import("./assets/Leads-CH3IffcG.js"),
+			"./pages/Cabinet/Organization.tsx": () => import("./assets/Organization-Dfpq0UJQ.js"),
+			"./pages/Cabinet/Payments.tsx": () => import("./assets/Payments-DmTYdP4O.js"),
+			"./pages/Cabinet/Photos.tsx": () => import("./assets/Photos-DXGunhjg.js"),
+			"./pages/Cabinet/Posts.tsx": () => import("./assets/Posts-CP7uA0E3.js"),
+			"./pages/Cabinet/Prices.tsx": () => import("./assets/Prices-wZH4kqT0.js"),
+			"./pages/Cabinet/Promotions.tsx": () => import("./assets/Promotions-CxfjDsxN.js"),
+			"./pages/Cabinet/Reviews.tsx": () => import("./assets/Reviews-Bg_fsWjt.js"),
+			"./pages/Cabinet/Schedule.tsx": () => import("./assets/Schedule-De-Y72rK.js"),
+			"./pages/Cabinet/Settings.tsx": () => import("./assets/Settings-DoUSoosU.js"),
+			"./pages/Cabinet/Staff.tsx": () => import("./assets/Staff-HxQT5UTF.js"),
+			"./pages/Cabinet/Stats.tsx": () => import("./assets/Stats-CN5u6Xni.js"),
+			"./pages/Clinics/Index.tsx": () => import("./assets/Index-mdbIL-Rz.js"),
+			"./pages/Clinics/Show.tsx": () => import("./assets/Show-Bhz7EVjT.js"),
+			"./pages/Collections/Compare.tsx": () => import("./assets/Compare-BWaur99W.js"),
+			"./pages/Collections/Favorites.tsx": () => import("./assets/Favorites-wlCmmxtQ.js"),
+			"./pages/Concerns/Show.tsx": () => import("./assets/Show-CC62BDwC.js"),
+			"./pages/Directions/Index.tsx": () => import("./assets/Index-CkwQQ2QS.js"),
+			"./pages/Directions/Show.tsx": () => import("./assets/Show-B2drTjKH.js"),
+			"./pages/Doctors/Index.tsx": () => import("./assets/Index-CzJAe71M.js"),
+			"./pages/Doctors/Show.tsx": () => import("./assets/Show-ktsq3h_d.js"),
+			"./pages/Error.tsx": () => import("./assets/Error-C566rROI.js"),
+			"./pages/Home.tsx": () => import("./assets/Home-Dn7wzvOT.js"),
+			"./pages/Max/Appointments.tsx": () => import("./assets/Appointments-Bi-_opc9.js"),
+			"./pages/Max/ClinicShow.tsx": () => import("./assets/ClinicShow-n2Z17wRJ.js"),
+			"./pages/Max/Clinics.tsx": () => import("./assets/Clinics-CHzrSek7.js"),
+			"./pages/Max/Home.tsx": () => import("./assets/Home-Da3ItB9X.js"),
+			"./pages/Offer/Claim.tsx": () => import("./assets/Claim-CTKQwBqQ.js"),
+			"./pages/Offer/Show.tsx": () => import("./assets/Show-DtX7Yl8E.js"),
+			"./pages/Offer/Unsubscribe.tsx": () => import("./assets/Unsubscribe-wSL-WASj.js"),
 			"./pages/Page.tsx": () => import("./assets/Page-BskXDT8U.js"),
-			"./pages/Prices/Index.tsx": () => import("./assets/Index-Bqmt_P9P.js"),
-			"./pages/Reviews/Index.tsx": () => import("./assets/Index-b_7us2QA.js"),
-			"./pages/Search/Index.tsx": () => import("./assets/Index-C-3VvxaS.js"),
+			"./pages/Prices/Index.tsx": () => import("./assets/Index-C3XFCTf5.js"),
+			"./pages/Reviews/Index.tsx": () => import("./assets/Index-CC2iPtdH.js"),
+			"./pages/Search/Index.tsx": () => import("./assets/Index-C_GPvwuC.js"),
 			"./pages/Tz.tsx": () => import("./assets/Tz-BUkOG5vE.js")
 		});
 		const module = await (pages[`./pages/${name}.tsx`] || pages[`./pages/${name}.jsx`] || pages[`./Pages/${name}.tsx`] || pages[`./Pages/${name}.jsx`])?.();
@@ -5298,6 +5409,6 @@ var renderPage = async (page) => {
 };
 createServer(renderPage);
 //#endregion
-export { trackAnalyticsEvent as A, SelectField as C, Lightbox as D, Drawer as E, Modal as O, SearchInput as S, TextField as T, Stars as _, can as a, CitySearchField as b, Alert as c, Breadcrumbs as d, renderPage as default, EmptyState as f, Skeleton as g, SectionHead as h, useCity as i, AnalyticsEvents as k, Avatar as l, Pagination as m, formatEta as n, SearchBox as o, ErrorState as p, useCollections as r, useLead as s, ParserTaskProgress as t, Badge$1 as u, Tabs as v, TextArea as w, PhoneField as x, Check as y };
+export { TextField as A, Tabs as C, SearchInput as D, PhoneField as E, trackAnalyticsEvent as F, Lightbox as M, Modal as N, SelectField as O, AnalyticsEvents as P, Stars as S, CitySearchField as T, EmptyState as _, useCollections as a, SectionHead as b, confirmDialog as c, SearchBox as d, renderPage as default, useLead as f, Breadcrumbs as g, Badge$1 as h, formatEta as i, Drawer as j, TextArea as k, promptDialog as l, Avatar as m, STATUS_TONE as n, useCity as o, Alert as p, ParserTaskProgress as r, can as s, STATUS_LABEL as t, notify as u, ErrorState as v, Check as w, Skeleton as x, Pagination as y };
 
 //# sourceMappingURL=app.js.map

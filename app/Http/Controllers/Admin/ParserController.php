@@ -11,10 +11,12 @@ use App\Models\OrganizationContact;
 use App\Models\ParsedOrganization;
 use App\Models\ParserTask;
 use App\Services\Audit;
+use App\Services\ModerationService;
 use App\Services\Parser\ParsedOrganizationImporter;
 use App\Services\Parser\ParsedOrganizationNormalizer;
 use App\Services\Parser\ParserOrganizationsClient;
 use App\Services\Parser\ParserTaskService;
+use App\Services\ProfileMetrics;
 use App\Support\Text;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -29,6 +31,13 @@ use Throwable;
 class ParserController extends AdminController
 {
     private const TABS = ['organizations', 'tasks', 'base'];
+
+    /** @var array<string, string> */
+    private const BULK_TARGETS = [
+        'draft' => 'В черновиках',
+        'pending' => 'Отправлено на модерацию',
+        'published' => 'Опубликовано',
+    ];
 
     public function index(Request $request): Response
     {
@@ -225,31 +234,76 @@ class ParserController extends AdminController
             ->with('success', "Черновик «{$clinic->name}» создан из спарсенной карточки. Проверьте данные и опубликуйте — до публикации на сайте он не виден.");
     }
 
-    public function importMany(Request $request, ParsedOrganizationImporter $importer): RedirectResponse
+    /**
+     * Массовый перенос карточек в клиники: новые импортируются, затем клиника получает нужный статус —
+     * черновик, заявка на модерацию или публикация в каталоге.
+     */
+    public function importMany(Request $request, ParsedOrganizationImporter $importer, ModerationService $moderation): RedirectResponse
     {
         $data = $request->validate([
             'ids' => ['required', 'array', 'min:1', 'max:100'],
             'ids.*' => ['integer', 'exists:parsed_organizations,id'],
             'photos' => ['boolean'],
+            'target' => ['nullable', Rule::in(array_keys(self::BULK_TARGETS))],
         ]);
+        $target = $data['target'] ?? 'draft';
 
         $imported = 0;
+        $moved = 0;
         $errors = [];
-        foreach (ParsedOrganization::query()->whereIn('id', $data['ids'])->orderBy('id')->get() as $parsed) {
+        foreach (ParsedOrganization::query()->with('clinic')->whereIn('id', $data['ids'])->orderBy('id')->get() as $parsed) {
             try {
-                $importer->import($parsed, $request->user(), withPhotos: (bool) ($data['photos'] ?? true));
-                $imported++;
+                $clinic = $parsed->clinic;
+                if ($clinic === null) {
+                    $clinic = $importer->import($parsed, $request->user(), withPhotos: (bool) ($data['photos'] ?? true));
+                    $imported++;
+                }
+                if ($this->moveClinic($clinic, $target, $moderation)) {
+                    $moved++;
+                }
             } catch (RuntimeException $e) {
                 $errors[] = "«{$parsed->name}»: {$e->getMessage()}";
             }
         }
 
-        $message = "Импортировано в черновики: {$imported}.";
+        $message = $target === 'draft'
+            ? "Импортировано в черновики: {$imported}.".($moved > 0 ? " Возвращено в черновики: {$moved}." : '')
+            : self::BULK_TARGETS[$target].": {$moved}.".($imported > 0 ? " Из них новых черновиков: {$imported}." : '');
         if ($errors !== []) {
             return back()->with('error', $message.' Пропущено '.count($errors).': '.implode(' ', array_slice($errors, 0, 3)));
         }
 
         return back()->with('success', $message);
+    }
+
+    /** Переводит клинику в нужный статус. Возвращает false, если она уже в нём. */
+    private function moveClinic(Clinic $clinic, string $target, ModerationService $moderation): bool
+    {
+        if ($clinic->status === $target) {
+            return false;
+        }
+        if ($clinic->status === 'blocked') {
+            throw new RuntimeException('клиника заблокирована.');
+        }
+
+        if ($target === 'published') {
+            if (! in_array($clinic->status, ['approved', 'hidden'], true)) {
+                $clinic->update(['status' => 'approved', 'moderation_note' => null]);
+            }
+            $moderation->publishClinic($clinic);
+
+            return true;
+        }
+
+        if ($target === 'pending' && ! in_array($clinic->status, ['draft', 'rejected'], true)) {
+            throw new RuntimeException('на модерацию отправляется только черновик, сейчас «'.Clinic::STATUS_LABELS[$clinic->status].'».');
+        }
+
+        $clinic->update(['status' => $target, 'moderation_note' => null]);
+        app(ProfileMetrics::class)->recalcClinic($clinic);
+        Audit::log("parser.clinic_{$target}", $clinic);
+
+        return true;
     }
 
     public function updateStatus(Request $request, ParsedOrganization $parsed): RedirectResponse
@@ -377,7 +431,7 @@ class ParserController extends AdminController
         $groupSizes = ParsedOrganization::query()->whereIn('group_key', $page->getCollection()->pluck('group_key')->filter()->unique())
             ->selectRaw('group_key, count(*) as c')->groupBy('group_key')->pluck('c', 'group_key');
         $clinicIds = $page->getCollection()->pluck('clinic_id')->filter()->unique();
-        $draftIds = Clinic::query()->whereIn('id', $clinicIds)->where('status', 'draft')->pluck('id')->flip();
+        $clinicStatuses = Clinic::query()->whereIn('id', $clinicIds)->pluck('status', 'id');
         $offers = Offer::query()->whereIn('clinic_id', $clinicIds)->whereNull('revoked_at')->latest('id')->get(['id', 'clinic_id'])->keyBy('clinic_id');
 
         return $page->through(fn (ParsedOrganization $p) => [
@@ -386,8 +440,9 @@ class ParserController extends AdminController
             'match' => $p->matchClinic ? ['id' => $p->matchClinic->id, 'name' => $p->matchClinic->name, 'reason' => $p->match_reason] : null,
             'network_size' => $p->group_key ? (int) ($groupSizes[$p->group_key] ?? 1) : 0,
             'importable' => $p->isImportable(),
-            'offerable' => ($p->isImportable() || ($p->clinic_id && isset($draftIds[$p->clinic_id]))) && ! isset($offers[$p->clinic_id ?? 0]),
-            'offer_id' => $p->clinic_id ? $offers[$p->clinic_id]?->id : null,
+            'clinic_status' => $p->clinic_id ? ($clinicStatuses[$p->clinic_id] ?? null) : null,
+            'offerable' => ($p->isImportable() || ($p->clinic_id && ($clinicStatuses[$p->clinic_id] ?? null) === 'draft')) && ! isset($offers[$p->clinic_id ?? 0]),
+            'offer_id' => $p->clinic_id ? $offers->get($p->clinic_id)?->id : null,
         ])->toArray();
     }
 

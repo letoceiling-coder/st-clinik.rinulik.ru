@@ -7,6 +7,7 @@ import { Check, TextArea, TextField } from '@/components/ui/Fields';
 import { Alert, Badge, Tabs } from '@/components/ui/Misc';
 import { DispatchPanel, ExtraPanel, type DispatchChannel } from '@/components/offers/OfferSendPanels';
 import { ApplicationsTab, OFFER_TONE, SectionPicker, type ApplicationRow, type OfferRow } from './Offers';
+import { confirmDialog } from '@/lib/dialog';
 
 type Channel = 'web' | 'email' | 'sms' | 'messenger' | 'call';
 
@@ -75,13 +76,13 @@ const duration = (sec: number) => (sec < 60 ? `${sec} с` : `${Math.round(sec / 
 
 export default function AdminOffer(props: Props) {
     const { offer, demo_links, applications, recipients, offer_statuses, application_statuses, recipient_statuses, channels } = props;
-    const revoke = () => {
-        if (window.confirm('Отозвать КП? Страница предложения и демо-кабинет перестанут открываться.')) {
+    const revoke = async () => {
+        if (await confirmDialog({ title: 'Отозвать КП?', message: 'Страница предложения и демо-кабинет перестанут открываться.', confirmLabel: 'Отозвать', danger: true })) {
             router.post(`/admin/offers/${offer.id}/revoke`, {}, { preserveScroll: true });
         }
     };
-    const connect = () => {
-        if (window.confirm('Отметить клинику подключённой? Демо-ссылки закроются, демо-заявки и записи удалятся.')) {
+    const connect = async () => {
+        if (await confirmDialog({ title: 'Отметить клинику подключённой?', message: 'Демо-ссылки закроются, демо-заявки и записи удалятся.', confirmLabel: 'Подключена' })) {
             router.post(`/admin/offers/${offer.id}/connect`, {}, { preserveScroll: true });
         }
     };
@@ -308,8 +309,8 @@ function DemoLinkItem({ link, sections }: { link: DemoLinkRow; sections: Record<
         form.transform((d) => ({ ...d, expires_at: d.expires_at || null, max_opens: d.max_opens === '' ? null : d.max_opens, max_devices: d.max_devices === '' ? null : d.max_devices }));
         form.put(`/admin/offers/demo-links/${link.id}`, { preserveScroll: true });
     };
-    const revoke = () => {
-        if (window.confirm('Отозвать демо-ссылку? Открытые сессии закроются при следующем переходе.')) {
+    const revoke = async () => {
+        if (await confirmDialog({ title: 'Отозвать демо-ссылку?', message: 'Открытые сессии закроются при следующем переходе.', confirmLabel: 'Отозвать', danger: true })) {
             router.post(`/admin/offers/demo-links/${link.id}/revoke`, {}, { preserveScroll: true });
         }
     };

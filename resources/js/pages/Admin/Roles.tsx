@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/Fields';
 import { Alert } from '@/components/ui/Misc';
 import { cx } from '@/lib/format';
+import { confirmDialog } from '@/lib/dialog';
 
 interface Role {
     slug: string;
@@ -162,7 +163,7 @@ function RoleCard({ role, catalog, groups, sensitiveLabels }: { role: Role; cata
                                 type="button"
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => confirm(`Удалить роль «${role.name}»?`) && router.delete(`/admin/roles/${role.slug}`, { preserveScroll: true })}
+                                onClick={async () => (await confirmDialog({ title: `Удалить роль «${role.name}»?`, confirmLabel: 'Удалить', danger: true })) && router.delete(`/admin/roles/${role.slug}`, { preserveScroll: true })}
                             >
                                 Удалить роль
                             </Button>

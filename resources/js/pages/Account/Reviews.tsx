@@ -5,6 +5,7 @@ import { Stars } from '@/components/ui/Misc';
 import { Button } from '@/components/ui/Button';
 import { TextArea, TextField } from '@/components/ui/Fields';
 import { EmptyState } from '@/components/ui/Misc';
+import { confirmDialog } from '@/lib/dialog';
 
 interface Row {
     id: number; rating: number; title: string | null; body: string; status: string; moderation_note: string | null;
@@ -37,7 +38,7 @@ export default function Reviews({ reviews }: { reviews: Row[] }) {
                         {['pending', 'rejected'].includes(r.status) ? (
                             <Button size="sm" variant="secondary" onClick={() => { setEdit(r.id); form.setData({ rating: r.rating, title: r.title ?? '', body: r.body }); }}>Изменить</Button>
                         ) : null}
-                        <Button size="sm" variant="ghost" onClick={() => confirm('Удалить отзыв?') && router.delete(`/account/reviews/${r.id}`)}>Удалить</Button>
+                        <Button size="sm" variant="ghost" onClick={async () => (await confirmDialog({ title: 'Удалить отзыв?', message: 'Отзыв исчезнет со страницы клиники.', confirmLabel: 'Удалить', danger: true })) && router.delete(`/account/reviews/${r.id}`)}>Удалить</Button>
                     </div>
                     {edit === r.id ? (
                         <form className="stack" onSubmit={(e) => { e.preventDefault(); form.put(`/account/reviews/${r.id}`, { onSuccess: () => setEdit(null) }); }}>

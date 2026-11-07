@@ -6,6 +6,7 @@ import { Button, LinkButton } from '@/components/ui/Button';
 import { Check, SelectField, TextArea, TextField } from '@/components/ui/Fields';
 import { Alert } from '@/components/ui/Misc';
 import { money } from '@/lib/format';
+import { confirmDialog } from '@/lib/dialog';
 
 interface Clinic {
     id: number;
@@ -240,7 +241,7 @@ export default function ClinicShow({
                     <Button
                         type="button"
                         variant="danger"
-                        onClick={() => confirm('Удалить клинику без возможности восстановления?') && router.delete(`/admin/clinics/${clinic.id}`)}
+                        onClick={async () => (await confirmDialog({ title: 'Удалить клинику?', message: `«${clinic.name}» будет удалена без возможности восстановления.`, confirmLabel: 'Удалить', danger: true })) && router.delete(`/admin/clinics/${clinic.id}`)}
                     >
                         Удалить
                     </Button>

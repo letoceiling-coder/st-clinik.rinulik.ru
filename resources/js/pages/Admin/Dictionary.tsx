@@ -6,6 +6,7 @@ import FileDropzone from '@/components/ui/FileDropzone';
 import { Check, SearchInput, SelectField, TextArea, TextField } from '@/components/ui/Fields';
 import { Modal } from '@/components/ui/Overlay';
 import type { Paginated } from '@/lib/types';
+import { confirmDialog } from '@/lib/dialog';
 
 interface Field { name: string; label: string; type: string; required?: boolean; help?: string; options?: { value: string | number; label: string }[]; rows?: number }
 interface Col { name: string; label: string; type: string }
@@ -64,7 +65,7 @@ export default function Dictionary({
                                 <Button
                                     size="sm"
                                     variant="ghost"
-                                    onClick={() => confirm('Удалить запись?') && router.delete(`/admin/dictionaries/${resource}/${row.id}`)}
+                                    onClick={async () => (await confirmDialog({ title: 'Удалить запись?', confirmLabel: 'Удалить', danger: true })) && router.delete(`/admin/dictionaries/${resource}/${row.id}`)}
                                 >
                                     Удалить
                                 </Button>

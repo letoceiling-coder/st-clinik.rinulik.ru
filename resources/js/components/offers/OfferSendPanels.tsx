@@ -5,6 +5,7 @@ import Icon from '@/components/Icon';
 import { AnchorButton, Button } from '@/components/ui/Button';
 import { PhoneField, TextArea, TextField } from '@/components/ui/Fields';
 import { Alert, Badge } from '@/components/ui/Misc';
+import { confirmDialog } from '@/lib/dialog';
 
 export interface DispatchChannel {
     key: string;
@@ -119,9 +120,13 @@ export function DispatchPanel({ offerId, channels, statuses, disabled }: { offer
     const [contacts, setContacts] = useState<Record<string, string>>({});
     const [busy, setBusy] = useState<string | null>(null);
 
-    const send = (channel: DispatchChannel) => {
-        const verb = channel.mode === 'auto' ? `Отправить КП: ${channel.label}?` : `Отметить, что КП отправлено вручную: ${channel.label}?`;
-        if (!window.confirm(verb)) {
+    const send = async (channel: DispatchChannel) => {
+        const confirmed = await confirmDialog(
+            channel.mode === 'auto'
+                ? { title: `Отправить КП: ${channel.label}?`, confirmLabel: 'Отправить' }
+                : { title: 'Отметить отправку вручную?', message: `Канал: ${channel.label}.`, confirmLabel: 'Отметить' },
+        );
+        if (!confirmed) {
             return;
         }
         setBusy(channel.key);

@@ -2,6 +2,7 @@ import { Link, router } from '@inertiajs/react';
 import { PageHead, StatusBadge } from '@/components/Dash';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/Misc';
+import { confirmDialog } from '@/lib/dialog';
 
 interface Card { id: number; name: string; address: string; phone: string | null; city: string | null; status: string; reviews_count: number; doctors_count: number; slug: string }
 interface Pair { key: string; a: Card; b: Card; reasons: string[] }
@@ -19,8 +20,8 @@ export default function Duplicates({ pairs }: { pairs: Pair[] }) {
                     </div>
                     <div className="row row--wrap">
                         <Button size="sm" variant="secondary" onClick={() => router.post('/admin/duplicates/dismiss', { a: p.a.id, b: p.b.id })}>Это разные клиники</Button>
-                        <Button size="sm" onClick={() => confirm('Объединить в первую?') && router.post('/admin/duplicates/merge', { keep: p.a.id, remove: p.b.id })}>Оставить первую</Button>
-                        <Button size="sm" variant="dark" onClick={() => confirm('Объединить во вторую?') && router.post('/admin/duplicates/merge', { keep: p.b.id, remove: p.a.id })}>Оставить вторую</Button>
+                        <Button size="sm" onClick={async () => (await confirmDialog({ title: 'Оставить первую клинику?', message: 'Вторая будет объединена с ней.', confirmLabel: 'Объединить' })) && router.post('/admin/duplicates/merge', { keep: p.a.id, remove: p.b.id })}>Оставить первую</Button>
+                        <Button size="sm" variant="dark" onClick={async () => (await confirmDialog({ title: 'Оставить вторую клинику?', message: 'Первая будет объединена с ней.', confirmLabel: 'Объединить' })) && router.post('/admin/duplicates/merge', { keep: p.b.id, remove: p.a.id })}>Оставить вторую</Button>
                     </div>
                 </article>
             ))}

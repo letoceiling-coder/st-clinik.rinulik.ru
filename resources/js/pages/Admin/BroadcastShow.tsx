@@ -5,6 +5,7 @@ import { Button, LinkButton } from '@/components/ui/Button';
 import { Check, SelectField, TextArea, TextField } from '@/components/ui/Fields';
 import { Alert, Badge } from '@/components/ui/Misc';
 import type { Paginated } from '@/lib/types';
+import { promptDialog } from '@/lib/dialog';
 
 interface Broadcast {
     id: number;
@@ -112,8 +113,8 @@ export default function BroadcastShow(props: Props) {
                     <Button
                         size="sm"
                         variant="danger"
-                        onClick={() => {
-                            const note = window.prompt('Причина отклонения для клиники');
+                        onClick={async () => {
+                            const note = await promptDialog({ title: 'Отклонить рассылку', label: 'Причина — её увидит клиника', multiline: true, required: true, confirmLabel: 'Отклонить', danger: true });
                             if (note) {
                                 router.post(`/admin/broadcasts/${broadcast.id}/moderate`, { decision: 'reject', note });
                             }

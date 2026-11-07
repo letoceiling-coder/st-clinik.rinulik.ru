@@ -6,6 +6,8 @@ import { Check, CitySearchField, SearchInput, SelectField } from '@/components/u
 import { Alert, Badge, Tabs } from '@/components/ui/Misc';
 import ParserTaskProgress, { formatEta, type CollectInfo } from '@/components/ParserTaskProgress';
 import type { Paginated } from '@/lib/types';
+import { confirmDialog, type ConfirmOptions } from '@/lib/dialog';
+import { STATUS_LABEL, STATUS_TONE } from '@/layouts/CabinetLayout';
 
 type Tab = 'organizations' | 'tasks' | 'base';
 type Tone = 'success' | 'warning' | 'danger' | 'info' | 'primary' | undefined;
@@ -28,9 +30,20 @@ interface OrgRow {
     match: { id: number; name: string; reason: string | null } | null;
     network_size: number;
     importable: boolean;
+    clinic_status: string | null;
     offerable: boolean;
     offer_id: number | null;
 }
+
+type ClinicTarget = 'draft' | 'pending' | 'published';
+
+/** Можно ли перевести карточку в нужный статус клиники (новую — сначала импортом в черновик). */
+const canMove = (o: OrgRow, target: ClinicTarget): boolean => {
+    if (o.importable) return o.city_known;
+    if (!o.clinic_status || o.clinic_status === 'blocked' || o.clinic_status === target) return false;
+    return target !== 'pending' || ['draft', 'rejected'].includes(o.clinic_status);
+};
+const selectable = (o: OrgRow) => o.offerable || (['draft', 'pending', 'published'] as ClinicTarget[]).some((t) => canMove(o, t));
 
 interface TaskRow extends CollectInfo {
     id: number;
@@ -270,7 +283,11 @@ function TasksTab({ tasks, cities, search_filters, task_statuses, configured }: 
                                             <Button
                                                 size="sm"
                                                 variant="ghost"
-                                                onClick={() => window.confirm('Остановить парсинг?') && router.post(`/admin/parser/tasks/${t.id}/cancel`, {}, { preserveScroll: true })}
+                                                onClick={async () => {
+                                                    if (await confirmDialog({ title: 'Остановить парсинг?', message: 'Уже собранные карточки останутся в списке.', confirmLabel: 'Остановить', danger: true })) {
+                                                        router.post(`/admin/parser/tasks/${t.id}/cancel`, {}, { preserveScroll: true });
+                                                    }
+                                                }}
                                             >
                                                 Остановить
                                             </Button>
@@ -296,14 +313,16 @@ function OrganizationsTab({ organizations, cities, statuses, filters, offer_temp
     const [selected, setSelected] = useState<number[]>([]);
     const [busy, setBusy] = useState(false);
     const [templateId, setTemplateId] = useState<number | ''>(offer_templates[0]?.id ?? '');
-    const importable = organizations.data.filter((o) => o.importable || o.offerable).map((o) => o.id);
-    const selectedImportable = organizations.data.filter((o) => o.importable && selected.includes(o.id)).map((o) => o.id);
-    const selectedOfferable = organizations.data.filter((o) => o.offerable && selected.includes(o.id)).map((o) => o.id);
+    const importable = organizations.data.filter(selectable).map((o) => o.id);
+    const picked = organizations.data.filter((o) => selected.includes(o.id));
+    const selectedOfferable = picked.filter((o) => o.offerable).map((o) => o.id);
+    const selectedFresh = picked.filter((o) => !o.clinic_id).map((o) => o.id);
+    const movable = (target: ClinicTarget) => picked.filter((o) => canMove(o, target)).map((o) => o.id);
     const allSelected = importable.length > 0 && importable.every((id) => selected.includes(id));
 
     const toggle = (id: number) => setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
-    const bulk = (url: string, data: Record<string, unknown>, confirmText: string) => {
-        if (!window.confirm(confirmText)) return;
+    const bulk = async (url: string, data: Record<string, unknown>, confirm: ConfirmOptions) => {
+        if (!(await confirmDialog(confirm))) return;
         router.post(url, { ids: selected, ...data } as never, {
             preserveScroll: true,
             onStart: () => setBusy(true),
@@ -374,7 +393,7 @@ function OrganizationsTab({ organizations, cities, statuses, filters, offer_temp
                                 <input
                                     type="checkbox"
                                     aria-label={`Выбрать «${o.name}»`}
-                                    disabled={!o.importable && !o.offerable}
+                                    disabled={!selectable(o)}
                                     checked={selected.includes(o.id)}
                                     onChange={() => toggle(o.id)}
                                 />
@@ -385,6 +404,11 @@ function OrganizationsTab({ organizations, cities, statuses, filters, offer_temp
                                         <b>{o.name}</b>
                                     </Link>
                                     <Badge tone={ORG_TONE[o.status]}>{statuses[o.status] ?? o.status}</Badge>
+                                    {o.clinic_id && o.clinic_status ? (
+                                        <Link href={`/admin/clinics/${o.clinic_id}`} title="Открыть клинику на сайте">
+                                            <Badge tone={STATUS_TONE[o.clinic_status]}>Клиника: {STATUS_LABEL[o.clinic_status]?.toLowerCase() ?? o.clinic_status}</Badge>
+                                        </Link>
+                                    ) : null}
                                 </div>
                                 <p className="text-sm text-muted">
                                     {o.city ?? 'город не указан'}
@@ -433,8 +457,66 @@ function OrganizationsTab({ organizations, cities, statuses, filters, offer_temp
                             Снять выбор
                         </button>
                     </div>
-                    <div className="parser-bulk__actions">
-                        {selectedOfferable.length > 0 && offer_templates.length > 0 ? (
+                    <div className="parser-bulk__group" role="group" aria-label="Статус на сайте">
+                        <span className="parser-bulk__label">На сайт</span>
+                        {(
+                            [
+                                ['draft', 'В черновики', 'outline', 'Импортировать в черновики', 'Клиники появятся в админке со статусом «Черновик». На сайте их не видно.'],
+                                ['pending', 'На модерацию', 'outline', 'Отправить на модерацию', 'Клиники попадут в очередь «Модерация». Новые карточки сначала импортируются в черновики.'],
+                                ['published', 'Опубликовать', 'primary', 'Опубликовать в каталоге', 'Клиники сразу станут видны посетителям сайта, без модерации.'],
+                            ] as const
+                        ).map(([target, label, variant, title, message]) => {
+                            const ids = movable(target);
+                            const fresh = ids.filter((id) => selectedFresh.includes(id)).length;
+
+                            return (
+                                <Button
+                                    key={target}
+                                    size="sm"
+                                    variant={variant}
+                                    loading={busy}
+                                    disabled={ids.length === 0}
+                                    onClick={() =>
+                                        bulk(
+                                            '/admin/parser/organizations/import',
+                                            { ids, photos: true, target },
+                                            {
+                                                title: `${title}: ${ids.length}?`,
+                                                message: fresh > 0 && target !== 'draft' ? `${message}\n\nНовых карточек для импорта: ${fresh}.` : message,
+                                                confirmLabel: label,
+                                            },
+                                        )
+                                    }
+                                >
+                                    {label} ({ids.length})
+                                </Button>
+                            );
+                        })}
+                    </div>
+                    <div className="parser-bulk__group" role="group" aria-label="Карточки парсера">
+                        <span className="parser-bulk__label">Карточки</span>
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={busy || selectedFresh.length === 0}
+                            onClick={() => bulk('/admin/parser/organizations/status', { status: 'reviewed' }, { title: 'Отметить как проверенные?', message: `Карточек: ${selectedFresh.length}.`, confirmLabel: 'Отметить' })}
+                        >
+                            Проверены
+                        </Button>
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            disabled={busy || selectedFresh.length === 0}
+                            onClick={() =>
+                                bulk('/admin/parser/organizations/status', { status: 'ignored' }, { title: 'Скрыть карточки?', message: `Карточек: ${selectedFresh.length}. Их можно вернуть фильтром «Скрыта».`, confirmLabel: 'Скрыть' })
+                            }
+                        >
+                            Скрыть
+                        </Button>
+                    </div>
+                    {selectedOfferable.length > 0 && offer_templates.length > 0 ? (
+                        <div className="parser-bulk__group" role="group" aria-label="Коммерческое предложение">
+                            <span className="parser-bulk__label">КП</span>
                             <span className="parser-bulk__offer">
                                 <select aria-label="Шаблон КП" className="select select--sm" value={templateId} onChange={(e) => setTemplateId(Number(e.target.value))}>
                                     {offer_templates.map((t) => (
@@ -448,25 +530,18 @@ function OrganizationsTab({ organizations, cities, statuses, filters, offer_temp
                                     icon="file"
                                     loading={busy}
                                     onClick={() =>
-                                        bulk('/admin/offers/bulk', { ids: selectedOfferable, template_id: templateId }, `Сформировать КП для ${selectedOfferable.length} клиник? Новые карточки будут импортированы в черновики.`)
+                                        bulk(
+                                            '/admin/offers/bulk',
+                                            { ids: selectedOfferable, template_id: templateId },
+                                            { title: `Сформировать КП: ${selectedOfferable.length}?`, message: 'Новые карточки будут импортированы в черновики.', confirmLabel: 'Сформировать' },
+                                        )
                                     }
                                 >
-                                    Сформировать КП ({selectedOfferable.length})
+                                    Сформировать ({selectedOfferable.length})
                                 </Button>
                             </span>
-                        ) : null}
-                        {selectedImportable.length > 0 ? (
-                            <Button size="sm" variant="outline" loading={busy} onClick={() => bulk('/admin/parser/organizations/import', { ids: selectedImportable, photos: true }, `Импортировать ${selectedImportable.length} карточек в черновики клиник?`)}>
-                                Импортировать ({selectedImportable.length})
-                            </Button>
-                        ) : null}
-                        <Button size="sm" variant="outline" disabled={busy} onClick={() => bulk('/admin/parser/organizations/status', { status: 'reviewed' }, 'Отметить выбранные как проверенные?')}>
-                            Проверены
-                        </Button>
-                        <Button size="sm" variant="ghost" disabled={busy} onClick={() => bulk('/admin/parser/organizations/status', { status: 'ignored' }, 'Скрыть выбранные карточки?')}>
-                            Скрыть
-                        </Button>
-                    </div>
+                        </div>
+                    ) : null}
                 </div>
             ) : null}
 

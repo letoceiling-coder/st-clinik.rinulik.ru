@@ -1055,6 +1055,21 @@
 .modal--wide {
     width: min(760px, 100%);
 }
+.dialog {
+    display: grid;
+    gap: 16px;
+}
+.dialog__message {
+    color: var(--color-muted);
+    line-height: 1.5;
+    white-space: pre-line;
+}
+.overlay:has(> .modal .dialog) .modal {
+    width: min(460px, 100%);
+}
+.modal__body:has(> .dialog:empty) {
+    display: none;
+}
 .modal__head {
     flex: none;
     display: flex;

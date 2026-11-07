@@ -153,6 +153,38 @@ class ParserOrganizationsTest extends TestCase
         $this->assertCount(1, $clinics->pluck('organization_id')->unique());
     }
 
+    public function test_bulk_actions_move_cards_to_moderation_publish_and_back_to_draft(): void
+    {
+        Queue::fake();
+        $fresh = $this->stored($this->parserItem('4101', 'Новая для модерации', '+78612000101'));
+        $toPublish = $this->stored($this->parserItem('4102', 'Новая для каталога', '+78612000102'));
+        $admin = $this->admin();
+        $url = '/admin/parser/organizations/import';
+
+        $this->actingAs($admin)->post($url, ['ids' => [$fresh->id], 'photos' => false, 'target' => 'pending'])
+            ->assertSessionHas('success', 'Отправлено на модерацию: 1. Из них новых черновиков: 1.');
+        $this->assertSame('pending', $fresh->refresh()->clinic->status);
+
+        $this->actingAs($admin)->post($url, ['ids' => [$toPublish->id], 'photos' => false, 'target' => 'published'])->assertSessionHas('success');
+        $published = $toPublish->refresh()->clinic;
+        $this->assertSame('published', $published->status);
+
+        $this->actingAs($admin)->post($url, ['ids' => [$toPublish->id], 'target' => 'pending'])
+            ->assertSessionHas('error', fn (string $message) => str_contains($message, 'на модерацию отправляется только черновик'));
+        $this->assertSame('published', $published->fresh()->status);
+
+        $this->actingAs($admin)->post($url, ['ids' => [$fresh->id, $toPublish->id], 'target' => 'draft'])
+            ->assertSessionHas('success', 'Импортировано в черновики: 0. Возвращено в черновики: 2.');
+        $this->assertSame('draft', $published->fresh()->status);
+        $this->assertSame(2, Clinic::query()->whereIn('yandex_org_id', ['4101', '4102'])->count());
+
+        $this->actingAs($admin)->get('/admin/parser?tab=organizations&status=imported')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('organizations.data.0.clinic_status', 'draft')
+                ->where('organizations.data.0.offer_id', null));
+    }
+
     public function test_resync_keeps_admin_decision(): void
     {
         $parsed = $this->stored($this->parserItem('5001', 'Скрытая', '+78612000008'));

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { SearchInput, SelectField } from '@/components/ui/Fields';
 import { Stars } from '@/components/ui/Misc';
 import type { Paginated } from '@/lib/types';
+import { promptDialog } from '@/lib/dialog';
 
 interface Row {
     id: number; author: string; clinic: string | null; rating: number; title: string | null; body: string;
@@ -11,8 +12,20 @@ interface Row {
 }
 
 export default function Reviews({ reviews, statuses, filters }: { reviews: Paginated<Row>; statuses: string[]; filters: { status?: string; q?: string } }) {
-    const act = (id: number, action: string) => {
-        const note = action === 'reject' || action === 'hide' ? prompt('Комментарий (увидит автор):') ?? '' : '';
+    const act = async (id: number, action: string) => {
+        let note = '';
+        if (action === 'reject' || action === 'hide') {
+            const answer = await promptDialog({
+                title: action === 'reject' ? 'Отклонить отзыв' : 'Скрыть отзыв',
+                label: 'Комментарий — его увидит автор',
+                placeholder: 'Необязательно',
+                multiline: true,
+                confirmLabel: action === 'reject' ? 'Отклонить' : 'Скрыть',
+                danger: true,
+            });
+            if (answer === null) return;
+            note = answer;
+        }
         router.put(`/admin/reviews/${id}`, { action, note });
     };
     return (

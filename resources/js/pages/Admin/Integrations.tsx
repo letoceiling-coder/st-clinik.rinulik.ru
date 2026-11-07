@@ -4,6 +4,7 @@ import { PageHead, Table } from '@/components/Dash';
 import { Button } from '@/components/ui/Button';
 import { Check, SelectField, TextField } from '@/components/ui/Fields';
 import { Alert, Badge } from '@/components/ui/Misc';
+import { confirmDialog } from '@/lib/dialog';
 
 interface Field {
     name: string;
@@ -224,8 +225,12 @@ function GroupCard({
         router.post(`/admin/integrations/${group.key}/check`, {}, { preserveScroll: true, onStart: () => setChecking(true), onFinish: () => setChecking(false) });
     };
 
-    const generate = () => {
-        if (hasSecret && !window.confirm('Ключи уже есть. После замены все браузерные подписки перестанут работать. Сгенерировать новые?')) return;
+    const generate = async () => {
+        if (
+            hasSecret &&
+            !(await confirmDialog({ title: 'Сгенерировать новые ключи?', message: 'После замены все браузерные подписки перестанут работать.', confirmLabel: 'Сгенерировать', danger: true }))
+        )
+            return;
         router.post('/admin/integrations/web_push/generate', {}, { preserveScroll: true });
     };
 

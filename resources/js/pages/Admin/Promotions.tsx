@@ -4,6 +4,7 @@ import { PageHead, Table } from '@/components/Dash';
 import { Button } from '@/components/ui/Button';
 import { Check, SelectField, TextArea, TextField } from '@/components/ui/Fields';
 import { Badge } from '@/components/ui/Misc';
+import { promptDialog } from '@/lib/dialog';
 
 interface Product {
     id: number;
@@ -182,8 +183,8 @@ export default function AdminPromotions({ products, packages, prices, settings, 
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    onClick={() => {
-                                        const note = window.prompt('Причина отклонения');
+                                    onClick={async () => {
+                                        const note = await promptDialog({ title: 'Отклонить заказ', label: 'Причина — её увидит клиника', multiline: true, required: true, confirmLabel: 'Отклонить', danger: true });
                                         if (note) router.post(`/admin/promotions/orders/${o.id}/reject`, { note }, { preserveScroll: true });
                                     }}
                                 >

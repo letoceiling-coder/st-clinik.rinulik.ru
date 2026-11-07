@@ -3,6 +3,7 @@ import { PageHead, StatusBadge, Table } from '@/components/Dash';
 import { DoctorArt } from '@/components/PhotoArt';
 import { Button, LinkButton } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/Misc';
+import { confirmDialog } from '@/lib/dialog';
 
 interface Doc {
     id: number; name: string; position: string; experience_years: number; status: string;
@@ -32,7 +33,7 @@ export default function Doctors({ doctors }: { doctors: Doc[] }) {
                             </td>
                             <td className="actions">
                                 <Link href={`/clinic-cabinet/doctors/${d.id}/edit`} className="link">Править</Link>
-                                <Button size="sm" variant="ghost" onClick={() => confirm('Удалить врача?') && router.delete(`/clinic-cabinet/doctors/${d.id}`)}>Удалить</Button>
+                                <Button size="sm" variant="ghost" onClick={async () => (await confirmDialog({ title: 'Удалить врача?', message: d.name, confirmLabel: 'Удалить', danger: true })) && router.delete(`/clinic-cabinet/doctors/${d.id}`)}>Удалить</Button>
                             </td>
                         </tr>
                     ))}
