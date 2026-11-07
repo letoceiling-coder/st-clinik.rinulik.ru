@@ -32,7 +32,22 @@ interface Organization {
     products: { name: string; price: string }[];
     amenities: string[];
     photos_count: number;
-    clinic: { id: number; name: string; slug: string; status: string } | null;
+    clinic: {
+        id: number;
+        name: string;
+        slug: string;
+        status: string;
+        address: string | null;
+        phone: string | null;
+        website: string | null;
+        city: string | null;
+        updated_at: string | null;
+    } | null;
+    /** Населённый пункт, как его записал Яндекс (может быть посёлком рядом с городом). */
+    settlement: string | null;
+    source_updated_at: string | null;
+    synced_ago: string | null;
+    stale: boolean;
     match: { id: number; name: string; slug: string; status: string; address: string | null; phone: string | null; reason: string | null } | null;
     task: { id: number; type: string; at: string | null } | null;
     imported: { at: string; by: string | null } | null;
@@ -56,9 +71,110 @@ interface Props {
     network: { id: number; name: string; address: string | null; clinic_id: number | null; status: string }[];
     email_tasks: { id: number; status: string; found: number; error: string | null; at: string | null }[];
     statuses: Record<string, string>;
+    cities: { id: number; name: string }[];
     contact_types: Record<string, string>;
     task_statuses: Record<string, string>;
     offers: { templates: { id: number; name: string }[]; current: { id: number; status: string } | null; allowed: boolean } | null;
+}
+
+type ClinicTarget = 'draft' | 'pending' | 'published';
+
+const CLINIC_ACTIONS: { target: ClinicTarget; label: string; title: string; message: string; allowedFrom: string[] }[] = [
+    { target: 'published', label: 'Опубликовать', title: 'Опубликовать в каталоге?', message: 'Клиника сразу станет видна посетителям сайта, без модерации.', allowedFrom: ['draft', 'pending', 'approved', 'hidden', 'rejected'] },
+    { target: 'pending', label: 'На модерацию', title: 'Отправить на модерацию?', message: 'Клиника попадёт в очередь «Модерация».', allowedFrom: ['draft', 'rejected'] },
+    { target: 'draft', label: 'В черновики', title: 'Вернуть в черновики?', message: 'Клиника пропадёт из каталога, пока её снова не опубликуют.', allowedFrom: ['pending', 'approved', 'published', 'hidden', 'rejected'] },
+];
+
+/** Клиника на сайте сейчас — отдельно от снимка Яндекса: после импорта их данные живут независимо. */
+function ClinicNow({ o, clinic }: { o: Organization; clinic: NonNullable<Organization['clinic']> }) {
+    const move = async (action: (typeof CLINIC_ACTIONS)[number]) => {
+        if (!(await confirmDialog({ title: action.title, message: action.message, confirmLabel: action.label, danger: action.target === 'draft' }))) return;
+        router.post('/admin/parser/organizations/import', { ids: [o.id], target: action.target, photos: false }, { preserveScroll: true });
+    };
+    const differs = (a: string | null | undefined, b: string | null | undefined) => (a ?? '').trim() !== '' && (b ?? '').trim() !== '' && a!.trim() !== b!.trim();
+
+    return (
+        <Panel
+            title="Клиника на сайте сейчас"
+            action={
+                <LinkButton href={`/admin/clinics/${clinic.id}`} size="sm" variant="outline">
+                    Открыть клинику
+                </LinkButton>
+            }
+        >
+            <p className="text-sm text-muted">
+                Создана из этой карточки {o.imported?.at}
+                {o.imported?.by ? ` (${o.imported.by})` : ''}. Дальше клиника живёт своей жизнью: правки в админке и кабинете сюда не попадают, а новые данные Яндекса не меняют клинику.
+            </p>
+            <dl className="parser-facts text-sm">
+                <dt>Статус</dt>
+                <dd>
+                    <StatusBadge status={clinic.status} />
+                </dd>
+                <dt>Название</dt>
+                <dd>
+                    {clinic.name}
+                    {differs(clinic.name, o.name) ? <div className="text-xs parser-warn">В Яндексе: {o.name}</div> : null}
+                </dd>
+                <dt>Город, адрес</dt>
+                <dd>
+                    {[clinic.city, clinic.address].filter(Boolean).join(', ') || '—'}
+                    {differs(clinic.address, o.address) ? <div className="text-xs parser-warn">В Яндексе: {o.address}</div> : null}
+                </dd>
+                <dt>Телефон</dt>
+                <dd>
+                    {clinic.phone ?? '—'}
+                    {clinic.phone && o.phones.length > 0 && !o.phones.includes(clinic.phone) ? <div className="text-xs parser-warn">В Яндексе: {o.phones.join(', ')}</div> : null}
+                </dd>
+                <dt>Сайт</dt>
+                <dd>{clinic.website ?? '—'}</dd>
+                <dt>Изменена</dt>
+                <dd>{clinic.updated_at ?? '—'}</dd>
+            </dl>
+            <div className="row row--wrap">
+                {CLINIC_ACTIONS.filter((a) => a.allowedFrom.includes(clinic.status)).map((a) => (
+                    <Button key={a.target} size="sm" variant={a.target === 'published' ? 'primary' : 'outline'} onClick={() => move(a)}>
+                        {a.label}
+                    </Button>
+                ))}
+            </div>
+        </Panel>
+    );
+}
+
+/** Привязка к городу справочника: для посёлков и пригородов, которых в справочнике нет. */
+function CityAssign({ o, cities }: { o: Organization; cities: Props['cities'] }) {
+    const form = useForm({ city_id: '' as number | '' });
+
+    return (
+        <form
+            className="parser-offer card"
+            onSubmit={(e) => {
+                e.preventDefault();
+                form.post(`/admin/parser/organizations/${o.id}/city`, { preserveScroll: true });
+            }}
+        >
+            <span className="text-sm">
+                <b>{o.city_known ? 'Город на сайте.' : `«${o.settlement ?? 'Без города'}» нет в справочнике городов.`}</b>{' '}
+                {o.city_known
+                    ? `Карточка относится к городу «${o.city}». Если это ошибка — выберите другой.`
+                    : 'Выберите ближайший город — карточка попадёт в его список и станет доступна для импорта. Название посёлка останется в адресе.'}
+            </span>
+            <div className="parser-offer__form">
+                <SelectField aria-label="Город" value={form.data.city_id} onChange={(e) => form.setData('city_id', e.target.value === '' ? '' : Number(e.target.value))}>
+                    <option value="">Выберите город</option>
+                    {cities.map((c) => (
+                        <option key={c.id} value={c.id}>
+                            {c.name}
+                        </option>
+                    ))}
+                </SelectField>
+                <Button type="submit" size="sm" variant={o.city_known ? 'outline' : 'primary'} loading={form.processing} disabled={form.data.city_id === ''}>
+                    Привязать
+                </Button>
+            </div>
+        </form>
+    );
 }
 
 const contactHref = (c: Contact) => {
@@ -117,7 +233,7 @@ function OfferBlock({ organizationId, offers, cityKnown }: { organizationId: num
     );
 }
 
-export default function ParsedOrganizationPage({ organization: o, contacts, network, email_tasks, statuses, contact_types, task_statuses, offers }: Props) {
+export default function ParsedOrganizationPage({ organization: o, contacts, network, email_tasks, statuses, cities, contact_types, task_statuses, offers }: Props) {
     const base = `/admin/parser/organizations/${o.id}`;
     const contactForm = useForm({ type: 'email', value: '' });
     const noteForm = useForm({ status: o.status === 'imported' ? 'reviewed' : o.status, note: o.note ?? '' });
@@ -145,7 +261,6 @@ export default function ParsedOrganizationPage({ organization: o, contacts, netw
                 text={
                     <>
                         <Badge>{statuses[o.status] ?? o.status}</Badge> {o.city ?? '—'} · id Яндекса {o.external_id}
-                        {o.synced_at ? ` · обновлено ${o.synced_at}` : ''}
                     </>
                 }
                 action={
@@ -155,16 +270,14 @@ export default function ParsedOrganizationPage({ organization: o, contacts, netw
                 }
             />
 
-            {o.clinic ? (
-                <Alert tone="success">
-                    Импортирована {o.imported?.at}
-                    {o.imported?.by ? ` (${o.imported.by})` : ''} в черновик{' '}
-                    <Link href={`/admin/clinics/${o.clinic.id}`} className="link">
-                        «{o.clinic.name}»
-                    </Link>{' '}
-                    — <StatusBadge status={o.clinic.status} />
-                </Alert>
-            ) : null}
+            <Alert tone={o.stale ? 'warning' : 'muted'}>
+                Данные из Яндекс Карт получены {o.synced_at ?? '—'}
+                {o.synced_ago ? ` (${o.synced_ago})` : ''}
+                {o.source_updated_at ? `, в самом Яндексе карточка обновлялась ${o.source_updated_at}` : ''}.
+                {o.stale ? ' Снимок устарел — перед импортом или КП сверьте телефон и адрес на Яндекс Картах или запустите парсинг города заново.' : ''}
+            </Alert>
+
+            {o.clinic ? <ClinicNow o={o} clinic={o.clinic} /> : null}
 
             {o.match && !o.clinic ? (
                 <Alert tone="warning">
@@ -178,7 +291,7 @@ export default function ParsedOrganizationPage({ organization: o, contacts, netw
 
             {offers ? <OfferBlock organizationId={o.id} offers={offers} cityKnown={o.city_known} /> : null}
 
-            {!o.city_known ? <Alert tone="warning">Города «{o.city}» нет в справочнике. Добавьте его в «Справочники → Города», иначе импорт недоступен.</Alert> : null}
+            {!o.clinic && cities.length > 0 ? <CityAssign o={o} cities={cities} /> : null}
 
             {o.importable ? (
                 <div className="row">
@@ -200,8 +313,13 @@ export default function ParsedOrganizationPage({ organization: o, contacts, netw
             ) : null}
 
             <div className="parser-show-grid">
-                <Panel title="Данные из Яндекса">
+                <Panel title={`Снимок из Яндекс Карт${o.synced_at ? ` · ${o.synced_at}` : ''}`}>
                     <dl className="parser-facts text-sm">
+                        <dt>Город</dt>
+                        <dd>
+                            {o.city ?? '—'}
+                            {o.settlement && o.settlement !== o.city ? <span className="text-muted"> (в Яндексе: {o.settlement})</span> : null}
+                        </dd>
                         <dt>Адрес</dt>
                         <dd>
                             {o.address ?? '—'}

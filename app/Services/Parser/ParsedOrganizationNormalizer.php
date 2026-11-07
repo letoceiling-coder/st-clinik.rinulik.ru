@@ -120,7 +120,9 @@ class ParsedOrganizationNormalizer
 
         $address = trim($address, ' ,;');
         if ($city !== null && $city !== '') {
-            $address = trim(preg_replace('/,?\s*'.preg_quote($city, '/').'$/iu', '', $address) ?? $address, ' ,;');
+            // Город уже хранится отдельно: «Анапа, ул. Ленина, 1» → «ул. Ленина, 1», «ул. Ленина, 1, Анапа» → «ул. Ленина, 1».
+            $quoted = preg_quote($city, '/');
+            $address = trim(preg_replace(['/^'.$quoted.'\s*,\s*/iu', '/,?\s*'.$quoted.'$/iu'], '', $address) ?? $address, ' ,;');
         }
 
         return [$address !== '' ? $address : null, $details !== '' ? $details : null];

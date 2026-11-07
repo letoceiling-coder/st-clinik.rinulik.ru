@@ -14,6 +14,7 @@ use App\Services\Audit;
 use App\Services\ModerationService;
 use App\Services\Parser\ParsedOrganizationImporter;
 use App\Services\Parser\ParsedOrganizationNormalizer;
+use App\Services\Parser\ParsedOrganizationStore;
 use App\Services\Parser\ParserOrganizationsClient;
 use App\Services\Parser\ParserTaskService;
 use App\Services\ProfileMetrics;
@@ -32,6 +33,9 @@ class ParserController extends AdminController
 {
     private const TABS = ['organizations', 'tasks', 'base'];
 
+    /** Через сколько дней снимок Яндекса считается устаревшим. */
+    private const STALE_DAYS = 60;
+
     /** @var array<string, string> */
     private const BULK_TARGETS = [
         'draft' => 'В черновиках',
@@ -46,7 +50,7 @@ class ParserController extends AdminController
         return $this->render('Admin/Parser', 'Парсер организаций', [
             'tab' => $tab,
             'configured' => ParserOrganizationsClient::fromConfig()->configured(),
-            'counts' => fn () => $this->statusCounts(),
+            'counts' => fn () => $this->statusCounts($request),
             'organizations' => fn () => $tab === 'organizations' ? $this->organizations($request) : null,
             'tasks' => fn () => $tab === 'tasks' ? $this->tasks() : null,
             'base' => fn () => $tab === 'base' ? $this->base($request) : null,
@@ -65,7 +69,7 @@ class ParserController extends AdminController
 
     public function show(ParsedOrganization $parsed): Response
     {
-        $parsed->load(['city:id,name', 'clinic:id,name,slug,status', 'matchClinic:id,name,slug,status,address,phone', 'task:id,type,created_at', 'importer:id,name', 'contacts']);
+        $parsed->load(['city:id,name', 'clinic:id,name,slug,status,address,phone,website,city_id,updated_at', 'clinic.city:id,name', 'matchClinic:id,name,slug,status,address,phone', 'task:id,type,created_at', 'importer:id,name', 'contacts']);
         $card = ParsedOrganizationNormalizer::card($parsed->raw ?? []);
 
         $network = $parsed->group_key
@@ -90,7 +94,15 @@ class ParserController extends AdminController
                 'products' => collect($card['products'] ?? [])->take(30)->map(fn ($p) => ['name' => (string) ($p['name'] ?? ''), 'price' => (string) ($p['price'] ?? '')])->values(),
                 'amenities' => array_values(array_slice((array) ($card['amenities'] ?? []), 0, 30)),
                 'photos_count' => count((array) ($card['photos'] ?? $parsed->raw['photoUrls'] ?? [])),
-                'clinic' => $parsed->clinic?->only(['id', 'name', 'slug', 'status']),
+                'clinic' => $parsed->clinic ? [
+                    ...$parsed->clinic->only(['id', 'name', 'slug', 'status', 'address', 'phone', 'website']),
+                    'city' => $parsed->clinic->city?->name,
+                    'updated_at' => $parsed->clinic->updated_at?->format('d.m.Y H:i'),
+                ] : null,
+                'settlement' => $parsed->city_name,
+                'source_updated_at' => $parsed->source_updated_at?->format('d.m.Y'),
+                'synced_ago' => $parsed->last_synced_at?->locale('ru')->diffForHumans(),
+                'stale' => $parsed->last_synced_at !== null && $parsed->last_synced_at->lt(now()->subDays(self::STALE_DAYS)),
                 'match' => $parsed->matchClinic ? [...$parsed->matchClinic->only(['id', 'name', 'slug', 'status', 'address', 'phone']), 'reason' => $parsed->match_reason] : null,
                 'task' => $parsed->task ? ['id' => $parsed->task->id, 'type' => ParserTask::TYPES[$parsed->task->type] ?? $parsed->task->type, 'at' => $parsed->task->created_at?->format('d.m.Y H:i')] : null,
                 'imported' => $parsed->imported_at ? ['at' => $parsed->imported_at->format('d.m.Y H:i'), 'by' => $parsed->importer?->name] : null,
@@ -110,6 +122,7 @@ class ParserController extends AdminController
             'email_tasks' => ParserTask::query()->where('parsed_organization_id', $parsed->id)->latest('id')->limit(5)->get()
                 ->map(fn (ParserTask $t) => ['id' => $t->id, 'status' => $t->status, 'found' => $t->found_count, 'error' => $t->error, 'at' => $t->created_at?->format('d.m.Y H:i')]),
             'statuses' => ParsedOrganization::STATUSES,
+            'cities' => fn () => $parsed->status === 'imported' ? [] : City::query()->orderBy('name')->get(['id', 'name']),
             'contact_types' => OrganizationContact::TYPES,
             'task_statuses' => ParserTask::STATUSES,
             'offers' => request()->user()?->hasPermission('offers.manage') ? [
@@ -328,6 +341,26 @@ class ParserController extends AdminController
         return back()->with('success', 'Статус: «'.ParsedOrganization::STATUSES[$data['status']].'».');
     }
 
+    /** Ручная привязка к городу справочника: посёлки и пригороды, которых нет в справочнике, относим к ближайшему городу. */
+    public function assignCity(Request $request, ParsedOrganization $parsed, ParsedOrganizationStore $store): RedirectResponse
+    {
+        $data = $request->validate(['city_id' => ['required', 'integer', 'exists:cities,id']]);
+
+        if ($parsed->status === 'imported') {
+            return back()->with('error', 'Карточка уже импортирована — город меняется в карточке клиники.');
+        }
+
+        $city = City::query()->findOrFail($data['city_id']);
+        $parsed->forceFill([
+            'city_id' => $city->id,
+            'address' => $store->addressWithSettlement($parsed->address, $parsed->city_name, $city->name),
+        ])->save();
+        $store->detectDuplicates(collect([$parsed]));
+        Audit::log('parser.city_assigned', $parsed, ['city' => $city->name]);
+
+        return back()->with('success', "Карточка привязана к городу «{$city->name}».");
+    }
+
     public function updateMany(Request $request): RedirectResponse
     {
         $data = $request->validate([
@@ -389,41 +422,79 @@ class ParserController extends AdminController
         return back()->with('success', 'Контакт удалён.');
     }
 
-    /** @return array<string, int> */
-    private function statusCounts(): array
+    /**
+     * Счётчики считаются по тем же фильтрам, что и список (город, поиск, данные, совпадения) — кроме статуса,
+     * иначе цифры на плашках не совпадают с тем, что видно на странице.
+     *
+     * @return array<string, mixed>
+     */
+    private function statusCounts(Request $request): array
     {
-        $counts = ParsedOrganization::query()->selectRaw('status, count(*) as c')->groupBy('status')->pluck('c', 'status')->map(fn ($c) => (int) $c)->all();
+        $scoped = $request->query('tab') === 'organizations';
+        $base = fn (): Builder => $scoped ? $this->scopedOrganizations($request) : ParsedOrganization::query();
+
+        $counts = $base()->selectRaw('status, count(*) as c')->groupBy('status')->pluck('c', 'status')->map(fn ($c) => (int) $c)->all();
+        $clinics = $base()->where('parsed_organizations.status', 'imported')
+            ->join('clinics', 'clinics.id', '=', 'parsed_organizations.clinic_id')
+            ->selectRaw('clinics.status as clinic_status, count(*) as c')->groupBy('clinics.status')
+            ->pluck('c', 'clinic_status')->map(fn ($c) => (int) $c)->all();
 
         return [
             ...array_fill_keys(array_keys(ParsedOrganization::STATUSES), 0),
             ...$counts,
-            'matches' => ParsedOrganization::query()->whereNotNull('match_clinic_id')->whereNotIn('status', ParsedOrganization::LOCKED_STATUSES)->count(),
+            'clinics' => $clinics,
+            'matches' => $base()->whereNotNull('match_clinic_id')->whereNotIn('status', ParsedOrganization::LOCKED_STATUSES)->count(),
+            'no_city' => $base()->whereNull('city_id')->whereNotIn('status', ParsedOrganization::LOCKED_STATUSES)->count(),
             'active_tasks' => ParserTask::query()->active()->count(),
+            'scope' => $scoped ? $this->scopeLabel($request) : null,
         ];
+    }
+
+    /** Подпись к счётчикам: по какому срезу они посчитаны. */
+    private function scopeLabel(Request $request): ?string
+    {
+        $parts = [];
+        $city = is_string($request->query('city')) ? trim($request->query('city')) : '';
+        if ($city !== '') {
+            $parts[] = ctype_digit($city) ? (string) City::query()->whereKey((int) $city)->value('name') : $city;
+        }
+        if (trim((string) $request->query('q')) !== '' || $request->query('has') || $request->query('match')) {
+            $parts[] = 'с учётом фильтров';
+        }
+
+        return $parts === [] ? null : implode(', ', array_filter($parts));
+    }
+
+    /** Все фильтры списка, кроме статуса. */
+    private function scopedOrganizations(Request $request): Builder
+    {
+        $q = trim((string) $request->query('q'));
+        $has = $request->query('has');
+
+        return ParsedOrganization::query()
+            ->when($q !== '', fn (Builder $b) => $b->where(fn (Builder $w) => $w->whereLike('parsed_organizations.name', "%{$q}%")->orWhereLike('parsed_organizations.address', "%{$q}%")->orWhere('external_id', $q)))
+            ->when(is_string($request->query('city')) ? trim($request->query('city')) : '', fn (Builder $b, string $city) => ctype_digit($city)
+                ? $b->where('parsed_organizations.city_id', (int) $city)
+                : $b->where(fn (Builder $q) => $q->where('city_name', $city)->orWhereHas('city', fn (Builder $c) => $c->where('name', $city))))
+            ->when($has === 'website', fn (Builder $b) => $b->whereNotNull('parsed_organizations.website'))
+            ->when($has === 'no_website', fn (Builder $b) => $b->whereNull('parsed_organizations.website'))
+            ->when($has === 'email', fn (Builder $b) => $b->whereHas('contacts', fn (Builder $c) => $c->where('type', 'email')))
+            ->when($has === 'messenger', fn (Builder $b) => $b->whereHas('contacts', fn (Builder $c) => $c->whereIn('type', ['telegram', 'whatsapp', 'vk', 'max'])))
+            ->when($has === 'full', fn (Builder $b) => $b->where('has_full_card', true))
+            ->when($has === 'no_city', fn (Builder $b) => $b->whereNull('parsed_organizations.city_id'))
+            ->when($request->query('match') === 'yes', fn (Builder $b) => $b->whereNotNull('match_clinic_id'))
+            ->when($request->query('match') === 'network', fn (Builder $b) => $b->whereNotNull('group_key'));
     }
 
     /** @return array<string, mixed> */
     private function organizations(Request $request): array
     {
-        $q = trim((string) $request->query('q'));
         $status = $request->query('status');
-        $has = $request->query('has');
 
-        $page = ParsedOrganization::query()
+        $page = $this->scopedOrganizations($request)
             ->with(['city:id,name', 'matchClinic:id,name'])
             ->withCount(['contacts as emails_count' => fn (Builder $c) => $c->where('type', 'email')])
-            ->when($q !== '', fn (Builder $b) => $b->where(fn (Builder $w) => $w->whereLike('name', "%{$q}%")->orWhereLike('address', "%{$q}%")->orWhere('external_id', $q)))
             ->when($status, fn (Builder $b) => $b->where('status', $status), fn (Builder $b) => $b->where('status', '!=', 'ignored'))
-            ->when(is_string($request->query('city')) ? trim($request->query('city')) : '', fn (Builder $b, string $city) => ctype_digit($city)
-                ? $b->where('city_id', (int) $city)
-                : $b->where(fn (Builder $q) => $q->where('city_name', $city)->orWhereHas('city', fn (Builder $c) => $c->where('name', $city))))
-            ->when($has === 'website', fn (Builder $b) => $b->whereNotNull('website'))
-            ->when($has === 'no_website', fn (Builder $b) => $b->whereNull('website'))
-            ->when($has === 'email', fn (Builder $b) => $b->whereHas('contacts', fn (Builder $c) => $c->where('type', 'email')))
-            ->when($has === 'messenger', fn (Builder $b) => $b->whereHas('contacts', fn (Builder $c) => $c->whereIn('type', ['telegram', 'whatsapp', 'vk', 'max'])))
-            ->when($has === 'full', fn (Builder $b) => $b->where('has_full_card', true))
-            ->when($request->query('match') === 'yes', fn (Builder $b) => $b->whereNotNull('match_clinic_id'))
-            ->when($request->query('match') === 'network', fn (Builder $b) => $b->whereNotNull('group_key'))
             ->orderByDesc('id')
             ->paginate(30)
             ->withQueryString();
@@ -463,6 +534,7 @@ class ParserController extends AdminController
             'status' => $p->status,
             'clinic_id' => $p->clinic_id,
             'has_full_card' => $p->has_full_card,
+            'synced_at' => $p->last_synced_at?->format('d.m.Y'),
         ];
     }
 

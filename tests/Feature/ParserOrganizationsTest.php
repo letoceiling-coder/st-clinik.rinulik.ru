@@ -185,6 +185,79 @@ class ParserOrganizationsTest extends TestCase
                 ->where('organizations.data.0.offer_id', null));
     }
 
+    public function test_city_prefix_is_removed_and_settlements_belong_to_their_district_city(): void
+    {
+        $anapa = City::query()->where('name', 'Анапа')->firstOrFail();
+        $town = $this->stored([...$this->parserItem('4201', 'Анапская', '+78613000001'), 'city' => 'Анапа', 'region' => 'муниципальный округ Анапа', 'address' => 'Анапа, ул. Ленина, 151']);
+        $village = $this->stored([...$this->parserItem('4202', 'Сельская', '+78613000002'), 'city' => 'село Витязево', 'region' => 'муниципальный округ Анапа', 'address' => 'село Витязево, ул. Горького, 103']);
+        $stanitsa = $this->stored([...$this->parserItem('4203', 'Станичная', '+78613000003'), 'city' => 'станица Гостагаевская', 'region' => 'муниципальный округ Анапа', 'address' => 'Советская ул., 73']);
+        $foreign = $this->stored([...$this->parserItem('4204', 'Чужая', '+78613000004'), 'city' => 'станица Раевская', 'region' => 'городской округ Новороссийск', 'address' => 'станица Раевская, Красная ул., 51']);
+
+        $this->assertSame('ул. Ленина, 151', $town->address);
+        $this->assertSame([$anapa->id, 'село Витязево, ул. Горького, 103'], [$village->city_id, $village->address]);
+        $this->assertSame([$anapa->id, 'станица Гостагаевская, Советская ул., 73'], [$stanitsa->city_id, $stanitsa->address]);
+        $this->assertSame([null, 'станица Раевская, Красная ул., 51'], [$foreign->city_id, $foreign->address]);
+    }
+
+    public function test_counters_follow_list_filters_and_admin_can_assign_city(): void
+    {
+        $anapa = City::query()->where('name', 'Анапа')->firstOrFail();
+        $this->stored($this->parserItem('4301', 'Краснодарская', '+78612000301'));
+        $this->stored([...$this->parserItem('4302', 'Анапская', '+78613000302'), 'city' => 'Анапа', 'address' => 'ул. Ленина, 1']);
+        $foreign = $this->stored([...$this->parserItem('4303', 'Станичная', '+78613000303'), 'city' => 'станица Раевская', 'region' => 'городской округ Новороссийск', 'address' => 'Красная ул., 51']);
+        $admin = $this->admin();
+
+        $this->actingAs($admin)->get('/admin/parser?tab=organizations')
+            ->assertInertia(fn ($page) => $page->where('counts.new', 3)->where('counts.no_city', 1)->where('counts.scope', null));
+        $this->actingAs($admin)->get("/admin/parser?tab=organizations&status=new&city={$anapa->id}")
+            ->assertInertia(fn ($page) => $page
+                ->where('counts.new', 1)
+                ->where('counts.no_city', 0)
+                ->where('counts.scope', 'Анапа')
+                ->where('organizations.total', 1));
+
+        $this->actingAs($admin)->post("/admin/parser/organizations/{$foreign->id}/city", ['city_id' => $anapa->id])->assertSessionHas('success');
+        $foreign->refresh();
+        $this->assertSame([$anapa->id, 'станица Раевская, Красная ул., 51'], [$foreign->city_id, $foreign->address]);
+
+        $this->stored([...$this->parserItem('4303', 'Станичная', '+78613000303'), 'city' => 'станица Раевская', 'region' => 'городской округ Новороссийск', 'address' => 'Красная ул., 51']);
+        $this->assertSame($anapa->id, $foreign->refresh()->city_id, 'повторная синхронизация не сбрасывает город, выбранный вручную');
+    }
+
+    public function test_renormalize_command_fixes_old_addresses_without_touching_sync_date(): void
+    {
+        $record = $this->stored([...$this->parserItem('4401', 'Старая', '+78612000401'), 'address' => 'Краснодар, ул. Северная, 5']);
+        $record->forceFill(['address' => 'Краснодар, ул. Северная, 5', 'last_synced_at' => now()->subDays(3)])->save();
+        $syncedAt = $record->refresh()->last_synced_at;
+
+        $this->artisan('parser:renormalize')->expectsOutput('Обновлено карточек: 1.')->assertSuccessful();
+
+        $record->refresh();
+        $this->assertSame('ул. Северная, 5', $record->address);
+        $this->assertTrue($syncedAt->equalTo($record->last_synced_at));
+    }
+
+    public function test_imported_card_page_shows_current_clinic_apart_from_yandex_snapshot(): void
+    {
+        Queue::fake();
+        $parsed = $this->stored($this->parserItem('4501', 'Снимок Яндекса', '+78612000501'));
+        $admin = $this->admin();
+        $this->actingAs($admin)->post("/admin/parser/organizations/{$parsed->id}/import", ['photos' => false]);
+        $clinic = $parsed->refresh()->clinic;
+        $clinic->update(['name' => 'Название из админки', 'phone' => '+78612999999']);
+
+        $this->actingAs($admin)->get("/admin/parser/organizations/{$parsed->id}")
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('organization.name', 'Снимок Яндекса')
+                ->where('organization.phones.0', '+78612000501')
+                ->where('organization.clinic.name', 'Название из админки')
+                ->where('organization.clinic.phone', '+78612999999')
+                ->where('organization.clinic.city', 'Краснодар')
+                ->where('organization.stale', false)
+                ->where('cities', []));
+    }
+
     public function test_resync_keeps_admin_decision(): void
     {
         $parsed = $this->stored($this->parserItem('5001', 'Скрытая', '+78612000008'));

@@ -45,6 +45,26 @@ var organizationsOf = (city, cities) => {
 	const id = cities.find((c) => c.name === city)?.id;
 	return `/admin/parser?tab=organizations&status=new${id ? `&city=${id}` : ""}`;
 };
+/** Ссылка на список с текущими фильтрами и заменой части из них. */
+var filterUrl = (filters, patch) => {
+	const params = new URLSearchParams({ tab: "organizations" });
+	Object.entries({
+		...filters,
+		...patch
+	}).forEach(([key, value]) => {
+		if (value) params.set(key, value);
+	});
+	return `/admin/parser?${params.toString()}`;
+};
+var clinicsHint = (clinics) => {
+	const parts = [
+		["published", "на сайте"],
+		["pending", "модерация"],
+		["approved", "одобрены"],
+		["draft", "черновики"]
+	].filter(([key]) => (clinics[key] ?? 0) > 0).map(([key, label]) => `${label}: ${clinics[key]}`);
+	return parts.length > 0 ? parts.join(" · ") : "клиник пока нет";
+};
 var go = (tab) => router.get("/admin/parser", { tab }, { preserveState: false });
 function AdminParser(props) {
 	const { tab, configured, counts } = props;
@@ -53,7 +73,7 @@ function AdminParser(props) {
 		children: [
 			/* @__PURE__ */ jsx(PageHead, {
 				title: "Парсер стоматологий",
-				text: "Собирает стоматологии с Яндекс Карт. Найденное не публикуется на сайте, пока вы не проверите карточку и не импортируете её в черновик."
+				text: "Собирает стоматологии с Яндекс Карт. Найденное не появляется на сайте само: выберите карточки и отправьте их в черновики, на модерацию или сразу в каталог."
 			}),
 			!configured ? /* @__PURE__ */ jsxs(Alert, {
 				tone: "warning",
@@ -69,30 +89,60 @@ function AdminParser(props) {
 				]
 			}) : null,
 			/* @__PURE__ */ jsx(Guide, {}),
-			/* @__PURE__ */ jsx(Kpis, { items: [
-				{
-					label: "Новые",
-					value: counts.new ?? 0,
-					hint: "ждут проверки"
-				},
-				{
-					label: "Проверены",
-					value: counts.reviewed ?? 0
-				},
-				{
-					label: "Импортированы",
-					value: counts.imported ?? 0,
-					hint: "черновики клиник"
-				},
-				{
-					label: "Похожи на клиники сайта",
-					value: counts.matches ?? 0
-				},
-				{
-					label: "Процессов идёт",
-					value: counts.active_tasks ?? 0
-				}
-			] }),
+			/* @__PURE__ */ jsxs("div", {
+				className: "stack",
+				children: [/* @__PURE__ */ jsx("p", {
+					className: "text-sm text-muted parser-scope",
+					children: counts.scope ? /* @__PURE__ */ jsxs(Fragment, { children: [
+						"Цифры — по срезу: ",
+						/* @__PURE__ */ jsx("b", { children: counts.scope }),
+						".",
+						" ",
+						/* @__PURE__ */ jsx(Link, {
+							href: "/admin/parser?tab=organizations",
+							className: "link",
+							children: "Показать по всей базе"
+						})
+					] }) : "Цифры — по всей базе парсера."
+				}), /* @__PURE__ */ jsx(Kpis, { items: [
+					{
+						label: "Новые",
+						value: counts.new,
+						hint: "ждут проверки",
+						href: filterUrl(props.filters, { status: "new" })
+					},
+					{
+						label: "Проверены",
+						value: counts.reviewed,
+						hint: "готовы к импорту",
+						href: filterUrl(props.filters, { status: "reviewed" })
+					},
+					{
+						label: "Импортированы",
+						value: counts.imported,
+						hint: clinicsHint(counts.clinics),
+						href: filterUrl(props.filters, { status: "imported" })
+					},
+					{
+						label: "Похожи на клиники сайта",
+						value: counts.matches,
+						hint: "проверьте на дубли",
+						href: filterUrl(props.filters, {
+							match: "yes",
+							status: ""
+						})
+					},
+					{
+						label: "Без города",
+						value: counts.no_city,
+						hint: "нет в справочнике",
+						href: filterUrl(props.filters, {
+							has: "no_city",
+							status: ""
+						})
+					}
+				] })]
+			}),
 			/* @__PURE__ */ jsx(Tabs, {
 				label: "Разделы парсера",
 				value: tab,
@@ -394,6 +444,10 @@ function OrganizationsTab({ organizations, cities, statuses, filters, offer_temp
 						/* @__PURE__ */ jsx("option", {
 							value: "full",
 							children: "Полная карточка"
+						}),
+						/* @__PURE__ */ jsx("option", {
+							value: "no_city",
+							children: "Город не из справочника"
 						})
 					]
 				}),
@@ -514,12 +568,27 @@ function OrganizationsTab({ organizations, cities, statuses, filters, offer_temp
 											"сеть: ",
 											o.network_size,
 											" филиала"
-										] }) : null
+										] }) : null,
+										o.synced_at ? /* @__PURE__ */ jsxs("span", {
+											title: "Когда данные получены из Яндекс Карт",
+											children: ["данные от ", o.synced_at]
+										}) : null
 									]
 								}),
-								!o.city_known ? /* @__PURE__ */ jsx("p", {
+								!o.city_known ? /* @__PURE__ */ jsxs("p", {
 									className: "text-xs parser-warn",
-									children: "Города нет в справочнике — сначала добавьте его в «Города», иначе импорт недоступен."
+									children: [
+										"«",
+										o.city ?? "без города",
+										"» нет в справочнике городов —",
+										" ",
+										/* @__PURE__ */ jsx(Link, {
+											href: `/admin/parser/organizations/${o.id}`,
+											className: "link",
+											children: "привяжите карточку к городу"
+										}),
+										", иначе импорт недоступен."
+									]
 								}) : null,
 								o.match ? /* @__PURE__ */ jsxs("p", {
 									className: "text-xs parser-warn",
@@ -780,4 +849,4 @@ function BaseTab({ base, configured }) {
 //#endregion
 export { AdminParser as default };
 
-//# sourceMappingURL=Parser-BSTLej-S.js.map
+//# sourceMappingURL=Parser-BVheAkSW.js.map

@@ -26,6 +26,7 @@ interface OrgRow {
     status: string;
     clinic_id: number | null;
     has_full_card: boolean;
+    synced_at: string | null;
     emails_count: number;
     match: { id: number; name: string; reason: string | null } | null;
     network_size: number;
@@ -79,10 +80,25 @@ interface Base {
     cities: BaseCity[];
 }
 
+interface Counts {
+    new: number;
+    reviewed: number;
+    imported: number;
+    duplicate: number;
+    ignored: number;
+    matches: number;
+    no_city: number;
+    active_tasks: number;
+    /** Статусы клиник, созданных из карточек. */
+    clinics: Record<string, number>;
+    /** По какому срезу посчитано («Анапа», «с учётом фильтров»); null — по всей базе. */
+    scope: string | null;
+}
+
 interface Props {
     tab: Tab;
     configured: boolean;
-    counts: Record<string, number>;
+    counts: Counts;
     organizations: Paginated<OrgRow> | null;
     tasks: Paginated<TaskRow> | null;
     base: Base | null;
@@ -106,6 +122,29 @@ const organizationsOf = (city: string | null, cities: Props['cities']): string =
     return `/admin/parser?tab=organizations&status=new${id ? `&city=${id}` : ''}`;
 };
 
+/** Ссылка на список с текущими фильтрами и заменой части из них. */
+const filterUrl = (filters: Props['filters'], patch: Partial<Record<keyof Props['filters'], string>>): string => {
+    const params = new URLSearchParams({ tab: 'organizations' });
+    Object.entries({ ...filters, ...patch }).forEach(([key, value]) => {
+        if (value) params.set(key, value);
+    });
+
+    return `/admin/parser?${params.toString()}`;
+};
+
+const clinicsHint = (clinics: Record<string, number>): string => {
+    const parts = [
+        ['published', 'на сайте'],
+        ['pending', 'модерация'],
+        ['approved', 'одобрены'],
+        ['draft', 'черновики'],
+    ]
+        .filter(([key]) => (clinics[key] ?? 0) > 0)
+        .map(([key, label]) => `${label}: ${clinics[key]}`);
+
+    return parts.length > 0 ? parts.join(' · ') : 'клиник пока нет';
+};
+
 const go = (tab: Tab) => router.get('/admin/parser', { tab }, { preserveState: false });
 
 export default function AdminParser(props: Props) {
@@ -113,7 +152,7 @@ export default function AdminParser(props: Props) {
 
     return (
         <div className="stack-lg">
-            <PageHead title="Парсер стоматологий" text="Собирает стоматологии с Яндекс Карт. Найденное не публикуется на сайте, пока вы не проверите карточку и не импортируете её в черновик." />
+            <PageHead title="Парсер стоматологий" text="Собирает стоматологии с Яндекс Карт. Найденное не появляется на сайте само: выберите карточки и отправьте их в черновики, на модерацию или сразу в каталог." />
 
             {!configured ? (
                 <Alert tone="warning">
@@ -127,15 +166,29 @@ export default function AdminParser(props: Props) {
 
             <Guide />
 
-            <Kpis
-                items={[
-                    { label: 'Новые', value: counts.new ?? 0, hint: 'ждут проверки' },
-                    { label: 'Проверены', value: counts.reviewed ?? 0 },
-                    { label: 'Импортированы', value: counts.imported ?? 0, hint: 'черновики клиник' },
-                    { label: 'Похожи на клиники сайта', value: counts.matches ?? 0 },
-                    { label: 'Процессов идёт', value: counts.active_tasks ?? 0 },
-                ]}
-            />
+            <div className="stack">
+                <p className="text-sm text-muted parser-scope">
+                    {counts.scope ? (
+                        <>
+                            Цифры — по срезу: <b>{counts.scope}</b>.{' '}
+                            <Link href="/admin/parser?tab=organizations" className="link">
+                                Показать по всей базе
+                            </Link>
+                        </>
+                    ) : (
+                        'Цифры — по всей базе парсера.'
+                    )}
+                </p>
+                <Kpis
+                    items={[
+                        { label: 'Новые', value: counts.new, hint: 'ждут проверки', href: filterUrl(props.filters, { status: 'new' }) },
+                        { label: 'Проверены', value: counts.reviewed, hint: 'готовы к импорту', href: filterUrl(props.filters, { status: 'reviewed' }) },
+                        { label: 'Импортированы', value: counts.imported, hint: clinicsHint(counts.clinics), href: filterUrl(props.filters, { status: 'imported' }) },
+                        { label: 'Похожи на клиники сайта', value: counts.matches, hint: 'проверьте на дубли', href: filterUrl(props.filters, { match: 'yes', status: '' }) },
+                        { label: 'Без города', value: counts.no_city, hint: 'нет в справочнике', href: filterUrl(props.filters, { has: 'no_city', status: '' }) },
+                    ]}
+                />
+            </div>
 
             <Tabs<Tab>
                 label="Разделы парсера"
@@ -352,6 +405,7 @@ function OrganizationsTab({ organizations, cities, statuses, filters, offer_temp
                     <option value="email">Найден email</option>
                     <option value="messenger">Есть мессенджер или VK</option>
                     <option value="full">Полная карточка</option>
+                    <option value="no_city">Город не из справочника</option>
                 </SelectField>
                 <SelectField name="match" label="Совпадения" defaultValue={filters.match ?? ''}>
                     <option value="">Все</option>
@@ -422,8 +476,17 @@ function OrganizationsTab({ organizations, cities, statuses, filters, offer_temp
                                         ★ {o.rating ? o.rating.toFixed(1) : '—'} · {o.reviews_count} отз.
                                     </span>
                                     {o.network_size > 1 ? <span>сеть: {o.network_size} филиала</span> : null}
+                                    {o.synced_at ? <span title="Когда данные получены из Яндекс Карт">данные от {o.synced_at}</span> : null}
                                 </div>
-                                {!o.city_known ? <p className="text-xs parser-warn">Города нет в справочнике — сначала добавьте его в «Города», иначе импорт недоступен.</p> : null}
+                                {!o.city_known ? (
+                                    <p className="text-xs parser-warn">
+                                        «{o.city ?? 'без города'}» нет в справочнике городов —{' '}
+                                        <Link href={`/admin/parser/organizations/${o.id}`} className="link">
+                                            привяжите карточку к городу
+                                        </Link>
+                                        , иначе импорт недоступен.
+                                    </p>
+                                ) : null}
                                 {o.match ? (
                                     <p className="text-xs parser-warn">
                                         Похожа на{' '}

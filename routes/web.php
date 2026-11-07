@@ -476,6 +476,7 @@ Route::middleware(['auth', 'perm:admin.dashboard'])->prefix('admin')->name('admi
         Route::get('/organizations/{parsed}', [Admin\ParserController::class, 'show'])->name('organizations.show')->whereNumber('parsed');
         Route::post('/organizations/{parsed}/import', [Admin\ParserController::class, 'import'])->name('organizations.import')->whereNumber('parsed');
         Route::post('/organizations/{parsed}/status', [Admin\ParserController::class, 'updateStatus'])->name('organizations.status')->whereNumber('parsed');
+        Route::post('/organizations/{parsed}/city', [Admin\ParserController::class, 'assignCity'])->name('organizations.city')->whereNumber('parsed');
         Route::post('/organizations/{parsed}/emails', [Admin\ParserController::class, 'findEmails'])->middleware('throttle:20,1')->name('organizations.emails')->whereNumber('parsed');
         Route::post('/organizations/{parsed}/contacts', [Admin\ParserController::class, 'storeContact'])->name('organizations.contacts.store')->whereNumber('parsed');
         Route::put('/contacts/{contact}', [Admin\ParserController::class, 'updateContact'])->name('contacts.update')->whereNumber('contact');

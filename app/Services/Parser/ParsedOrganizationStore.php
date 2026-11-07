@@ -70,6 +70,31 @@ class ParsedOrganizationStore
     }
 
     /**
+     * Заново разбирает адрес и город из сохранённой карточки (после исправлений разбора).
+     * Дату синхронизации не трогает: данные Яндекса не обновлялись. Возвращает true, если что-то изменилось.
+     */
+    public function renormalize(ParsedOrganization $record): bool
+    {
+        $data = $this->normalizer->normalize($record->raw ?? []);
+        if ($data['external_id'] === '') {
+            return false;
+        }
+        $columns = $this->columns($data);
+
+        $record->fill([
+            'address' => $columns['address'],
+            'address_details' => $columns['address_details'] ?? $record->address_details,
+            'city_id' => $record->city_id ?? $columns['city_id'],
+        ]);
+        if (! $record->isDirty()) {
+            return false;
+        }
+        $record->save();
+
+        return true;
+    }
+
+    /**
      * Ищет совпадения с клиниками на сайте: id Яндекса, телефон, домен сайта, координаты + похожее название.
      *
      * @param  Collection<int, ParsedOrganization>  $records
@@ -177,6 +202,9 @@ class ParsedOrganizationStore
         if ($record->has_full_card && ! $data['has_full_card']) {
             unset($columns['has_full_card'], $columns['hours'], $columns['address_details']);
         }
+        if ($record->city_id !== null) {
+            unset($columns['city_id']); // город мог привязать администратор вручную
+        }
 
         $record->fill([
             ...$columns,
@@ -195,14 +223,21 @@ class ParsedOrganizationStore
      */
     private function columns(array $data): array
     {
+        $directCityId = $this->cityId($data['city_name']);
+        $cityId = $directCityId ?? $this->cityIdByRegion($data['region']);
+        // Посёлок не из справочника: его название остаётся в адресе, иначе «ул. Горького, 103» потеряет «село Витязево».
+        $address = $directCityId === null
+            ? $this->addressWithSettlement($data['address'], $data['city_name'], null)
+            : $data['address'];
+
         return [
             'external_id' => $data['external_id'],
             'parser_id' => $data['parser_id'],
             'name' => mb_substr($data['name'], 0, 255),
             'city_name' => $data['city_name'],
             'region' => $data['region'],
-            'city_id' => $this->cityId($data['city_name']),
-            'address' => $data['address'] !== null ? mb_substr($data['address'], 0, 500) : null,
+            'city_id' => $cityId,
+            'address' => $address !== null ? mb_substr($address, 0, 500) : null,
             'address_details' => $data['address_details'] !== null ? mb_substr($data['address_details'], 0, 255) : null,
             'lat' => $data['lat'],
             'lng' => $data['lng'],
@@ -318,15 +353,50 @@ class ParsedOrganizationStore
         return $e164 !== null ? $e164 : '';
     }
 
+    /**
+     * Адрес с названием посёлка в начале — когда карточка относится к городу справочника, но сам посёлок в справочнике отсутствует.
+     */
+    public function addressWithSettlement(?string $address, ?string $settlement, ?string $cityName): ?string
+    {
+        $settlement = $settlement !== null ? trim($settlement) : '';
+        if ($settlement === '' || ($cityName !== null && Text::normalize($settlement) === Text::normalize($cityName))) {
+            return $address;
+        }
+        if ($address === null || $address === '') {
+            return $settlement;
+        }
+        if (str_starts_with(Text::normalize($address), Text::normalize($settlement))) {
+            return $address;
+        }
+
+        return "{$settlement}, {$address}";
+    }
+
     private function cityId(?string $name): ?int
     {
         if ($name === null) {
             return null;
         }
-        $this->cityIds ??= City::query()->get(['id', 'name'])
+
+        return $this->cityIds()[Text::normalize($name)] ?? null;
+    }
+
+    /** «муниципальный округ Анапа» → Анапа: сёла и станицы округа относятся к его городу. */
+    private function cityIdByRegion(?string $region): ?int
+    {
+        if ($region === null) {
+            return null;
+        }
+        $name = preg_replace('/^(муниципальный округ|городской округ|муниципальный район|городское поселение|город)\s+/iu', '', trim($region)) ?? $region;
+
+        return $this->cityIds()[Text::normalize($name)] ?? null;
+    }
+
+    /** @return array<string, int> */
+    private function cityIds(): array
+    {
+        return $this->cityIds ??= City::query()->get(['id', 'name'])
             ->mapWithKeys(fn (City $city) => [Text::normalize($city->name) => $city->id])
             ->all();
-
-        return $this->cityIds[Text::normalize($name)] ?? null;
     }
 }

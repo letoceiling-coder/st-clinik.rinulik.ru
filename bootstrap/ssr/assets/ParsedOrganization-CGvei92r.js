@@ -4,6 +4,153 @@ import { a as Panel, r as PageHead, s as StatusBadge } from "./Dash-C_HMp027.js"
 import { Link, router, useForm } from "@inertiajs/react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 //#region resources/js/pages/Admin/ParsedOrganization.tsx
+var CLINIC_ACTIONS = [
+	{
+		target: "published",
+		label: "Опубликовать",
+		title: "Опубликовать в каталоге?",
+		message: "Клиника сразу станет видна посетителям сайта, без модерации.",
+		allowedFrom: [
+			"draft",
+			"pending",
+			"approved",
+			"hidden",
+			"rejected"
+		]
+	},
+	{
+		target: "pending",
+		label: "На модерацию",
+		title: "Отправить на модерацию?",
+		message: "Клиника попадёт в очередь «Модерация».",
+		allowedFrom: ["draft", "rejected"]
+	},
+	{
+		target: "draft",
+		label: "В черновики",
+		title: "Вернуть в черновики?",
+		message: "Клиника пропадёт из каталога, пока её снова не опубликуют.",
+		allowedFrom: [
+			"pending",
+			"approved",
+			"published",
+			"hidden",
+			"rejected"
+		]
+	}
+];
+/** Клиника на сайте сейчас — отдельно от снимка Яндекса: после импорта их данные живут независимо. */
+function ClinicNow({ o, clinic }) {
+	const move = async (action) => {
+		if (!await confirmDialog({
+			title: action.title,
+			message: action.message,
+			confirmLabel: action.label,
+			danger: action.target === "draft"
+		})) return;
+		router.post("/admin/parser/organizations/import", {
+			ids: [o.id],
+			target: action.target,
+			photos: false
+		}, { preserveScroll: true });
+	};
+	const differs = (a, b) => (a ?? "").trim() !== "" && (b ?? "").trim() !== "" && a.trim() !== b.trim();
+	return /* @__PURE__ */ jsxs(Panel, {
+		title: "Клиника на сайте сейчас",
+		action: /* @__PURE__ */ jsx(LinkButton, {
+			href: `/admin/clinics/${clinic.id}`,
+			size: "sm",
+			variant: "outline",
+			children: "Открыть клинику"
+		}),
+		children: [
+			/* @__PURE__ */ jsxs("p", {
+				className: "text-sm text-muted",
+				children: [
+					"Создана из этой карточки ",
+					o.imported?.at,
+					o.imported?.by ? ` (${o.imported.by})` : "",
+					". Дальше клиника живёт своей жизнью: правки в админке и кабинете сюда не попадают, а новые данные Яндекса не меняют клинику."
+				]
+			}),
+			/* @__PURE__ */ jsxs("dl", {
+				className: "parser-facts text-sm",
+				children: [
+					/* @__PURE__ */ jsx("dt", { children: "Статус" }),
+					/* @__PURE__ */ jsx("dd", { children: /* @__PURE__ */ jsx(StatusBadge, { status: clinic.status }) }),
+					/* @__PURE__ */ jsx("dt", { children: "Название" }),
+					/* @__PURE__ */ jsxs("dd", { children: [clinic.name, differs(clinic.name, o.name) ? /* @__PURE__ */ jsxs("div", {
+						className: "text-xs parser-warn",
+						children: ["В Яндексе: ", o.name]
+					}) : null] }),
+					/* @__PURE__ */ jsx("dt", { children: "Город, адрес" }),
+					/* @__PURE__ */ jsxs("dd", { children: [[clinic.city, clinic.address].filter(Boolean).join(", ") || "—", differs(clinic.address, o.address) ? /* @__PURE__ */ jsxs("div", {
+						className: "text-xs parser-warn",
+						children: ["В Яндексе: ", o.address]
+					}) : null] }),
+					/* @__PURE__ */ jsx("dt", { children: "Телефон" }),
+					/* @__PURE__ */ jsxs("dd", { children: [clinic.phone ?? "—", clinic.phone && o.phones.length > 0 && !o.phones.includes(clinic.phone) ? /* @__PURE__ */ jsxs("div", {
+						className: "text-xs parser-warn",
+						children: ["В Яндексе: ", o.phones.join(", ")]
+					}) : null] }),
+					/* @__PURE__ */ jsx("dt", { children: "Сайт" }),
+					/* @__PURE__ */ jsx("dd", { children: clinic.website ?? "—" }),
+					/* @__PURE__ */ jsx("dt", { children: "Изменена" }),
+					/* @__PURE__ */ jsx("dd", { children: clinic.updated_at ?? "—" })
+				]
+			}),
+			/* @__PURE__ */ jsx("div", {
+				className: "row row--wrap",
+				children: CLINIC_ACTIONS.filter((a) => a.allowedFrom.includes(clinic.status)).map((a) => /* @__PURE__ */ jsx(Button, {
+					size: "sm",
+					variant: a.target === "published" ? "primary" : "outline",
+					onClick: () => move(a),
+					children: a.label
+				}, a.target))
+			})
+		]
+	});
+}
+/** Привязка к городу справочника: для посёлков и пригородов, которых в справочнике нет. */
+function CityAssign({ o, cities }) {
+	const form = useForm({ city_id: "" });
+	return /* @__PURE__ */ jsxs("form", {
+		className: "parser-offer card",
+		onSubmit: (e) => {
+			e.preventDefault();
+			form.post(`/admin/parser/organizations/${o.id}/city`, { preserveScroll: true });
+		},
+		children: [/* @__PURE__ */ jsxs("span", {
+			className: "text-sm",
+			children: [
+				/* @__PURE__ */ jsx("b", { children: o.city_known ? "Город на сайте." : `«${o.settlement ?? "Без города"}» нет в справочнике городов.` }),
+				" ",
+				o.city_known ? `Карточка относится к городу «${o.city}». Если это ошибка — выберите другой.` : "Выберите ближайший город — карточка попадёт в его список и станет доступна для импорта. Название посёлка останется в адресе."
+			]
+		}), /* @__PURE__ */ jsxs("div", {
+			className: "parser-offer__form",
+			children: [/* @__PURE__ */ jsxs(SelectField, {
+				"aria-label": "Город",
+				value: form.data.city_id,
+				onChange: (e) => form.setData("city_id", e.target.value === "" ? "" : Number(e.target.value)),
+				children: [/* @__PURE__ */ jsx("option", {
+					value: "",
+					children: "Выберите город"
+				}), cities.map((c) => /* @__PURE__ */ jsx("option", {
+					value: c.id,
+					children: c.name
+				}, c.id))]
+			}), /* @__PURE__ */ jsx(Button, {
+				type: "submit",
+				size: "sm",
+				variant: o.city_known ? "outline" : "primary",
+				loading: form.processing,
+				disabled: form.data.city_id === "",
+				children: "Привязать"
+			})]
+		})]
+	});
+}
 var contactHref = (c) => {
 	if (c.type === "phone") return `tel:${c.value}`;
 	if (c.type === "email") return `mailto:${c.value}`;
@@ -62,7 +209,7 @@ function OfferBlock({ organizationId, offers, cityKnown }) {
 		})]
 	});
 }
-function ParsedOrganizationPage({ organization: o, contacts, network, email_tasks, statuses, contact_types, task_statuses, offers }) {
+function ParsedOrganizationPage({ organization: o, contacts, network, email_tasks, statuses, cities, contact_types, task_statuses, offers }) {
 	const base = `/admin/parser/organizations/${o.id}`;
 	const contactForm = useForm({
 		type: "email",
@@ -98,8 +245,7 @@ function ParsedOrganizationPage({ organization: o, contacts, network, email_task
 					" ",
 					o.city ?? "—",
 					" · id Яндекса ",
-					o.external_id,
-					o.synced_at ? ` · обновлено ${o.synced_at}` : ""
+					o.external_id
 				] }),
 				action: /* @__PURE__ */ jsx(LinkButton, {
 					href: "/admin/parser?tab=organizations",
@@ -108,27 +254,20 @@ function ParsedOrganizationPage({ organization: o, contacts, network, email_task
 					children: "К списку"
 				})
 			}),
-			o.clinic ? /* @__PURE__ */ jsxs(Alert, {
-				tone: "success",
+			/* @__PURE__ */ jsxs(Alert, {
+				tone: o.stale ? "warning" : "muted",
 				children: [
-					"Импортирована ",
-					o.imported?.at,
-					o.imported?.by ? ` (${o.imported.by})` : "",
-					" в черновик",
-					" ",
-					/* @__PURE__ */ jsxs(Link, {
-						href: `/admin/clinics/${o.clinic.id}`,
-						className: "link",
-						children: [
-							"«",
-							o.clinic.name,
-							"»"
-						]
-					}),
-					" ",
-					"— ",
-					/* @__PURE__ */ jsx(StatusBadge, { status: o.clinic.status })
+					"Данные из Яндекс Карт получены ",
+					o.synced_at ?? "—",
+					o.synced_ago ? ` (${o.synced_ago})` : "",
+					o.source_updated_at ? `, в самом Яндексе карточка обновлялась ${o.source_updated_at}` : "",
+					".",
+					o.stale ? " Снимок устарел — перед импортом или КП сверьте телефон и адрес на Яндекс Картах или запустите парсинг города заново." : ""
 				]
+			}),
+			o.clinic ? /* @__PURE__ */ jsx(ClinicNow, {
+				o,
+				clinic: o.clinic
 			}) : null,
 			o.match && !o.clinic ? /* @__PURE__ */ jsxs(Alert, {
 				tone: "warning",
@@ -159,13 +298,9 @@ function ParsedOrganizationPage({ organization: o, contacts, network, email_task
 				offers,
 				cityKnown: o.city_known
 			}) : null,
-			!o.city_known ? /* @__PURE__ */ jsxs(Alert, {
-				tone: "warning",
-				children: [
-					"Города «",
-					o.city,
-					"» нет в справочнике. Добавьте его в «Справочники → Города», иначе импорт недоступен."
-				]
+			!o.clinic && cities.length > 0 ? /* @__PURE__ */ jsx(CityAssign, {
+				o,
+				cities
 			}) : null,
 			o.importable ? /* @__PURE__ */ jsxs("div", {
 				className: "row",
@@ -211,10 +346,19 @@ function ParsedOrganizationPage({ organization: o, contacts, network, email_task
 			/* @__PURE__ */ jsxs("div", {
 				className: "parser-show-grid",
 				children: [/* @__PURE__ */ jsx(Panel, {
-					title: "Данные из Яндекса",
+					title: `Снимок из Яндекс Карт${o.synced_at ? ` · ${o.synced_at}` : ""}`,
 					children: /* @__PURE__ */ jsxs("dl", {
 						className: "parser-facts text-sm",
 						children: [
+							/* @__PURE__ */ jsx("dt", { children: "Город" }),
+							/* @__PURE__ */ jsxs("dd", { children: [o.city ?? "—", o.settlement && o.settlement !== o.city ? /* @__PURE__ */ jsxs("span", {
+								className: "text-muted",
+								children: [
+									" (в Яндексе: ",
+									o.settlement,
+									")"
+								]
+							}) : null] }),
 							/* @__PURE__ */ jsx("dt", { children: "Адрес" }),
 							/* @__PURE__ */ jsxs("dd", { children: [o.address ?? "—", o.address_details ? /* @__PURE__ */ jsx("div", {
 								className: "text-muted",
@@ -469,4 +613,4 @@ function ParsedOrganizationPage({ organization: o, contacts, network, email_task
 //#endregion
 export { ParsedOrganizationPage as default };
 
-//# sourceMappingURL=ParsedOrganization-DHQn3lgH.js.map
+//# sourceMappingURL=ParsedOrganization-CGvei92r.js.map
