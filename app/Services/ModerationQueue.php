@@ -30,7 +30,7 @@ class ModerationQueue
 
     /** Что проверить модератору по каждому типу. */
     public const HINTS = [
-        'clinic' => 'Проверьте название, адрес и контакты: они должны совпадать с данными клиники. После одобрения владелец опубликует карточку из кабинета; клинику без владельца опубликуйте сами в «Карточке в админке».',
+        'clinic' => 'Откройте полную проверку: там все данные, фото, график, услуги, врачи и документы. Сверьте название, адрес и контакты. Клинику с владельцем он опубликует сам из кабинета; клинику без владельца можно сразу одобрить и опубликовать.',
         'doctor' => 'Проверьте ФИО, должность и описание: без рекламных обещаний и чужих контактов. После одобрения врач появится на странице клиники.',
         'document' => 'Откройте файл и сверьте с ним тип, номер и даты. Номер лицензии можно проверить в реестре Росздравнадзора. На сайте публикуются только номер и отметка о проверке, сам файл пациенты не видят.',
         'photo' => 'Фото должно относиться к клинике: без чужих логотипов, водяных знаков, людей без согласия и медицинских снимков пациентов. После одобрения фото появится в галерее клиники.',
@@ -62,24 +62,46 @@ class ModerationQueue
         }, $items);
     }
 
+    /**
+     * Материалы на проверке, относящиеся к одной клинике (врачи, документы, фото, отзывы) — для страницы полной проверки.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function forClinic(int $clinicId): array
+    {
+        return array_values(array_filter(
+            $this->items(),
+            fn (array $item) => $item['type'] !== 'clinic' && $item['clinic_id'] === $clinicId,
+        ));
+    }
+
     /** @return list<array<string, mixed>> */
     private function clinics(): array
     {
-        return Clinic::where('status', 'pending')->with(['city:id,name', 'district:id,name', 'organization:id,name'])
+        return Clinic::where('status', 'pending')
+            ->with(['city:id,name', 'district:id,name', 'organization:id,name,owner_id', 'photos' => fn ($q) => $q->orderBy('sort')->orderBy('id')])
+            ->withCount(['clinicServices', 'doctors', 'documents'])
             ->latest('updated_at')->limit(self::LIMIT)->get()
             ->map(fn (Clinic $c) => $this->item('clinic', $c->id, $c->name, $c, $c->updated_at, [
                 'facts' => $this->facts([
                     'Организация' => $c->organization?->name,
                     'Город' => $c->city?->name,
-                    'Район' => $c->district?->name,
-                    'Адрес' => $c->address,
+                    'Адрес' => trim(implode(', ', array_filter([$c->district?->name, $c->address]))) ?: null,
                     'Телефон' => $c->phone,
-                    'E-mail' => $c->email,
                     'Сайт' => $c->website,
-                    'Лицензия' => $c->license_number,
+                    'Профиль' => $c->completeness.'% · фото '.$c->photos->count().' · услуг '.$c->clinic_services_count.' · врачей '.$c->doctors_count.' · документов '.$c->documents_count,
+                    'Владелец' => $c->organization?->owner_id ? 'есть, опубликует из кабинета' : 'нет — из парсера, публикует администратор',
                 ]),
-                'body' => $c->description,
+                'body' => $c->description ? mb_strimwidth($c->description, 0, 400, '…') : null,
                 'body_label' => 'Описание',
+                'gallery' => $c->photos->take(8)->map(fn (ClinicPhoto $p) => [
+                    'id' => $p->id,
+                    'url' => $p->path ? Storage::disk('public')->url($p->path) : null,
+                    'status' => $p->status,
+                ])->filter(fn (array $p) => $p['url'] !== null)->values()->all(),
+                'gallery_total' => $c->photos->count(),
+                'review_url' => '/admin/moderation/clinic/'.$c->id,
+                'can_publish' => $c->organization?->owner_id === null,
                 'links' => [
                     ['label' => 'Карточка в админке', 'url' => '/admin/clinics/'.$c->id],
                     ['label' => 'Как увидят пациенты', 'url' => '/clinics/'.$c->slug, 'external' => true],
@@ -204,6 +226,11 @@ class ModerationQueue
             'id' => $id,
             'title' => $title,
             'clinic' => $clinic && $type !== 'clinic' ? ['id' => $clinic->id, 'name' => $clinic->name] : null,
+            'clinic_id' => $clinic?->id,
+            'gallery' => [],
+            'gallery_total' => 0,
+            'review_url' => $clinic && $type !== 'clinic' ? '/admin/moderation/clinic/'.$clinic->id : null,
+            'can_publish' => false,
             'at' => $at?->format('d.m.Y H:i'),
             'sort' => $at?->getTimestamp() ?? 0,
             'hint' => self::HINTS[$type],

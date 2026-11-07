@@ -109,6 +109,52 @@ class ClinicModerationFlowTest extends TestCase
         $this->assertSame('draft', $clinic->fresh()->status);
     }
 
+    public function test_moderator_sees_full_clinic_dossier_and_can_approve_with_photos_and_publish(): void
+    {
+        $org = Organization::create(['owner_id' => null, 'name' => 'Из парсера']);
+        $city = City::query()->where('name', 'Краснодар')->firstOrFail();
+        $clinic = Clinic::create([
+            'organization_id' => $org->id, 'city_id' => $city->id, 'name' => 'Клиника без владельца', 'slug' => 'no-owner-clinic',
+            'address' => 'ул. Красная, 10', 'phone' => '+78612000010', 'status' => 'pending', 'art_seed' => 1,
+            'description' => 'Описание для модератора', 'schedule' => ['mon' => ['open' => '09:00', 'close' => '20:00']], 'has_ct' => true,
+        ]);
+        $next = Clinic::create([
+            'organization_id' => $org->id, 'city_id' => $city->id, 'name' => 'Следующая', 'slug' => 'next-clinic',
+            'address' => 'ул. Северная, 1', 'phone' => '+78612000011', 'status' => 'pending', 'art_seed' => 2,
+        ]);
+        $next->forceFill(['updated_at' => now()->subHour()])->save();
+        $approvedPhoto = ClinicPhoto::query()->create(['clinic_id' => $clinic->id, 'path' => 'clinic-photos/1/a.jpg', 'kind' => 'exterior', 'status' => 'approved']);
+        $pendingPhoto = ClinicPhoto::query()->create(['clinic_id' => $clinic->id, 'path' => 'clinic-photos/1/b.jpg', 'kind' => 'office', 'status' => 'pending']);
+        ClinicDocument::query()->create(['clinic_id' => $clinic->id, 'type' => 'license', 'title' => 'Лицензия', 'path' => 'docs/l.pdf', 'status' => 'pending']);
+        $admin = User::factory()->create(['role' => 'superadmin', 'status' => 'active']);
+
+        $this->actingAs($admin)->get('/admin/moderation?type=clinic')->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('queue.0.id', $clinic->id)
+                ->where('queue.0.gallery_total', 2)
+                ->where('queue.0.can_publish', true)
+                ->where('queue.0.review_url', "/admin/moderation/clinic/{$clinic->id}"));
+
+        $this->actingAs($admin)->get("/admin/moderation/clinic/{$clinic->id}")->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Admin/ModerationClinic')
+                ->where('clinic.has_owner', false)
+                ->where('clinic.photos.0.id', $approvedPhoto->id)
+                ->where('clinic.photos.1.status', 'pending')
+                ->where('clinic.schedule.0.hours', '09:00–20:00')
+                ->where('clinic.features', ['КТ в клинике'])
+                ->where('clinic.pending_counts.photo', 1)
+                ->where('related.0.type', 'document')
+                ->where('queue.position', 1)
+                ->where('queue.next_id', $next->id));
+
+        $this->actingAs($admin)->post("/admin/moderation/clinic/{$clinic->id}", ['decision' => 'approve', 'publish' => true, 'approve_photos' => true, 'next' => true])
+            ->assertRedirect(route('admin.moderation.clinic', $next));
+
+        $this->assertSame('published', $clinic->fresh()->status);
+        $this->assertSame('approved', $pendingPhoto->fresh()->status);
+    }
+
     public function test_photos_and_license_waiting_for_review_count_toward_moderation_threshold(): void
     {
         $owner = User::factory()->create(['role' => 'clinic_owner', 'status' => 'active']);

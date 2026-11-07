@@ -618,6 +618,12 @@
     "/build/assets/geist-latin-600-normal-CSETrqM2.woff2",
     "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
+  "resources/js/components/moderation/ModerationCard.tsx": [
+    "/build/assets/ModerationCard-CZ4TOH-W.js"
+  ],
+  "resources/js/components/moderation/PhotoViewer.tsx": [
+    "/build/assets/ModerationCard-CZ4TOH-W.js"
+  ],
   "resources/js/components/offers/OfferSendPanels.tsx": [
     "/build/assets/Offer-D7cAEtNh.js"
   ],
@@ -1510,7 +1516,10 @@
     "/build/assets/MaxPublish-pkmDI4GD.js"
   ],
   "resources/js/pages/Admin/Moderation.tsx": [
-    "/build/assets/Moderation-B6Y5xUJh.js"
+    "/build/assets/Moderation-BrrZzYeo.js"
+  ],
+  "resources/js/pages/Admin/ModerationClinic.tsx": [
+    "/build/assets/ModerationClinic-BbXNdKsD.js"
   ],
   "resources/js/pages/Admin/Offer.tsx": [
     "/build/assets/Offer-D7cAEtNh.js"

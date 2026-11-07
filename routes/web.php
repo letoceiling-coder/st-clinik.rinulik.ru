@@ -355,6 +355,7 @@ Route::middleware(['auth', 'perm:admin.dashboard'])->prefix('admin')->name('admi
     Route::middleware('perm:admin.moderation')->group(function () {
         Route::get('/moderation', [Admin\ModerationController::class, 'index'])->name('moderation');
         Route::post('/moderation/settings', [Admin\ModerationController::class, 'updateSettings'])->name('moderation.settings');
+        Route::get('/moderation/clinic/{clinic:id}', [Admin\ModerationController::class, 'clinic'])->name('moderation.clinic')->whereNumber('clinic');
         Route::post('/moderation/{type}/{id}', [Admin\ModerationController::class, 'decide'])->name('moderation.decide')->whereNumber('id');
         Route::get('/moderation/documents/{document}', [Admin\ModerationController::class, 'document'])->name('moderation.document')->whereNumber('document');
         Route::get('/moderation/documents/{document}/view', [Admin\ModerationController::class, 'viewDocument'])->name('moderation.document.view')->whereNumber('document');
