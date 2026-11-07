@@ -24,6 +24,7 @@ class ParsedOrganizationImporter
     public function __construct(
         private readonly ParserOrganizationMapper $mapper,
         private readonly ProfileMetrics $metrics,
+        private readonly ClinicPriceImporter $prices,
     ) {}
 
     public function import(ParsedOrganization $parsed, ?User $by = null, bool $withPhotos = true): Clinic
@@ -86,6 +87,7 @@ class ParsedOrganizationImporter
             return $clinic;
         });
 
+        $this->prices->import($clinic, $parsed->raw ?? []);
         $this->metrics->recalcClinic($clinic);
         if ($withPhotos && $photos !== []) {
             ImportParsedOrganizationPhotos::dispatch($clinic->id, $photos);

@@ -10,6 +10,9 @@ use App\Models\ClinicPropertyType;
 use App\Models\ClinicService;
 use App\Models\Doctor;
 use App\Models\ParsedOrganization;
+use App\Models\Service;
+use App\Services\Parser\ParsedOrganizationNormalizer;
+use App\Services\Parser\YandexPriceListMapper;
 use App\Support\Schedule;
 use Illuminate\Support\Facades\Storage;
 
@@ -21,7 +24,10 @@ class ClinicModerationDossier
 {
     public const STATUS_LABELS = ['pending' => 'на проверке', 'approved' => 'одобрено', 'rejected' => 'отклонено', 'published' => 'опубликован', 'draft' => 'черновик', 'hidden' => 'скрыт'];
 
-    public function __construct(private readonly ProfileMetrics $metrics) {}
+    public function __construct(
+        private readonly ProfileMetrics $metrics,
+        private readonly YandexPriceListMapper $prices,
+    ) {}
 
     /** @return array<string, mixed> */
     public function build(Clinic $clinic): array
@@ -130,7 +136,29 @@ class ClinicModerationDossier
                 'doctor' => $clinic->doctors->where('status', 'pending')->count(),
             ],
             'source' => $this->source($clinic),
+            'yandex_prices' => $this->yandexPrices($clinic),
         ];
+    }
+
+    /**
+     * Прайс из карточки Яндекса целиком: что перенесено в услуги, а что нет (модератор видит исходник).
+     *
+     * @return list<array{name: string, price: string, service: string|null}>
+     */
+    private function yandexPrices(Clinic $clinic): array
+    {
+        $parsed = ParsedOrganization::query()->where('clinic_id', $clinic->id)->first(['id', 'raw']);
+        $products = (array) (ParsedOrganizationNormalizer::card($parsed?->raw ?? [])['products'] ?? []);
+        if ($products === []) {
+            return [];
+        }
+        $names = Service::query()->pluck('name', 'slug');
+
+        return collect($products)->filter(fn ($p) => is_array($p) && filled($p['name'] ?? null))->map(function (array $p) use ($names): array {
+            $slug = $this->prices->match((string) $p['name']);
+
+            return ['name' => (string) $p['name'], 'price' => trim((string) ($p['price'] ?? '')), 'service' => $slug ? ($names[$slug] ?? null) : null];
+        })->values()->all();
     }
 
     /** @return array<string, mixed>|null */

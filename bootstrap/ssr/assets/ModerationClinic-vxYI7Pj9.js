@@ -248,10 +248,10 @@ function ModerationClinic({ clinic: c, related, queue }) {
 								})]
 							})
 						}),
-						/* @__PURE__ */ jsx(Section, {
+						/* @__PURE__ */ jsxs(Section, {
 							id: "services",
 							title: "Услуги и цены",
-							children: c.services.length > 0 ? /* @__PURE__ */ jsx("ul", {
+							children: [c.services.length > 0 ? /* @__PURE__ */ jsx("ul", {
 								className: "mod-services",
 								children: c.services.map((s, i) => /* @__PURE__ */ jsxs("li", { children: [/* @__PURE__ */ jsxs("span", { children: [
 									s.name,
@@ -273,7 +273,31 @@ function ModerationClinic({ clinic: c, related, queue }) {
 							}) : /* @__PURE__ */ jsx("p", {
 								className: "text-sm text-muted",
 								children: "Услуг нет — клинику не найдут по запросам вроде «имплантация»."
-							})
+							}), c.yandex_prices.length > 0 ? /* @__PURE__ */ jsxs("details", {
+								className: "mod-checklist-wrap",
+								children: [
+									/* @__PURE__ */ jsxs("summary", { children: [
+										"Прайс из Яндекс Карт · ",
+										c.yandex_prices.length,
+										" позиций, сопоставлено ",
+										c.yandex_prices.filter((p) => p.service).length
+									] }),
+									/* @__PURE__ */ jsx("p", {
+										className: "text-xs text-muted",
+										children: "Цены услуг выше собраны из этих позиций: «от» — минимальная цена, «до» — если разброс небольшой. Несопоставленные позиции на сайт не попадают."
+									}),
+									/* @__PURE__ */ jsx("ul", {
+										className: "mod-services",
+										children: c.yandex_prices.map((p, i) => /* @__PURE__ */ jsxs("li", { children: [/* @__PURE__ */ jsxs("span", { children: [p.name, /* @__PURE__ */ jsxs("span", {
+											className: `text-xs ${p.service ? "text-muted" : "parser-warn"}`,
+											children: [" → ", p.service ?? "не сопоставлено"]
+										})] }), /* @__PURE__ */ jsx("span", {
+											className: "mod-services__price",
+											children: p.price || "—"
+										})] }, `${p.name}-${i}`))
+									})
+								]
+							}) : null]
 						}),
 						/* @__PURE__ */ jsx(Section, {
 							id: "doctors",
@@ -593,4 +617,4 @@ function Tags({ items, empty }) {
 //#endregion
 export { ModerationClinic as default };
 
-//# sourceMappingURL=ModerationClinic-BbXNdKsD.js.map
+//# sourceMappingURL=ModerationClinic-vxYI7Pj9.js.map

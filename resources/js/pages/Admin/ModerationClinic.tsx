@@ -37,6 +37,7 @@ interface Dossier {
     readiness: { percent: number; min: number; items: { label: string; done: boolean; pending: boolean; progress: string | null; weight: number }[] };
     pending_counts: { photo: number; document: number; doctor: number };
     source: { kind: 'owner' | 'parser'; label: string; parsed_id?: number | null; yandex_url?: string | null; yandex_rating?: string | null } | null;
+    yandex_prices: { name: string; price: string; service: string | null }[];
 }
 
 interface Props {
@@ -229,6 +230,25 @@ export default function ModerationClinic({ clinic: c, related, queue }: Props) {
                         ) : (
                             <p className="text-sm text-muted">Услуг нет — клинику не найдут по запросам вроде «имплантация».</p>
                         )}
+                        {c.yandex_prices.length > 0 ? (
+                            <details className="mod-checklist-wrap">
+                                <summary>
+                                    Прайс из Яндекс Карт · {c.yandex_prices.length} позиций, сопоставлено {c.yandex_prices.filter((p) => p.service).length}
+                                </summary>
+                                <p className="text-xs text-muted">Цены услуг выше собраны из этих позиций: «от» — минимальная цена, «до» — если разброс небольшой. Несопоставленные позиции на сайт не попадают.</p>
+                                <ul className="mod-services">
+                                    {c.yandex_prices.map((p, i) => (
+                                        <li key={`${p.name}-${i}`}>
+                                            <span>
+                                                {p.name}
+                                                <span className={`text-xs ${p.service ? 'text-muted' : 'parser-warn'}`}> → {p.service ?? 'не сопоставлено'}</span>
+                                            </span>
+                                            <span className="mod-services__price">{p.price || '—'}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </details>
+                        ) : null}
                     </Section>
 
                     <Section id="doctors" title="Врачи">

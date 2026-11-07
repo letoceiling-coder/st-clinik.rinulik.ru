@@ -258,6 +258,49 @@ class ParserOrganizationsTest extends TestCase
                 ->where('cities', []));
     }
 
+    public function test_yandex_price_list_becomes_clinic_services_on_import_and_backfill(): void
+    {
+        Queue::fake();
+        $products = [
+            ['name' => 'Комплекс гигиенических процедур (снятие зубного камня, Air Flow)', 'price' => '4 000 ₽'],
+            ['name' => 'Детская гигиена полости рта Air Flow', 'price' => '3 000 ₽'],
+            ['name' => 'Удаление сложное молочного зуба', 'price' => '2 500 ₽'],
+            ['name' => 'Безметалловая коронка на импланте Neodent', 'price' => '27500 р.'],
+            ['name' => 'Внутрикостная дентальная имплантация «Straumann» (Швейцария)', 'price' => 'от 49 990 ₽'],
+            ['name' => 'Бесплатная консультация', 'price' => '1 ₽'],
+            ['name' => 'Удаление доброкачественных новообразований кожи', 'price' => '7 200 ₽'],
+        ];
+        $parsed = $this->stored([...$this->parserItem('4601', 'С прайсом', '+78612000601'), 'card' => ['cardOpened' => true, 'products' => $products]]);
+        $admin = $this->admin();
+
+        $this->actingAs($admin)->post("/admin/parser/organizations/{$parsed->id}/import", ['photos' => false]);
+        $clinic = $parsed->refresh()->clinic;
+        $prices = $clinic->clinicServices()->with('service:id,slug')->get()->mapWithKeys(fn ($s) => [$s->service->slug => [$s->price_from, $s->price_to]])->all();
+
+        ksort($prices);
+        $this->assertEquals([
+            'implant-premium' => [49990, null],
+            'koronka-keramika' => [27500, null],
+            'professionalnaya-chistka' => [3000, 4000],
+            'udalenie-zuba-slozhnoe' => [2500, null],
+        ], $prices, 'бесплатная консультация и позиции не про зубы не переносятся');
+        $this->assertSame(2500, (int) $clinic->fresh()->min_price);
+
+        $own = $clinic->clinicServices()->whereHas('service', fn ($q) => $q->where('slug', 'koronka-keramika'))->first();
+        $own->update(['price_from' => 30000]);
+        $clinic->clinicServices()->whereHas('service', fn ($q) => $q->where('slug', 'implant-premium'))->delete();
+
+        $this->artisan('parser:import-prices')->expectsOutput('Клиник с новыми ценами: 1, добавлено услуг: 1.')->assertSuccessful();
+        $this->assertSame(30000, (int) $own->fresh()->price_from, 'цены, поправленные клиникой, не перезаписываются');
+        $this->assertSame(4, $clinic->clinicServices()->count());
+
+        $this->actingAs($admin)->get("/admin/moderation/clinic/{$clinic->id}")
+            ->assertInertia(fn ($page) => $page
+                ->has('clinic.yandex_prices', 7)
+                ->where('clinic.yandex_prices.6.service', null)
+                ->where('clinic.yandex_prices.0.service', 'Профессиональная гигиена полости рта'));
+    }
+
     public function test_resync_keeps_admin_decision(): void
     {
         $parsed = $this->stored($this->parserItem('5001', 'Скрытая', '+78612000008'));
