@@ -29,11 +29,7 @@ class SameDayAvailabilityService
             return false;
         }
 
-        $busy = Appointment::query()
-            ->where('clinic_id', $clinic->id)
-            ->whereDate('starts_at', $today)
-            ->whereIn('status', Appointment::ACTIVE)
-            ->get(['starts_at', 'ends_at']);
+        $busy = $clinic->todayActiveAppointments;
 
         for ($start = $earliest; $start + self::SLOT_MINUTES <= $closeMinutes; $start += self::SLOT_MINUTES) {
             if (! $this->slotOverlaps($today, $start, self::SLOT_MINUTES, $busy)) {

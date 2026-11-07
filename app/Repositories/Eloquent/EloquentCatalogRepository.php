@@ -30,7 +30,7 @@ class EloquentCatalogRepository implements CatalogRepository
 
     public function specialties(): Collection
     {
-        return Specialty::query()->where('is_active', true)->orderBy('sort')->get();
+        return once(fn () => Specialty::query()->where('is_active', true)->orderBy('sort')->get());
     }
 
     public function specialty(string $slug): ?Specialty
@@ -40,12 +40,12 @@ class EloquentCatalogRepository implements CatalogRepository
 
     public function services(): Collection
     {
-        return Service::query()->where('is_active', true)->with('specialty:id,name,slug')->orderBy('specialty_id')->orderBy('id')->get();
+        return once(fn () => Service::query()->where('is_active', true)->with('specialty:id,name,slug')->orderBy('specialty_id')->orderBy('id')->get());
     }
 
     public function concerns(): Collection
     {
-        return Concern::query()->where('is_active', true)->with(['specialty:id,name,slug', 'services:id,name,slug'])->orderBy('sort')->get();
+        return once(fn () => Concern::query()->where('is_active', true)->with(['specialty:id,name,slug', 'services:id,name,slug'])->orderBy('sort')->get());
     }
 
     public function concern(string $slug): ?Concern

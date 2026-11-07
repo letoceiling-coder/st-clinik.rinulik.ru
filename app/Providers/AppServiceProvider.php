@@ -18,13 +18,13 @@ use App\Repositories\Eloquent\EloquentReviewRepository;
 use App\Services\IntegrationSettings;
 use App\Services\Seo;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\ChannelManager;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use SocialiteProviders\Manager\SocialiteWasCalled;
@@ -44,9 +44,7 @@ class AppServiceProvider extends ServiceProvider
         // До boot всех провайдеров: пакетам (Sentry, почта, диски) нужны ключи из админки уже при их загрузке.
         $this->app->booting(function (): void {
             try {
-                if (Schema::hasTable('integration_settings')) {
-                    app(IntegrationSettings::class)->applyToConfig();
-                }
+                app(IntegrationSettings::class)->applyToConfig();
             } catch (\Throwable) {
                 // БД может быть недоступна при сборке образа или до миграций.
             }
@@ -55,6 +53,10 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Связь, лениво прочитанная у одной модели из коллекции, догружается сразу для всей коллекции:
+        // карточки клиник в списках не делают по запросу на каждую клинику.
+        Model::automaticallyEagerLoadRelationships();
+
         $appUrl = (string) config('app.url');
         if ($appUrl !== '') {
             URL::forceRootUrl($appUrl);

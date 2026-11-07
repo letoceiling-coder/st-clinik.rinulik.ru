@@ -39,8 +39,7 @@ class ParserOrganizationMapper
     public function map(array $item): array
     {
         $warnings = [];
-        /** @var array<string, mixed> $card */
-        $card = is_array($item['card'] ?? null) ? $item['card'] : [];
+        $card = ParsedOrganizationNormalizer::card($item);
 
         $cityName = (string) ($item['city'] ?? $card['city'] ?? '');
         $citySlug = $this->citySlug($cityName);

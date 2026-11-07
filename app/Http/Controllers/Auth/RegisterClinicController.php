@@ -15,6 +15,7 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -70,11 +71,12 @@ class RegisterClinicController extends Controller
             'consent_at' => now(),
             'consent_version' => '2026-10',
         ]);
-        $user->forceFill(['role' => 'clinic_owner', 'status' => 'active'])->save();
+        $user->forceFill(['role' => 'clinic_owner', 'status' => 'active']);
 
         if (! empty($data['offer_token'])) {
             $offer = Offer::findByToken($data['offer_token']);
             abort_unless($offer, 404);
+            $user->save();
             // Клиника передаётся только после подтверждения email и принятия соглашения на странице подключения.
             event(new Registered($user));
             Auth::login($user);
@@ -86,18 +88,24 @@ class RegisterClinicController extends Controller
                 ->with('success', 'Аккаунт создан. Подтвердите e-mail — после этого вы вернётесь к подключению клиники.');
         }
 
-        $organization = Organization::query()->create([
-            'owner_id' => $user->id,
-            'name' => $data['organization_name'],
-            'status' => 'active',
-        ]);
+        $organization = DB::transaction(function () use ($user, $data): Organization {
+            $user->save();
 
-        OrganizationStaff::query()->create([
-            'organization_id' => $organization->id,
-            'user_id' => $user->id,
-            'role' => OrganizationStaff::ROLE_OWNER,
-            'invited_at' => now(),
-        ]);
+            $organization = Organization::query()->create([
+                'owner_id' => $user->id,
+                'name' => $data['organization_name'],
+                'status' => 'active',
+            ]);
+
+            OrganizationStaff::query()->create([
+                'organization_id' => $organization->id,
+                'user_id' => $user->id,
+                'role' => OrganizationStaff::ROLE_OWNER,
+                'invited_at' => now(),
+            ]);
+
+            return $organization;
+        });
 
         event(new Registered($user));
         Auth::login($user);

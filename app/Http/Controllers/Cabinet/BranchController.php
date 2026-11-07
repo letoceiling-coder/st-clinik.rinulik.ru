@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Cabinet;
 
 use App\Models\Clinic;
+use App\Models\User;
+use App\Models\UserNotification;
 use App\Services\Audit;
+use App\Services\Clinics\AddressGeocoder;
 use App\Services\Clinics\ClinicProfileForm;
 use App\Services\ModerationService;
 use App\Services\Monetization\ClinicSubscriptionService;
@@ -11,6 +14,7 @@ use App\Services\ProfileMetrics;
 use App\Support\Schedule;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Response;
 
 class BranchController extends CabinetController
@@ -68,6 +72,7 @@ class BranchController extends CabinetController
         $clinic->slug = $profile->uniqueSlug($data['name']);
         $clinic->status = 'draft';
         $clinic->art_seed = random_int(1, 12);
+        app(AddressGeocoder::class)->fillCoordinates($clinic);
         $clinic->save();
         $clinic->specialties()->sync($data['specialty_ids'] ?? []);
         app(ClinicSubscriptionService::class)->assignDefaultIfNeeded($clinic);
@@ -85,11 +90,13 @@ class BranchController extends CabinetController
         $profile = app(ClinicProfileForm::class);
         $data = $profile->validate($request);
 
-        $clinic->update($profile->attributes($data));
-        $clinic->specialties()->sync($data['specialty_ids'] ?? []);
+        $clinic->fill($profile->attributes($data));
         if ($clinic->status === 'rejected') {
-            $clinic->update(['status' => 'draft']);
+            $clinic->status = 'draft';
         }
+        app(AddressGeocoder::class)->fillCoordinates($clinic);
+        $clinic->save();
+        $clinic->specialties()->sync($data['specialty_ids'] ?? []);
         app(ProfileMetrics::class)->recalcClinic($clinic);
         Audit::log('branch.updated', $clinic);
 
@@ -101,14 +108,53 @@ class BranchController extends CabinetController
         $this->authorizeBranch($request, $clinic);
         abort_unless(in_array($clinic->status, ['draft', 'rejected'], true), 422);
 
-        if ($metrics->completeness($clinic)['percent'] < 40) {
-            return back()->with('error', 'Заполните профиль минимум на 40%, чтобы отправить его на модерацию.');
+        $readiness = $metrics->moderationReadiness($clinic);
+        if (! $readiness['ready']) {
+            return back()->with('error', $this->readinessHint($readiness));
         }
 
         $clinic->update(['status' => 'pending', 'moderation_note' => null]);
         Audit::log('branch.submitted', $clinic);
+        $this->notifyModerators($clinic);
 
         return back()->with('success', 'Филиал отправлен на модерацию. Обычно проверка занимает до 2 рабочих дней.');
+    }
+
+    /** Колокольчик в админке у всех, кто может модерировать: новая заявка не ждёт, пока её случайно заметят. */
+    private function notifyModerators(Clinic $clinic): void
+    {
+        User::query()
+            ->where('status', 'active')
+            ->whereNotIn('role', ['user', 'clinic_owner'])
+            ->get()
+            ->filter(fn (User $user) => $user->hasPermission('admin.moderation'))
+            ->each(fn (User $user) => UserNotification::query()->create([
+                'user_id' => $user->id,
+                'type' => 'moderation_request',
+                'title' => 'Филиал ждёт модерации',
+                'body' => "«{$clinic->name}» отправлен на проверку.",
+                'url' => route('admin.moderation', ['type' => 'clinic']),
+            ]));
+    }
+
+    /**
+     * Подсказка, каких пунктов хватит, чтобы дотянуть профиль до порога модерации.
+     *
+     * @param  array{percent: int, missing: list<array{label: string, weight: int}>}  $readiness
+     */
+    private function readinessHint(array $readiness): string
+    {
+        $needed = [];
+        $percent = $readiness['percent'];
+        foreach ($readiness['missing'] as $item) {
+            if ($percent >= ProfileMetrics::MODERATION_MIN_PERCENT) {
+                break;
+            }
+            $needed[] = Str::lcfirst($item['label'])." (+{$item['weight']}%)";
+            $percent += $item['weight'];
+        }
+
+        return "Профиль заполнен на {$readiness['percent']}%, для модерации нужно ".ProfileMetrics::MODERATION_MIN_PERCENT.'%. Добавьте: '.implode(', ', $needed).'.';
     }
 
     /** Публикация одобренного модератором (или скрытого) филиала в каталоге. */

@@ -177,4 +177,13 @@ class Clinic extends Model
     {
         return $this->hasMany(Appointment::class);
     }
+
+    /** Действующие записи на сегодня — для «Свободно сегодня» на карточках. */
+    public function todayActiveAppointments(): HasMany
+    {
+        return $this->hasMany(Appointment::class)
+            ->whereBetween('starts_at', [now()->startOfDay(), now()->endOfDay()])
+            ->whereIn('status', Appointment::ACTIVE)
+            ->select(['id', 'clinic_id', 'starts_at', 'ends_at']);
+    }
 }

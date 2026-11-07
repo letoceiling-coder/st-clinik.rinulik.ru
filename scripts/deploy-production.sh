@@ -127,8 +127,9 @@ fi
 
 docker exec "$CONTAINER" php artisan cache:clear
 docker exec "$CONTAINER" php artisan config:cache
-docker exec "$CONTAINER" php artisan route:clear
-docker exec "$CONTAINER" php artisan view:clear
+docker exec "$CONTAINER" php artisan route:cache
+docker exec "$CONTAINER" php artisan event:cache
+docker exec "$CONTAINER" php artisan view:cache
 docker exec "$CONTAINER" sh -c 'kill -USR2 1 2>/dev/null || true'
 docker exec "$CONTAINER" php artisan queue:restart
 

@@ -2,14 +2,12 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Services\ClinicCardDisplaySettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Inertia\Response;
 
-class ClinicCardAppearanceController extends Controller
+class ClinicCardAppearanceController extends AdminController
 {
     public function index(ClinicCardDisplaySettings $settings): Response
     {
@@ -20,7 +18,7 @@ class ClinicCardAppearanceController extends Controller
             'class' => $meta['class'],
         ])->values();
 
-        return Inertia::render('Admin/ClinicCardAppearance', [
+        return $this->render('Admin/ClinicCardAppearance', 'Вид карточек клиник', [
             'variant' => $settings->premiumVariant(),
             'variants' => $variants,
         ]);

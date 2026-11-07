@@ -11,6 +11,9 @@ use App\Models\Doctor;
  */
 class ProfileMetrics
 {
+    /** Минимальная заполненность профиля для отправки филиала на модерацию. */
+    public const MODERATION_MIN_PERCENT = 40;
+
     public function recalcDoctor(Doctor $doctor): void
     {
         $stats = $doctor->reviews()->where('status', 'published')
@@ -45,14 +48,31 @@ class ProfileMetrics
             'doctors_count' => (clone $doctors)->count(),
             'max_experience' => (int) ((clone $doctors)->max('experience_years') ?? 0),
             'min_price' => $minPrice,
+            'completeness' => $this->completeness($clinic)['percent'],
         ])->save();
-
-        $clinic->forceFill(['completeness' => $this->completeness($clinic)['percent']])->save();
     }
 
     /**
-     * @return array{percent:int, items:list<array{key:string,label:string,done:bool,weight:int}>}
+     * Готовность к отправке на модерацию: фото и лицензия, которые ждут проверки, засчитываются —
+     * модератор смотрит их вместе с карточкой. В `missing` — недостающие пункты, самые весомые первыми.
+     *
+     * @return array{percent: int, ready: bool, missing: list<array{label: string, weight: int, href: string}>}
      */
+    public function moderationReadiness(Clinic $clinic): array
+    {
+        $items = $this->completeness($clinic)['items'];
+        $percent = (int) array_sum(array_map(fn (array $i) => $i['done'] || $i['pending'] ? $i['weight'] : 0, $items));
+
+        $missing = collect($items)
+            ->reject(fn (array $i) => $i['done'] || $i['pending'])
+            ->sortByDesc('weight')
+            ->map(fn (array $i) => ['label' => $i['label'], 'weight' => $i['weight'], 'href' => $i['href']])
+            ->values()
+            ->all();
+
+        return ['percent' => $percent, 'ready' => $percent >= self::MODERATION_MIN_PERCENT, 'missing' => $missing];
+    }
+
     /**
      * Чек-лист профиля: что сделано, что на проверке, где исправить и зачем это пациентам.
      * Веса не менять без пересчёта: процент влияет на порядок в каталоге.

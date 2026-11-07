@@ -2,18 +2,16 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Models\CardBonusType;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Inertia\Response;
 
-class CardBonusTypeController extends Controller
+class CardBonusTypeController extends AdminController
 {
     public function index(): Response
     {
-        return Inertia::render('Admin/CardBonuses', [
+        return $this->render('Admin/CardBonuses', 'Бонусы на карточке', [
             'types' => CardBonusType::query()->orderBy('sort')->get()->map(fn (CardBonusType $t) => [
                 'id' => $t->id,
                 'code' => $t->code,

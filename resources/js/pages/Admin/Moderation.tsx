@@ -160,7 +160,7 @@ function ModerationCard({ item }: { item: Item }) {
                 />
                 <div className="row row--wrap" style={{ gap: 8 }}>
                     <Button size="sm" loading={form.processing} onClick={() => send('approve')}>
-                        <Icon name="check" size={16} /> Одобрить и опубликовать
+                        <Icon name="check" size={16} /> {item.type === 'clinic' ? 'Одобрить' : 'Одобрить и опубликовать'}
                     </Button>
                     <Button size="sm" variant="danger" loading={form.processing} onClick={() => send('reject')}>
                         Отклонить

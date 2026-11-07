@@ -170,7 +170,7 @@ class ParsedOrganizationStore
     private function updateExisting(ParsedOrganization $record, array $data, array $item, ?ParserTask $task): ParsedOrganization
     {
         $raw = $record->raw ?? [];
-        $hasNewCard = is_array($item['card'] ?? null) && $item['card'] !== [];
+        $hasNewCard = ParsedOrganizationNormalizer::card($item) !== [];
         $raw = $hasNewCard || ! is_array($raw['card'] ?? null) ? $item : [...$item, 'card' => $raw['card']];
 
         $columns = array_filter($this->columns($data), fn ($value) => $value !== null && $value !== [] && $value !== '');

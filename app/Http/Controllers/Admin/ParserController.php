@@ -12,6 +12,7 @@ use App\Models\ParsedOrganization;
 use App\Models\ParserTask;
 use App\Services\Audit;
 use App\Services\Parser\ParsedOrganizationImporter;
+use App\Services\Parser\ParsedOrganizationNormalizer;
 use App\Services\Parser\ParserOrganizationsClient;
 use App\Services\Parser\ParserTaskService;
 use App\Support\Text;
@@ -56,7 +57,7 @@ class ParserController extends AdminController
     public function show(ParsedOrganization $parsed): Response
     {
         $parsed->load(['city:id,name', 'clinic:id,name,slug,status', 'matchClinic:id,name,slug,status,address,phone', 'task:id,type,created_at', 'importer:id,name', 'contacts']);
-        $card = is_array($parsed->raw['card'] ?? null) ? $parsed->raw['card'] : [];
+        $card = ParsedOrganizationNormalizer::card($parsed->raw ?? []);
 
         $network = $parsed->group_key
             ? ParsedOrganization::query()->where('group_key', $parsed->group_key)->whereKeyNot($parsed->id)

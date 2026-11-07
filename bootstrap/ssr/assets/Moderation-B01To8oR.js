@@ -169,10 +169,14 @@ function ModerationCard({ item }) {
 						size: "sm",
 						loading: form.processing,
 						onClick: () => send("approve"),
-						children: [/* @__PURE__ */ jsx(Icon, {
-							name: "check",
-							size: 16
-						}), " Одобрить и опубликовать"]
+						children: [
+							/* @__PURE__ */ jsx(Icon, {
+								name: "check",
+								size: 16
+							}),
+							" ",
+							item.type === "clinic" ? "Одобрить" : "Одобрить и опубликовать"
+						]
 					}), /* @__PURE__ */ jsx(Button, {
 						size: "sm",
 						variant: "danger",
@@ -314,4 +318,4 @@ function ModerationSettings({ initial }) {
 //#endregion
 export { Moderation as default };
 
-//# sourceMappingURL=Moderation-CqtNkbNd.js.map
+//# sourceMappingURL=Moderation-B01To8oR.js.map

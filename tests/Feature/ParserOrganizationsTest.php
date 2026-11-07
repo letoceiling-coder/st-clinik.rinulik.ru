@@ -202,6 +202,32 @@ class ParserOrganizationsTest extends TestCase
         Http::assertNothingSent();
     }
 
+    public function test_flat_collected_card_keeps_hours_services_and_schedule_on_import(): void
+    {
+        Queue::fake();
+        $parsed = $this->stored([
+            ...$this->parserItem('3001', 'Плоская карточка', '+78612000031'),
+            'cardOpened' => true,
+            'hours' => 'пн-пт 09:00–21:00',
+            'hoursSchedule' => [
+                ['day' => 'Понедельник', 'open' => '09:00', 'close' => '21:00'],
+                ['day' => 'Воскресенье', 'closed' => true],
+            ],
+            'services' => ['Имплантация', 'Хирургия'],
+        ]);
+
+        $this->assertTrue($parsed->has_full_card);
+        $this->assertSame('пн-пт 09:00–21:00', $parsed->hours);
+        $this->actingAs($this->admin())->get("/admin/parser/organizations/{$parsed->id}")
+            ->assertInertia(fn ($page) => $page->where('organization.services', ['Имплантация', 'Хирургия']));
+
+        $this->actingAs($this->admin())->post("/admin/parser/organizations/{$parsed->id}/import", ['photos' => false])->assertSessionHas('success');
+
+        $schedule = Clinic::query()->findOrFail($parsed->refresh()->clinic_id)->schedule;
+        $this->assertSame(['open' => '09:00', 'close' => '21:00'], $schedule['mon']);
+        $this->assertNull($schedule['sun']);
+    }
+
     public function test_collect_brings_partial_cards_while_running_and_final_on_completion(): void
     {
         $task = ParserTask::factory()->collect()->running()->create();

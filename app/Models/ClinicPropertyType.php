@@ -27,6 +27,8 @@ class ClinicPropertyType extends Model
         'has_ct',
     ];
 
+    private const CACHE_KEY = 'dict.clinic_property_types.v2';
+
     protected $guarded = [];
 
     protected function casts(): array
@@ -41,16 +43,21 @@ class ClinicPropertyType extends Model
     /** @return Collection<int, self> */
     public static function cached(): Collection
     {
-        return self::query()
+        // В кэше — массивы атрибутов: кэш не восстанавливает объекты моделей.
+        $rows = Cache::remember(self::CACHE_KEY, now()->addMinutes(10), fn () => self::query()
             ->where('is_active', true)
             ->orderBy('sort')
             ->orderBy('id')
-            ->get();
+            ->get()
+            ->map(fn (self $type) => $type->getAttributes())
+            ->all());
+
+        return self::hydrate($rows);
     }
 
     public static function flushCache(): void
     {
-        Cache::forget('dict.clinic_property_types');
+        Cache::forget(self::CACHE_KEY);
     }
 
     /** @return Collection<int, self> */

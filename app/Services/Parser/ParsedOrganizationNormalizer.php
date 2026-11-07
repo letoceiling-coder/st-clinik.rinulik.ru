@@ -24,6 +24,27 @@ class ParsedOrganizationNormalizer
     ];
 
     /**
+     * Данные открытой карточки организации. Выгрузка базы кладёт их во вложенный `card`,
+     * а сбор (`organizations/collect`) отдаёт плоской записью с теми же полями.
+     *
+     * @param  array<string, mixed>  $item
+     * @return array<string, mixed>
+     */
+    public static function card(array $item): array
+    {
+        if (is_array($item['card'] ?? null) && $item['card'] !== []) {
+            return $item['card'];
+        }
+
+        $isOpenedCard = ($item['cardOpened'] ?? false) === true
+            || isset($item['hoursSchedule'])
+            || isset($item['hoursDetailed'])
+            || isset($item['services']);
+
+        return $isOpenedCard ? $item : [];
+    }
+
+    /**
      * @param  array<string, mixed>  $item
      * @return array{
      *     external_id: string,
@@ -48,8 +69,7 @@ class ParsedOrganizationNormalizer
      */
     public function normalize(array $item, ?string $fallbackCity = null): array
     {
-        /** @var array<string, mixed> $card */
-        $card = is_array($item['card'] ?? null) ? $item['card'] : [];
+        $card = self::card($item);
         $pick = fn (string $key) => $item[$key] ?? $card[$key] ?? null;
 
         $city = $this->string($pick('city')) ?? $fallbackCity;

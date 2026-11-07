@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\SeoTemplate;
+use App\Support\Text;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 
@@ -34,8 +35,28 @@ class Seo
     public static function fill(string $tpl, array $vars): string
     {
         $out = preg_replace_callback('/\{(\w+)\}/u', fn ($m) => (string) ($vars[$m[1]] ?? ''), $tpl);
+        $out = self::agreeCounts($out ?? '');
 
-        return trim(preg_replace('/\s{2,}/u', ' ', $out ?? ''));
+        return trim(preg_replace('/\s{2,}/u', ' ', $out) ?? '');
+    }
+
+    /** Формы слов после числа в шаблонах: «{count} врачей» → «73 врача», «21 клиника». */
+    private const COUNTED_NOUNS = [
+        'клиник' => ['клиника', 'клиники', 'клиник'],
+        'врачей' => ['врач', 'врача', 'врачей'],
+        'отзывов' => ['отзыв', 'отзыва', 'отзывов'],
+        'услуг' => ['услуга', 'услуги', 'услуг'],
+    ];
+
+    private static function agreeCounts(string $text): string
+    {
+        $nouns = implode('|', array_keys(self::COUNTED_NOUNS));
+
+        return preg_replace_callback(
+            '/(?<!\d)(\d+)\s('.$nouns.')(?!\p{L})/u',
+            fn (array $m) => Text::plural((int) $m[1], ...self::COUNTED_NOUNS[$m[2]]),
+            $text,
+        ) ?? $text;
     }
 
     /**

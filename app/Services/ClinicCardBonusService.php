@@ -141,11 +141,7 @@ class ClinicCardBonusService
     /** @return Collection<int, ClinicCardBonus> */
     private function enabledConfigured(Clinic $clinic): Collection
     {
-        $rows = $clinic->relationLoaded('cardBonuses')
-            ? $clinic->cardBonuses
-            : $clinic->cardBonuses()->with('type')->get();
-
-        return $rows
+        return $clinic->cardBonuses
             ->filter(fn (ClinicCardBonus $b) => $b->enabled
                 && trim((string) $b->short_label) !== ''
                 && trim((string) $b->description) !== ''
