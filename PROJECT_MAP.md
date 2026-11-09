@@ -10,7 +10,7 @@ Laravel 13 (PHP ^8.3), Inertia 3 + React 19 + TypeScript 7, Vite 8 (SSR), руч
 
 ## Backend (`app/`)
 - `Http/Controllers/` — публичные (`Catalog`, `Clinic`, `Doctor`, `Booking`, `Lead`, `Review`, `Offer`, `ClaimOffer`, `Search`, `Seo`), `Admin/` (админка), `Cabinet/` (ЛК клиники), `Account/` (ЛК пациента), `Auth/` (в т.ч. `RegisterClinicController`), `Api/` (AI-ассистент), `Max/` (бот и Mini App), `Webhooks/`, `PaymentWebhookController`.
-- `Services/` — бизнес-логика: `ModerationService`, `ModerationQueue`, `ClinicModerationDossier`, `ContentModerationSettings`, `SensitiveTextGuard`, `AppointmentBookingService`, `SlotAvailabilityService`, `LeadService` + `Leads/`, `PromotionService`, `Monetization/`, `Payments/`, `YooKassaService`, `Parser/` (импорт организаций и прайсов из Яндекса), `Offers/` (коммерческие предложения), `Cabinet/`, `Clinics/`, `Organization/`, `Notifications/`, `Broadcasts/`, `Assistant/`, `Seo`, `SchemaOrg`.
+- `Services/` — бизнес-логика: `ModerationService`, `ModerationQueue`, `ClinicModerationDossier`, `ContentModerationSettings`, `SensitiveTextGuard`, `AppointmentBookingService`, `SlotAvailabilityService`, `LeadService` + `Leads/`, `PromotionService`, `Monetization/`, `Payments/` (Т‑Банк: оплата, возвраты, чеки 54-ФЗ `TBankReceipt`), `Parser/` (импорт организаций и прайсов из Яндекса), `Offers/` (коммерческие предложения), `Cabinet/`, `Clinics/`, `Organization/`, `Notifications/`, `Broadcasts/`, `Assistant/`, `Seo`, `SchemaOrg`.
 - `Repositories/`, `Jobs/`, `Notifications/`, `Policies/` (одна), `Support/`.
 - Валидация — inline `validate()` в контроллерах/сервисах, FormRequest не используются.
 - Роуты: `routes/web.php` (~535 строк), `routes/api.php`.
@@ -40,7 +40,7 @@ Laravel 13 (PHP ^8.3), Inertia 3 + React 19 + TypeScript 7, Vite 8 (SSR), руч
    - Карточку без владельца (`Clinic::ownerless()`, статусы `Clinic::CLAIMABLE_STATUSES`, в т.ч. опубликованную) можно забрать по КП или заявкой «Это ваша клиника?» (`ClinicClaimRequest`): SMS-код на номер из карточки — сразу, иначе документ → модератор (тип `claim` в очереди).
    - Если у заявителя уже своя организация, карточка становится её филиалом. При создании филиала совпадение с карточкой без владельца → предложение забрать её (`OwnerlessClinicMatcher`).
    - Заявки пациентов в клиники без владельца получают операторы платформы (`admin.appointments`) → `/admin/leads/unclaimed`.
-5. Клиники могут подключать платные услуги (тарифы, продвижение) через ЛК; оплата — YooKassa.
+5. Клиники могут подключать платные услуги (тарифы, продвижение) через ЛК; оплата — Т‑Банк (эквайринг, автопродление по RebillId, чеки 54-ФЗ через онлайн-кассу банка). Полный возврат отключает купленную услугу; частичный — по решению финансиста. `YooKassaService` и `config/yookassa.php` — неиспользуемый остаток.
 6. Ориентир по функционалу — аналогичные сервисы (ПроДокторов, СберЗдоровье/DocDoc, НаПоправку), итог — коммерческий продукт.
 Расхождения текущего кода с этими правилами фиксируются в аудите (`laravel-auditor`) и решаются с заказчиком.
 

@@ -66,6 +66,11 @@ class PaymentController extends CabinetController
     {
         $branch = $this->branch($request);
         $autoRenew = $request->boolean('auto_renew');
+        // Повторное нажатие «Оплатить» открывает уже созданный платёж, а не заводит второй.
+        $pending = $payments->reusablePendingCheckout($branch, $tariff, $autoRenew);
+        if ($pending !== null) {
+            return redirect()->away($pending->payment_url);
+        }
         $payment = $payments->createTariffCheckout($branch, $request->user(), $tariff);
         if ($autoRenew) {
             $payment->update(['payment_meta' => ['save_recurrent' => true]]);

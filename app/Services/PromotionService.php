@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Clinic;
 use App\Models\ClinicPromotion;
+use App\Models\Organization;
 use App\Models\Payment;
 use App\Models\PromotionOrder;
 use App\Models\PromotionPackage;
@@ -15,6 +16,7 @@ use App\Models\User;
 use App\Services\Monetization\ClinicSubscriptionService;
 use App\Services\Monetization\PaymentService;
 use App\Services\Payments\TBankAcquiringService;
+use App\Services\Payments\TBankReceipt;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -139,7 +141,13 @@ class PromotionService
     {
         abort_unless($order->status === 'pending_payment', 422, 'Заказ уже оплачен или отменён.');
 
-        $payment = $this->tbank->createPayment($order);
+        $receipt = app(TBankReceipt::class)->make(
+            'Продвижение клиники на сайте, заказ №'.$order->id,
+            (int) $order->amount,
+            User::query()->find($order->user_id),
+            Organization::query()->find($order->organization_id),
+        );
+        $payment = $this->tbank->createPayment($order, $receipt);
 
         $order->update([
             'payment_id' => $payment['payment_id'],
@@ -247,6 +255,15 @@ class PromotionService
             $ledger->update(['status' => Payment::STATUS_PAID, 'paid_at' => now()]);
             $this->fulfillOrder($order);
         });
+    }
+
+    /** Полный возврат денег: размещения по заказу снимаются сразу, заказ помечается возвращённым. */
+    public function revokeForRefund(PromotionOrder $order): void
+    {
+        ClinicPromotion::query()->where('order_id', $order->id)
+            ->whereIn('status', ['active', 'pending_moderation'])
+            ->update(['status' => 'refunded', 'ends_at' => now()]);
+        $order->update(['status' => 'refunded']);
     }
 
     public function fulfillOrder(PromotionOrder $order): void

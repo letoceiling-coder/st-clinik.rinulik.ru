@@ -7,7 +7,6 @@ use App\Models\PromotionOrder;
 use App\Models\PromotionPackage;
 use App\Models\PromotionProduct;
 use App\Services\PromotionService;
-use App\Services\YooKassaService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -74,7 +73,6 @@ class PromotionController extends CabinetController
             'active' => $active,
             'orders' => $orders,
             'has_publication' => $promotions->hasActivePublication($branch),
-            'yookassa_configured' => app(YooKassaService::class)->configured(),
             'labels' => [
                 'publication' => 'Публикация на сервисе',
                 'boost' => 'Подъём «Рекомендуем»',

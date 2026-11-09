@@ -22,6 +22,7 @@ class TBankAcquiringService
         string $failUrl,
         bool $saveRecurrent = false,
         ?string $customerKey = null,
+        ?array $receipt = null,
     ): array {
         if (! $this->configured()) {
             throw new \RuntimeException('Т‑Банк не настроен. Укажите TerminalKey и пароль терминала в центре интеграций.');
@@ -41,6 +42,10 @@ class TBankAcquiringService
             $payload['Recurrent'] = 'Y';
             $payload['CustomerKey'] = $customerKey ?: $orderId;
         }
+        // Чек 54-ФЗ: вложенные объекты в подпись Token не входят.
+        if ($receipt !== null) {
+            $payload['Receipt'] = $receipt;
+        }
         $payload['Token'] = $this->sign($payload);
 
         $response = $this->client()->post($this->endpoint('Init'), $payload)->throw()->json();
@@ -57,7 +62,7 @@ class TBankAcquiringService
     }
 
     /** @return array{payment_id: string, payment_url: string|null, meta: array<string, mixed>} */
-    public function createPayment(PromotionOrder $order): array
+    public function createPayment(PromotionOrder $order, ?array $receipt = null): array
     {
         return $this->initPayment(
             amount: (int) $order->amount,
@@ -66,6 +71,7 @@ class TBankAcquiringService
             metadata: ['order_id' => (string) $order->id],
             successUrl: $this->successUrl($order),
             failUrl: $this->failUrl($order),
+            receipt: $receipt,
         );
     }
 
@@ -113,7 +119,7 @@ class TBankAcquiringService
     /**
      * @return array<string, mixed>
      */
-    public function chargeWithRebill(int $amount, string $orderId, string $description, string $rebillId, array $metadata): array
+    public function chargeWithRebill(int $amount, string $orderId, string $description, string $rebillId, array $metadata, ?array $receipt = null): array
     {
         $init = $this->initPayment(
             amount: $amount,
@@ -122,6 +128,7 @@ class TBankAcquiringService
             metadata: $metadata,
             successUrl: url('/'),
             failUrl: url('/'),
+            receipt: $receipt,
         );
 
         $payload = [
@@ -159,7 +166,7 @@ class TBankAcquiringService
     /**
      * @return array<string, mixed>
      */
-    public function refundPayment(string $paymentId, ?int $amount = null): array
+    public function refundPayment(string $paymentId, ?int $amount = null, ?array $receipt = null): array
     {
         $payload = [
             'TerminalKey' => (string) config('tbank.terminal_key'),
@@ -167,6 +174,10 @@ class TBankAcquiringService
         ];
         if ($amount !== null) {
             $payload['Amount'] = $amount;
+        }
+        // Чек возврата: тот же состав на сумму возврата.
+        if ($receipt !== null) {
+            $payload['Receipt'] = $receipt;
         }
         $payload['Token'] = $this->sign($payload);
 

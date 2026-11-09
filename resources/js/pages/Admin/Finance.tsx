@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { Check, SelectField } from '@/components/ui/Fields';
 import { confirmDialog, promptDialog } from '@/lib/dialog';
 import { notify } from '@/lib/toast';
+import { Alert } from '@/components/ui/Misc';
 
 type PaymentRow = {
     id: number;
@@ -25,6 +26,7 @@ export default function Finance({
     payments,
     chart,
     monetization_settings,
+    receipt_options,
 }: {
     kpi: Record<string, number>;
     payments: PaymentRow[];
@@ -35,7 +37,11 @@ export default function Finance({
         expire_action: string;
         autorenew_enabled: boolean;
         autorenew_charge_days_before: number;
+        receipt_enabled: boolean;
+        receipt_taxation: string | null;
+        receipt_vat: string;
     };
+    receipt_options: { taxations: Record<string, string>; vat_rates: Record<string, string>; active: boolean };
 }) {
     const settings = useForm({ ...monetization_settings });
 
@@ -78,6 +84,11 @@ export default function Finance({
                         </ul>
                     </div>
                 ) : null}
+                {!receipt_options.active ? (
+                    <Alert tone="warning" icon="alert">
+                        Чеки 54-ФЗ не отправляются. Включите их ниже и укажите налогообложение и НДС — их нужно уточнить у бухгалтера.
+                    </Alert>
+                ) : null}
                 <form
                     className="card stack"
                     onSubmit={(e) => {
@@ -117,6 +128,32 @@ export default function Finance({
                             </option>
                         ))}
                     </SelectField>
+                    <h3 className="card-title">Чеки 54-ФЗ (онлайн-касса Т‑Банка)</h3>
+                    <Check
+                        label="Отправлять чеки при оплате, автопродлении и возврате"
+                        checked={settings.data.receipt_enabled}
+                        onChange={(e) => settings.setData('receipt_enabled', e.target.checked)}
+                    />
+                    <SelectField
+                        label="Система налогообложения"
+                        value={settings.data.receipt_taxation ?? ''}
+                        onChange={(e) => settings.setData('receipt_taxation', e.target.value || null)}
+                        error={settings.errors.receipt_taxation}
+                    >
+                        <option value="">Не указана</option>
+                        {Object.entries(receipt_options.taxations).map(([k, v]) => (
+                            <option key={k} value={k}>
+                                {v}
+                            </option>
+                        ))}
+                    </SelectField>
+                    <SelectField label="НДС" value={settings.data.receipt_vat} onChange={(e) => settings.setData('receipt_vat', e.target.value)}>
+                        {Object.entries(receipt_options.vat_rates).map(([k, v]) => (
+                            <option key={k} value={k}>
+                                {v}
+                            </option>
+                        ))}
+                    </SelectField>
                     <Button type="submit" loading={settings.processing}>
                         Сохранить
                     </Button>
@@ -138,8 +175,15 @@ export default function Finance({
                                                 className="link text-sm"
                                                 onClick={async () => {
                                                     const amount = (p.refundable_amount / 100).toLocaleString('ru-RU');
-                                                    if (await confirmDialog({ title: `Вернуть ${amount} ₽?`, message: `Платёж #${p.id}. Деньги уйдут клиенту, отменить возврат нельзя.`, confirmLabel: 'Вернуть', danger: true })) {
-                                                        router.post(`/admin/finance/payments/${p.id}/refund`);
+                                                    if (
+                                                        await confirmDialog({
+                                                            title: `Вернуть ${amount} ₽?`,
+                                                            message: `Платёж #${p.id}. Деньги уйдут клиенту, купленная услуга (тариф или продвижение) отключится сразу. Отменить возврат нельзя.`,
+                                                            confirmLabel: 'Вернуть и отключить',
+                                                            danger: true,
+                                                        })
+                                                    ) {
+                                                        router.post(`/admin/finance/payments/${p.id}/refund`, {}, { preserveScroll: true });
                                                     }
                                                 }}
                                             >
@@ -165,7 +209,13 @@ export default function Finance({
                                                         notify('Введите сумму больше нуля и не больше доступной к возврату.', 'error');
                                                         return;
                                                     }
-                                                    router.post(`/admin/finance/payments/${p.id}/refund`, { amount: kopecks });
+                                                    const revoke = await confirmDialog({
+                                                        title: 'Отключить услугу?',
+                                                        message: 'Частичный возврат обычно — компенсация: услуга остаётся до конца оплаченного срока. Отключите её, только если клиника отказывается от услуги.',
+                                                        confirmLabel: 'Отключить услугу',
+                                                        cancelLabel: 'Оставить услугу',
+                                                    });
+                                                    router.post(`/admin/finance/payments/${p.id}/refund`, { amount: kopecks, revoke_service: revoke }, { preserveScroll: true });
                                                 }}
                                             >
                                                 Частичный

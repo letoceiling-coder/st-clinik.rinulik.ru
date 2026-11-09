@@ -112,6 +112,40 @@ class ClinicSubscriptionService
         });
     }
 
+    /**
+     * Полный возврат денег за тариф: оплаченный период снимается.
+     * Если это текущая подписка — она завершается сразу (дальше как при окончании: базовый тариф или скрытие).
+     * Если после этого платежа тариф уже продлевали — текущая подписка сокращается на оплаченный период.
+     */
+    public function revokeForRefund(Payment $payment): bool
+    {
+        $clinic = $payment->clinic_id ? Clinic::query()->find($payment->clinic_id) : null;
+        $active = $clinic ? $this->activeSubscription($clinic) : null;
+        if ($clinic === null || $active === null) {
+            return false;
+        }
+
+        $cancel = function () use ($active, $clinic): void {
+            $active->update(['status' => ClinicSubscription::STATUS_CANCELLED, 'ends_at' => now(), 'auto_renew' => false]);
+            $this->afterExpire($clinic);
+        };
+
+        if ((int) $active->payment_id === (int) $payment->id) {
+            $cancel();
+
+            return true;
+        }
+
+        if ($payment->service_starts_at === null || $payment->service_ends_at === null) {
+            return false;
+        }
+        $paidSeconds = $payment->service_starts_at->diffInSeconds($payment->service_ends_at);
+        $newEnd = $active->ends_at->copy()->subSeconds((int) $paidSeconds);
+        $newEnd->lessThanOrEqualTo(now()) ? $cancel() : $active->update(['ends_at' => $newEnd]);
+
+        return true;
+    }
+
     public function setAutoRenew(Clinic $clinic, bool $enabled): void
     {
         $subscription = $this->activeSubscription($clinic);

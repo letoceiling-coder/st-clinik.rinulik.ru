@@ -66,6 +66,46 @@ class MonetizationSettings
         return max(0, min(365, (int) $this->all()['trial_days']));
     }
 
+    /** Системы налогообложения в формате Т‑Банка. */
+    public const TAXATIONS = [
+        'osn' => 'ОСН',
+        'usn_income' => 'УСН «доходы»',
+        'usn_income_outcome' => 'УСН «доходы минус расходы»',
+        'patent' => 'Патент (ПСН)',
+    ];
+
+    /** Ставки НДС в формате Т‑Банка. */
+    public const VAT_RATES = [
+        'none' => 'Без НДС',
+        'vat0' => 'НДС 0%',
+        'vat5' => 'НДС 5%',
+        'vat7' => 'НДС 7%',
+        'vat10' => 'НДС 10%',
+        'vat20' => 'НДС 20%',
+    ];
+
+    /** Чеки включены и налогообложение указано — иначе банк получил бы неверный чек. */
+    public function receiptsEnabled(): bool
+    {
+        $all = $this->all();
+
+        return (bool) $all['receipt_enabled'] && isset(self::TAXATIONS[(string) $all['receipt_taxation']]);
+    }
+
+    public function receiptTaxation(): ?string
+    {
+        $taxation = (string) $this->all()['receipt_taxation'];
+
+        return isset(self::TAXATIONS[$taxation]) ? $taxation : null;
+    }
+
+    public function receiptVat(): string
+    {
+        $vat = (string) $this->all()['receipt_vat'];
+
+        return isset(self::VAT_RATES[$vat]) ? $vat : 'none';
+    }
+
     /** Тариф пробного периода; null — самый дорогой активный тариф. */
     public function trialTariffId(): ?int
     {
@@ -86,6 +126,10 @@ class MonetizationSettings
             'trial_enabled' => true,
             'trial_days' => 30,
             'trial_tariff_id' => null,
+            // Чеки 54-ФЗ через онлайн-кассу Т‑Банка. Налогообложение задаёт бухгалтерия; без него чеки не отправляются.
+            'receipt_enabled' => false,
+            'receipt_taxation' => null,
+            'receipt_vat' => 'none',
         ];
     }
 }

@@ -1,10 +1,10 @@
 import { n as Button } from "./Button-C2BxTtRt.js";
-import { O as SelectField, c as confirmDialog, l as promptDialog, u as notify, w as Check } from "../app.js";
+import { O as SelectField, c as confirmDialog, l as promptDialog, p as Alert, u as notify, w as Check } from "../app.js";
 import { r as PageHead } from "./Dash-C_HMp027.js";
 import { Link, router, useForm } from "@inertiajs/react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 //#region resources/js/pages/Admin/Finance.tsx
-function Finance({ kpi, payments, chart, monetization_settings }) {
+function Finance({ kpi, payments, chart, monetization_settings, receipt_options }) {
 	const settings = useForm({ ...monetization_settings });
 	return /* @__PURE__ */ jsxs(Fragment, { children: [/* @__PURE__ */ jsx(PageHead, { title: "Финансы" }), /* @__PURE__ */ jsxs("div", {
 		className: "stack",
@@ -66,6 +66,11 @@ function Finance({ kpi, payments, chart, monetization_settings }) {
 					" ₽"
 				] }, row.date)) })]
 			}) : null,
+			!receipt_options.active ? /* @__PURE__ */ jsx(Alert, {
+				tone: "warning",
+				icon: "alert",
+				children: "Чеки 54-ФЗ не отправляются. Включите их ниже и укажите налогообложение и НДС — их нужно уточнить у бухгалтера."
+			}) : null,
 			/* @__PURE__ */ jsxs("form", {
 				className: "card stack",
 				onSubmit: (e) => {
@@ -125,6 +130,37 @@ function Finance({ kpi, payments, chart, monetization_settings }) {
 							children: [d, " дн."]
 						}, d))
 					}),
+					/* @__PURE__ */ jsx("h3", {
+						className: "card-title",
+						children: "Чеки 54-ФЗ (онлайн-касса Т‑Банка)"
+					}),
+					/* @__PURE__ */ jsx(Check, {
+						label: "Отправлять чеки при оплате, автопродлении и возврате",
+						checked: settings.data.receipt_enabled,
+						onChange: (e) => settings.setData("receipt_enabled", e.target.checked)
+					}),
+					/* @__PURE__ */ jsxs(SelectField, {
+						label: "Система налогообложения",
+						value: settings.data.receipt_taxation ?? "",
+						onChange: (e) => settings.setData("receipt_taxation", e.target.value || null),
+						error: settings.errors.receipt_taxation,
+						children: [/* @__PURE__ */ jsx("option", {
+							value: "",
+							children: "Не указана"
+						}), Object.entries(receipt_options.taxations).map(([k, v]) => /* @__PURE__ */ jsx("option", {
+							value: k,
+							children: v
+						}, k))]
+					}),
+					/* @__PURE__ */ jsx(SelectField, {
+						label: "НДС",
+						value: settings.data.receipt_vat,
+						onChange: (e) => settings.setData("receipt_vat", e.target.value),
+						children: Object.entries(receipt_options.vat_rates).map(([k, v]) => /* @__PURE__ */ jsx("option", {
+							value: k,
+							children: v
+						}, k))
+					}),
 					/* @__PURE__ */ jsx(Button, {
 						type: "submit",
 						loading: settings.processing,
@@ -163,10 +199,10 @@ function Finance({ kpi, payments, chart, monetization_settings }) {
 										const amount = (p.refundable_amount / 100).toLocaleString("ru-RU");
 										if (await confirmDialog({
 											title: `Вернуть ${amount} ₽?`,
-											message: `Платёж #${p.id}. Деньги уйдут клиенту, отменить возврат нельзя.`,
-											confirmLabel: "Вернуть",
+											message: `Платёж #${p.id}. Деньги уйдут клиенту, купленная услуга (тариф или продвижение) отключится сразу. Отменить возврат нельзя.`,
+											confirmLabel: "Вернуть и отключить",
 											danger: true
-										})) router.post(`/admin/finance/payments/${p.id}/refund`);
+										})) router.post(`/admin/finance/payments/${p.id}/refund`, {}, { preserveScroll: true });
 									},
 									children: "Полный возврат"
 								}), /* @__PURE__ */ jsx("button", {
@@ -187,7 +223,16 @@ function Finance({ kpi, payments, chart, monetization_settings }) {
 											notify("Введите сумму больше нуля и не больше доступной к возврату.", "error");
 											return;
 										}
-										router.post(`/admin/finance/payments/${p.id}/refund`, { amount: kopecks });
+										const revoke = await confirmDialog({
+											title: "Отключить услугу?",
+											message: "Частичный возврат обычно — компенсация: услуга остаётся до конца оплаченного срока. Отключите её, только если клиника отказывается от услуги.",
+											confirmLabel: "Отключить услугу",
+											cancelLabel: "Оставить услугу"
+										});
+										router.post(`/admin/finance/payments/${p.id}/refund`, {
+											amount: kopecks,
+											revoke_service: revoke
+										}, { preserveScroll: true });
 									},
 									children: "Частичный"
 								})] }) : null,
@@ -210,4 +255,4 @@ function Finance({ kpi, payments, chart, monetization_settings }) {
 //#endregion
 export { Finance as default };
 
-//# sourceMappingURL=Finance-ChQZ0LWT.js.map
+//# sourceMappingURL=Finance-BUl69RIA.js.map

@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Payment;
+use App\Services\Audit;
 use App\Services\Monetization\MonetizationSettings;
 use App\Services\Monetization\PaymentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\Rule;
 use Inertia\Response;
 
 class FinanceController extends AdminController
@@ -43,7 +45,7 @@ class FinanceController extends AdminController
                 'paid_at' => $p->paid_at?->format('d.m.Y H:i'),
                 'created_at' => $p->created_at?->format('d.m.Y H:i'),
                 'refunded_amount' => (int) $p->refunded_amount,
-                'refundable_amount' => $p->refundableAmount(),
+                'refundable_amount' => app(PaymentService::class)->refundableNow($p),
             ]);
         $failed = Payment::query()->where('status', Payment::STATUS_FAILED)->whereBetween('created_at', [$from, $to])->count();
         $refunded = Payment::query()->where('status', Payment::STATUS_REFUNDED)->whereBetween('refunded_at', [$from, $to])->sum('amount');
@@ -58,6 +60,11 @@ class FinanceController extends AdminController
 
         return $this->render('Admin/Finance', 'Финансы', [
             'monetization_settings' => app(MonetizationSettings::class)->all(),
+            'receipt_options' => [
+                'taxations' => MonetizationSettings::TAXATIONS,
+                'vat_rates' => MonetizationSettings::VAT_RATES,
+                'active' => app(MonetizationSettings::class)->receiptsEnabled(),
+            ],
             'filters' => [
                 'period' => $period,
                 'status' => $request->query('status'),
@@ -84,13 +91,26 @@ class FinanceController extends AdminController
             'require_active_tariff_for_catalog' => ['boolean'],
             'auto_assign_default_tariff' => ['boolean'],
             'expire_action' => ['required', 'in:downgrade,hide,none'],
+            'autorenew_enabled' => ['boolean'],
+            'autorenew_charge_days_before' => ['nullable', 'integer', 'in:0,1,3,7'],
+            'receipt_enabled' => ['boolean'],
+            'receipt_taxation' => ['nullable', 'required_if_accepted:receipt_enabled', Rule::in(array_keys(MonetizationSettings::TAXATIONS))],
+            'receipt_vat' => ['nullable', Rule::in(array_keys(MonetizationSettings::VAT_RATES))],
+        ], [
+            'receipt_taxation.required_if_accepted' => 'Укажите систему налогообложения — без неё чеки не отправляются.',
         ]);
 
         $settings->save([
             'require_active_tariff_for_catalog' => (bool) ($data['require_active_tariff_for_catalog'] ?? false),
             'auto_assign_default_tariff' => (bool) ($data['auto_assign_default_tariff'] ?? true),
             'expire_action' => $data['expire_action'],
+            'autorenew_enabled' => (bool) ($data['autorenew_enabled'] ?? $settings->autorenewEnabled()),
+            'autorenew_charge_days_before' => (int) ($data['autorenew_charge_days_before'] ?? $settings->autorenewChargeDaysBefore()),
+            'receipt_enabled' => (bool) ($data['receipt_enabled'] ?? false),
+            'receipt_taxation' => $data['receipt_taxation'] ?? null,
+            'receipt_vat' => $data['receipt_vat'] ?? 'none',
         ]);
+        Audit::log('payment.settings_updated', null, ['receipt_enabled' => (bool) ($data['receipt_enabled'] ?? false)]);
 
         return back()->with('success', 'Настройки монетизации сохранены.');
     }
@@ -101,18 +121,24 @@ class FinanceController extends AdminController
     public function refund(Request $request, Payment $payment, PaymentService $payments): RedirectResponse
     {
         $data = $request->validate([
-            'amount' => ['nullable', 'integer', 'min:1', 'max:'.max(1, $payment->refundableAmount())],
+            'amount' => ['nullable', 'integer', 'min:1', 'max:'.max(1, $payments->refundableNow($payment))],
+            'revoke_service' => ['nullable', 'boolean'],
         ]);
 
-        $refund = $payments->refund($payment, $request->user(), isset($data['amount']) ? (int) $data['amount'] : null);
+        $refund = $payments->refund(
+            $payment,
+            $request->user(),
+            isset($data['amount']) ? (int) $data['amount'] : null,
+            array_key_exists('revoke_service', $data) && $data['revoke_service'] !== null ? (bool) $data['revoke_service'] : null,
+        );
 
         if ($refund->status !== 'completed') {
-            return back()->with('error', 'Т‑Банк отклонил возврат. Подробности — в журнале платежа.');
+            return back()->with('error', 'Т‑Банк отклонил возврат или не ответил. Деньги не списаны, услуга не изменена — попробуйте позже.');
         }
 
         $rub = number_format($refund->amount / 100, 2, ',', ' ');
 
-        return back()->with('success', "Возврат {$rub} ₽ оформлен.");
+        return back()->with('success', "Возврат {$rub} ₽ оформлен.".($refund->service_revoked ? ' Услуга отключена.' : ' Услуга оставлена.'));
     }
 
     /** @return array{0: Carbon, 1: Carbon} */
