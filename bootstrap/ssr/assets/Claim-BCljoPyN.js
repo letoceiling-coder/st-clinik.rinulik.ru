@@ -20,7 +20,7 @@ function Step({ n, done, active, title, children }) {
 		})]
 	});
 }
-function OfferClaim({ offer_token, clinic_name, organization_name, authenticated, email_verified, email, register_url, verify_url, agreement_url, trial, sms }) {
+function OfferClaim({ offer_token, clinic_name, organization_name, published = false, authenticated, email_verified, email, register_url, verify_url, agreement_url, trial, sms }) {
 	const { flash } = usePage().props;
 	const form = useForm({
 		confirm: false,
@@ -50,7 +50,8 @@ function OfferClaim({ offer_token, clinic_name, organization_name, authenticated
 						clinic_name,
 						"»",
 						organization_name !== clinic_name ? ` · ${organization_name}` : "",
-						". Карточка уже подготовлена — осталось подтвердить, что вы представляете клинику."
+						". ",
+						published ? "Карточка уже на сайте — подтвердите, что представляете клинику, и управляйте ею сами." : "Карточка уже подготовлена — осталось подтвердить, что вы представляете клинику."
 					]
 				}),
 				trial.enabled ? /* @__PURE__ */ jsxs("div", {
@@ -58,7 +59,12 @@ function OfferClaim({ offer_token, clinic_name, organization_name, authenticated
 					children: [/* @__PURE__ */ jsx(Icon, {
 						name: "sparkle",
 						size: 20
-					}), /* @__PURE__ */ jsxs("span", { children: [/* @__PURE__ */ jsxs("b", { children: [trial.days, " дней бесплатно"] }), " — пробный период начнётся после проверки карточки модератором. Без привязки карты."] })]
+					}), /* @__PURE__ */ jsxs("span", { children: [
+						/* @__PURE__ */ jsxs("b", { children: [trial.days, " дней бесплатно"] }),
+						" — ",
+						published ? "пробный период начнётся сразу после подключения." : "пробный период начнётся после проверки карточки модератором.",
+						" Без привязки карты."
+					] })]
 				}) : trial.reason ? /* @__PURE__ */ jsxs(Alert, {
 					tone: "muted",
 					children: [trial.reason, " Подключение и бесплатное размещение доступны."]
@@ -176,7 +182,7 @@ function OfferClaim({ offer_token, clinic_name, organization_name, authenticated
 										checked: form.data.publish,
 										onChange: (e) => form.setData("publish", e.target.checked),
 										error: form.errors.publish,
-										label: "Согласен(на) на публикацию карточки клиники в каталоге после проверки модератором"
+										label: published ? "Согласен(на), что изменения карточки публикуются после проверки модератором" : "Согласен(на) на публикацию карточки клиники в каталоге после проверки модератором"
 									}),
 									/* @__PURE__ */ jsx(Button, {
 										type: "submit",
@@ -206,4 +212,4 @@ function OfferClaim({ offer_token, clinic_name, organization_name, authenticated
 //#endregion
 export { OfferClaim as default };
 
-//# sourceMappingURL=Claim-CTKQwBqQ.js.map
+//# sourceMappingURL=Claim-BCljoPyN.js.map

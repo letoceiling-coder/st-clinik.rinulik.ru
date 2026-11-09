@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Clinic;
+use App\Models\ClinicClaimRequest;
 use App\Models\ClinicDocument;
 use App\Models\ClinicPhoto;
 use App\Models\ClinicPost;
@@ -11,6 +12,7 @@ use App\Models\Doctor;
 use App\Models\Review;
 use App\Models\UserNotification;
 use App\Services\Monetization\ClinicTrialService;
+use App\Services\Organization\ClinicClaimRequestService;
 use App\Services\Organization\ClinicStaffNotifier;
 use App\Support\ClinicNotificationEvents;
 use InvalidArgumentException;
@@ -18,7 +20,7 @@ use InvalidArgumentException;
 /** Единая точка решений модерации: клиники, врачи, фото, документы, отзывы. */
 class ModerationService
 {
-    public const TYPES = ['clinic', 'revision', 'doctor', 'post', 'photo', 'document', 'review', 'review_reply'];
+    public const TYPES = ['clinic', 'claim', 'revision', 'doctor', 'post', 'photo', 'document', 'review', 'review_reply'];
 
     public function __construct(private readonly ProfileMetrics $metrics) {}
 
@@ -31,6 +33,7 @@ class ModerationService
 
         match ($type) {
             'clinic' => $this->clinic(Clinic::findOrFail($id), $approve, $note),
+            'claim' => $this->claim(ClinicClaimRequest::with(['clinic', 'user'])->findOrFail($id), $approve, $note),
             'revision' => $this->revision(ContentRevision::findOrFail($id), $approve, $note),
             'post' => $this->post(ClinicPost::with('clinic')->findOrFail($id), $approve, $note),
             'doctor' => $this->doctor(Doctor::with('clinic')->findOrFail($id), $approve, $note),
@@ -67,6 +70,13 @@ class ModerationService
         $this->metrics->recalcClinic($clinic);
         $this->notifyOwner($clinic, 'Филиал опубликован', "«{$clinic->name}» доступен в каталоге.");
         Audit::log('moderation.clinic.published', $clinic);
+    }
+
+    /** Заявка «Это ваша клиника?»: одобрение передаёт права на карточку заявителю. */
+    private function claim(ClinicClaimRequest $request, bool $approve, ?string $note): void
+    {
+        $service = app(ClinicClaimRequestService::class);
+        $approve ? $service->approve($request, auth()->user()) : $service->reject($request, auth()->user(), (string) $note);
     }
 
     private function revision(ContentRevision $revision, bool $approve, ?string $note): void

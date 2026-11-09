@@ -29,15 +29,18 @@ class OfferService
     ) {}
 
     /**
-     * КП для черновика клиники: токены, демо-ссылка с ограничениями по умолчанию, снимок текста.
+     * КП для карточки без владельца (черновик или уже опубликованная): токены, демо-ссылка с ограничениями по умолчанию, снимок текста.
      * Повторный вызов для той же клиники возвращает действующее КП.
      *
      * @param  array<string, mixed>  $demoOverrides
      */
     public function createFor(Clinic $clinic, OfferTemplate $template, ?User $by = null, array $demoOverrides = []): Offer
     {
-        if ($clinic->status !== 'draft') {
-            throw new RuntimeException("КП формируется только для черновиков: «{$clinic->name}» уже {$clinic->status}.");
+        $clinic->loadMissing('organization');
+        if (! $clinic->isClaimable()) {
+            throw new RuntimeException($clinic->isOwnerless()
+                ? "КП не формируется: «{$clinic->name}» — ".mb_strtolower(Clinic::STATUS_LABELS[$clinic->status] ?? $clinic->status).'.'
+                : "КП не нужно: у «{$clinic->name}» уже есть владелец.");
         }
         $existing = Offer::query()->where('clinic_id', $clinic->id)->whereNull('revoked_at')
             ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))->latest('id')->first();

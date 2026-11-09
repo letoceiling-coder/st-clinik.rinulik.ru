@@ -36,6 +36,15 @@ final class AuditActions
         'post.update_proposed' => 'Изменения публикации отправлены на модерацию',
         'photo.update_proposed' => 'Изменения фото отправлены на модерацию',
         'revision.withdrawn' => 'Клиника отозвала изменения с модерации',
+        'clinic.claim_requested' => 'Заявка на права на клинику',
+        'clinic.claim_approved' => 'Права на клинику переданы по заявке',
+        'clinic.claim_rejected' => 'Заявка на права на клинику отклонена',
+        'clinic.claimed' => 'Клиника получила владельца',
+        'clinic.claimed_by_sms' => 'Права на клинику подтверждены по SMS',
+        'clinic.claim_document_viewed' => 'Просмотрен документ из заявки на права',
+        'branch.duplicate_suggested' => 'Предложено забрать карточку вместо дубля',
+        'auth.register_clinic_claim' => 'Регистрация для подтверждения прав на клинику',
+        'leads.unclaimed_updated' => 'Обработана заявка в клинику без владельца',
         'branch.submitted' => 'Филиал отправлен на модерацию',
         'broadcasts.created' => 'Создана рассылка',
         'broadcasts.updated' => 'Изменена рассылка',
@@ -128,7 +137,7 @@ final class AuditActions
     /** Объекты модерации и справочников в коде действия. */
     private const OBJECTS = [
         'clinic' => 'клиника', 'doctor' => 'врач', 'document' => 'документ', 'photo' => 'фото',
-        'revision' => 'изменения из кабинета', 'post' => 'публикация',
+        'claim' => 'права на клинику', 'revision' => 'изменения из кабинета', 'post' => 'публикация',
         'review' => 'отзыв', 'review_reply' => 'ответ на отзыв', 'promotion' => 'продвижение', 'broadcast' => 'рассылка',
         'cities' => 'город', 'City' => 'город', 'districts' => 'район', 'District' => 'район',
         'regions' => 'регион', 'Region' => 'регион', 'specialties' => 'направление', 'Specialty' => 'направление',
@@ -175,13 +184,14 @@ final class AuditActions
         'integration' => 'Интеграции',
         'assistant' => 'AI-ассистент',
         'site_display' => 'Показ на сайте',
+        'leads' => 'Заявки пациентов',
     ];
 
     /** Типы объектов (class_basename модели). */
     private const SUBJECTS = [
         'Appointment' => 'Запись', 'AssistantKbEntry' => 'Статья базы знаний', 'Broadcast' => 'Рассылка',
         'Campaign' => 'Кампания КП', 'CampaignRecipient' => 'Получатель кампании', 'CardBonusType' => 'Бонус карточки',
-        'City' => 'Город', 'Clinic' => 'Клиника', 'ClinicDocument' => 'Документ', 'ClinicPhoto' => 'Фото',
+        'City' => 'Город', 'Clinic' => 'Клиника', 'ClinicClaimRequest' => 'Заявка на права', 'ClinicDocument' => 'Документ', 'ClinicPhoto' => 'Фото',
         'ClinicPost' => 'Публикация', 'ClinicPromotion' => 'Продвижение', 'ClinicPropertyType' => 'Свойство клиник',
         'ClinicService' => 'Услуга клиники', 'ClinicSubscription' => 'Подписка клиники', 'CmsPage' => 'CMS-страница',
         'Concern' => 'Симптом', 'DemoLink' => 'Демо-доступ', 'District' => 'Район', 'Doctor' => 'Врач',

@@ -303,7 +303,7 @@ function PostCard({ post }) {
 		})]
 	});
 }
-function ClinicShow({ clinic, reviews, review_filters, distribution, similar, concerns, review_options, breadcrumbs, clinic_follow, visit, preview = null }) {
+function ClinicShow({ clinic, reviews, review_filters, distribution, similar, concerns, review_options, breadcrumbs, clinic_follow, visit, ownership, preview = null }) {
 	const isPreview = preview !== null;
 	const lead = useLead();
 	const { url } = usePage();
@@ -418,89 +418,105 @@ function ClinicShow({ clinic, reviews, review_filters, distribution, similar, co
 				className: "container clinic-top",
 				children: [/* @__PURE__ */ jsxs("div", {
 					className: "clinic-top__main",
-					children: [/* @__PURE__ */ jsxs("header", {
-						className: "clinic-head",
-						children: [
-							/* @__PURE__ */ jsxs("div", {
-								className: "clinic-head__badges",
-								children: [
-									clinic.is_verified ? /* @__PURE__ */ jsx(Badge, {
-										tone: "success",
-										icon: "shield",
-										children: "Клиника проверена"
-									}) : null,
-									clinic.license.confirmed ? /* @__PURE__ */ jsx(Badge, {
-										tone: "info",
-										children: "Лицензия подтверждена"
-									}) : null,
-									clinic.is_24_7 ? /* @__PURE__ */ jsx(Badge, {
-										tone: "dark",
-										children: "Круглосуточно"
-									}) : null,
-									clinic.accepts_children ? /* @__PURE__ */ jsx(Badge, {
-										tone: "primary",
-										children: clinic.children_age_from ? `Дети с ${clinic.children_age_from} лет` : "Принимают детей"
-									}) : null
-								]
-							}),
-							/* @__PURE__ */ jsx("h1", { children: clinic.name }),
-							clinic.tagline ? /* @__PURE__ */ jsx("p", {
-								className: "clinic-head__tagline",
-								children: clinic.tagline
-							}) : null,
-							/* @__PURE__ */ jsxs("div", {
-								className: "clinic-head__meta",
-								children: [
-									clinic.reviews_count > 0 ? /* @__PURE__ */ jsxs("a", {
-										href: "#reviews",
-										className: "rating",
-										children: [
-											/* @__PURE__ */ jsx(Icon, {
-												name: "star",
-												size: 22
-											}),
-											clinic.rating.toFixed(1).replace(".", ","),
-											/* @__PURE__ */ jsx("span", {
-												className: "rating__count",
-												children: reviewsWord(clinic.reviews_count)
-											})
-										]
-									}) : /* @__PURE__ */ jsx("span", {
-										className: "rating__count",
-										children: "Пока нет отзывов"
-									}),
-									/* @__PURE__ */ jsxs("span", {
-										className: "meta-item",
-										children: [
-											/* @__PURE__ */ jsx(Icon, {
-												name: "pin",
+					children: [
+						/* @__PURE__ */ jsxs("header", {
+							className: "clinic-head",
+							children: [
+								/* @__PURE__ */ jsxs("div", {
+									className: "clinic-head__badges",
+									children: [
+										clinic.is_verified ? /* @__PURE__ */ jsx(Badge, {
+											tone: "success",
+											icon: "shield",
+											children: "Клиника проверена"
+										}) : null,
+										clinic.license.confirmed ? /* @__PURE__ */ jsx(Badge, {
+											tone: "info",
+											children: "Лицензия подтверждена"
+										}) : null,
+										clinic.is_24_7 ? /* @__PURE__ */ jsx(Badge, {
+											tone: "dark",
+											children: "Круглосуточно"
+										}) : null,
+										clinic.accepts_children ? /* @__PURE__ */ jsx(Badge, {
+											tone: "primary",
+											children: clinic.children_age_from ? `Дети с ${clinic.children_age_from} лет` : "Принимают детей"
+										}) : null
+									]
+								}),
+								/* @__PURE__ */ jsx("h1", { children: clinic.name }),
+								clinic.tagline ? /* @__PURE__ */ jsx("p", {
+									className: "clinic-head__tagline",
+									children: clinic.tagline
+								}) : null,
+								/* @__PURE__ */ jsxs("div", {
+									className: "clinic-head__meta",
+									children: [
+										clinic.reviews_count > 0 ? /* @__PURE__ */ jsxs("a", {
+											href: "#reviews",
+											className: "rating",
+											children: [
+												/* @__PURE__ */ jsx(Icon, {
+													name: "star",
+													size: 22
+												}),
+												clinic.rating.toFixed(1).replace(".", ","),
+												/* @__PURE__ */ jsx("span", {
+													className: "rating__count",
+													children: reviewsWord(clinic.reviews_count)
+												})
+											]
+										}) : /* @__PURE__ */ jsx("span", {
+											className: "rating__count",
+											children: "Пока нет отзывов"
+										}),
+										/* @__PURE__ */ jsxs("span", {
+											className: "meta-item",
+											children: [
+												/* @__PURE__ */ jsx(Icon, {
+													name: "pin",
+													size: 18
+												}),
+												clinic.address,
+												clinic.district ? ` · ${clinic.district}` : "",
+												clinic.metro ? ` · м. ${clinic.metro}` : ""
+											]
+										}),
+										clinic.open_state ? /* @__PURE__ */ jsxs("span", {
+											className: cx("meta-item open-state", clinic.open_state.open ? clinic.open_state.closing_soon ? "is-soon" : "is-open" : "is-closed"),
+											children: [/* @__PURE__ */ jsx("span", {
+												className: "open-state__dot",
+												"aria-hidden": "true"
+											}), clinic.open_state.label]
+										}) : /* @__PURE__ */ jsxs("span", {
+											className: "meta-item",
+											children: [/* @__PURE__ */ jsx(Icon, {
+												name: "clock",
 												size: 18
-											}),
-											clinic.address,
-											clinic.district ? ` · ${clinic.district}` : "",
-											clinic.metro ? ` · м. ${clinic.metro}` : ""
-										]
-									}),
-									clinic.open_state ? /* @__PURE__ */ jsxs("span", {
-										className: cx("meta-item open-state", clinic.open_state.open ? clinic.open_state.closing_soon ? "is-soon" : "is-open" : "is-closed"),
-										children: [/* @__PURE__ */ jsx("span", {
-											className: "open-state__dot",
-											"aria-hidden": "true"
-										}), clinic.open_state.label]
-									}) : /* @__PURE__ */ jsxs("span", {
-										className: "meta-item",
-										children: [/* @__PURE__ */ jsx(Icon, {
-											name: "clock",
-											size: 18
-										}), clinic.today]
-									})
-								]
-							})
-						]
-					}), /* @__PURE__ */ jsx(Gallery, {
-						photos: clinic.photos,
-						name: clinic.name
-					})]
+											}), clinic.today]
+										})
+									]
+								})
+							]
+						}),
+						ownership && !ownership.claimed && !preview ? /* @__PURE__ */ jsxs(Alert, {
+							tone: "muted",
+							icon: "info",
+							children: [
+								"Данные собраны из открытых источников, клиника их пока не подтвердила. Цены и расписание уточняйте по телефону.",
+								" ",
+								ownership.claim_url ? /* @__PURE__ */ jsx(Link, {
+									href: ownership.claim_url,
+									className: "link",
+									children: "Это ваша клиника?"
+								}) : null
+							]
+						}) : null,
+						/* @__PURE__ */ jsx(Gallery, {
+							photos: clinic.photos,
+							name: clinic.name
+						})
+					]
 				}), /* @__PURE__ */ jsxs("aside", {
 					className: "booking card card--shadow",
 					"aria-label": "Запись в клинику",
@@ -1018,4 +1034,4 @@ function ClinicShow({ clinic, reviews, review_filters, distribution, similar, co
 //#endregion
 export { ClinicShow as default };
 
-//# sourceMappingURL=Show-Bhz7EVjT.js.map
+//# sourceMappingURL=Show-C93RiHLr.js.map

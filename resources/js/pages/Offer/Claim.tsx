@@ -10,6 +10,7 @@ interface Props {
     offer_token: string;
     clinic_name: string;
     organization_name: string;
+    published?: boolean;
     authenticated: boolean;
     email_verified: boolean;
     email: string | null;
@@ -34,7 +35,7 @@ function Step({ n, done, active, title, children }: { n: number; done: boolean; 
     );
 }
 
-export default function OfferClaim({ offer_token, clinic_name, organization_name, authenticated, email_verified, email, register_url, verify_url, agreement_url, trial, sms }: Props) {
+export default function OfferClaim({ offer_token, clinic_name, organization_name, published = false, authenticated, email_verified, email, register_url, verify_url, agreement_url, trial, sms }: Props) {
     const { flash } = usePage<SharedProps>().props;
     const form = useForm({ confirm: false, agreement: false, publish: false, code: '' });
     const claimUrl = `/offer/${offer_token}/claim`;
@@ -50,13 +51,13 @@ export default function OfferClaim({ offer_token, clinic_name, organization_name
             <div className="card card--shadow stack claim-card">
                 <h1 className="auth-card__title">Подключение клиники</h1>
                 <p className="text-muted">
-                    «{clinic_name}»{organization_name !== clinic_name ? ` · ${organization_name}` : ''}. Карточка уже подготовлена — осталось подтвердить, что вы представляете клинику.
+                    «{clinic_name}»{organization_name !== clinic_name ? ` · ${organization_name}` : ''}. {published ? 'Карточка уже на сайте — подтвердите, что представляете клинику, и управляйте ею сами.' : 'Карточка уже подготовлена — осталось подтвердить, что вы представляете клинику.'}
                 </p>
                 {trial.enabled ? (
                     <div className="claim-trial">
                         <Icon name="sparkle" size={20} />
                         <span>
-                            <b>{trial.days} дней бесплатно</b> — пробный период начнётся после проверки карточки модератором. Без привязки карты.
+                            <b>{trial.days} дней бесплатно</b> — {published ? 'пробный период начнётся сразу после подключения.' : 'пробный период начнётся после проверки карточки модератором.'} Без привязки карты.
                         </span>
                     </div>
                 ) : trial.reason ? (
@@ -123,7 +124,7 @@ export default function OfferClaim({ offer_token, clinic_name, organization_name
                                 checked={form.data.publish}
                                 onChange={(e) => form.setData('publish', e.target.checked)}
                                 error={form.errors.publish}
-                                label="Согласен(на) на публикацию карточки клиники в каталоге после проверки модератором"
+                                label={published ? 'Согласен(на), что изменения карточки публикуются после проверки модератором' : 'Согласен(на) на публикацию карточки клиники в каталоге после проверки модератором'}
                             />
                             <Button type="submit" block size="lg" loading={form.processing} disabled={needsCode && form.data.code.length < 6}>
                                 {trial.enabled ? `Подключить и начать ${trial.days} дней бесплатно` : 'Подключить клинику'}

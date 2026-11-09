@@ -186,7 +186,7 @@ export function ModerationCard({ item, compact = false }: { item: ModerationItem
                     ) : null}
                     <Button size="sm" variant={isClinic && item.can_publish ? 'outline' : 'primary'} loading={form.processing} onClick={() => send('approve')}>
                         {isClinic && item.can_publish ? null : <Icon name="check" size={16} />}{' '}
-                        {isClinic ? 'Только одобрить' : item.type === 'revision' ? 'Одобрить изменения' : 'Одобрить и опубликовать'}
+                        {isClinic ? 'Только одобрить' : item.type === 'revision' ? 'Одобрить изменения' : item.type === 'claim' ? 'Передать права' : 'Одобрить и опубликовать'}
                     </Button>
                     <Button size="sm" variant="danger" loading={form.processing} onClick={() => send('reject')}>
                         Отклонить

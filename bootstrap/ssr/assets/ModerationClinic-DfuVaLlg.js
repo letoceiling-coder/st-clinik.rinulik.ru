@@ -3,7 +3,7 @@ import { i as LinkButton, n as Button } from "./Button-C2BxTtRt.js";
 import { h as Badge, k as TextArea, p as Alert, w as Check } from "../app.js";
 import { r as PageHead, s as StatusBadge } from "./Dash-C_HMp027.js";
 import { n as DoctorArt, r as PhotoArt } from "./PhotoArt-C4p4XGJd.js";
-import { n as PhotoViewer, t as ModerationCard } from "./ModerationCard-BhEmf8ao.js";
+import { n as PhotoViewer, t as ModerationCard } from "./ModerationCard-DLGXYsRF.js";
 import { Link, router, useForm } from "@inertiajs/react";
 import { useState } from "react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
@@ -617,4 +617,4 @@ function Tags({ items, empty }) {
 //#endregion
 export { ModerationClinic as default };
 
-//# sourceMappingURL=ModerationClinic-B5TitqUL.js.map
+//# sourceMappingURL=ModerationClinic-DfuVaLlg.js.map

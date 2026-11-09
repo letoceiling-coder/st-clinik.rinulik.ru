@@ -13,7 +13,7 @@ use App\Services\Offers\OfferService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-/** Передача черновика из КП новому владельцу организации. */
+/** Передача карточки без владельца (черновика или опубликованной) новому владельцу организации — по КП или одобренной заявке. */
 class OrganizationClaimService
 {
     public function __construct(
@@ -28,34 +28,73 @@ class OrganizationClaimService
     public function preview(Offer $offer): array
     {
         $clinic = $offer->clinic()->with('organization')->firstOrFail();
-        $org = $clinic->organization;
+        $reason = $this->offerReason($offer) ?? $this->clinicReason($clinic, $clinic->organization, null);
 
         return [
-            'claimable' => $this->claimableReason($offer, $clinic, $org, null) === null,
-            'reason' => $this->claimableReason($offer, $clinic, $org, null),
+            'claimable' => $reason === null,
+            'reason' => $reason,
             'clinic_name' => $clinic->name,
-            'organization_name' => $org?->name ?? $clinic->name,
+            'organization_name' => $clinic->organization?->name ?? $clinic->name,
         ];
     }
 
+    /** Подключение по КП. */
     public function claim(Offer $offer, User $user, ?Request $request = null): Organization
     {
         $clinic = $offer->clinic()->with('organization')->firstOrFail();
+        $organization = $this->transfer($clinic, $user, $offer);
+
+        if ($request !== null) {
+            $this->demoSession->leave($request);
+            $request->session()->put('cabinet_branch', $clinic->id);
+        }
+
+        return $organization;
+    }
+
+    /** Передача по одобренной модератором заявке «Это ваша клиника?». */
+    public function claimClinic(Clinic $clinic, User $user): Organization
+    {
+        return $this->transfer($clinic->loadMissing('organization'), $user, null);
+    }
+
+    /** Почему карточку нельзя передать этому пользователю (или вообще), либо null. */
+    public function reasonFor(Clinic $clinic, ?User $user): ?string
+    {
+        return $this->clinicReason($clinic, $clinic->loadMissing('organization')->organization, $user);
+    }
+
+    private function transfer(Clinic $clinic, User $user, ?Offer $offer): Organization
+    {
         $org = $clinic->organization;
         abort_unless($org, 404, 'Организация не найдена.');
 
-        $reason = $this->claimableReason($offer, $clinic, $org, $user);
+        $reason = ($offer ? $this->offerReason($offer) : null) ?? $this->clinicReason($clinic, $org, $user);
         abort_if($reason !== null, 422, $reason);
 
-        $organization = DB::transaction(function () use ($offer, $user, $org, $clinic): Organization {
-            // Две одновременные попытки подключения по одному КП: вторая увидит уже назначенного владельца.
+        return DB::transaction(function () use ($offer, $user, $org, $clinic): Organization {
+            // Две одновременные попытки забрать одну карточку: вторая увидит уже назначенного владельца.
             $org = Organization::query()->lockForUpdate()->findOrFail($org->id);
-            $offer = Offer::query()->lockForUpdate()->findOrFail($offer->id);
-            $reason = $this->claimableReason($offer, $clinic, $org, $user);
+            if ($offer !== null) {
+                $offer = Offer::query()->lockForUpdate()->findOrFail($offer->id);
+            }
+            $reason = ($offer ? $this->offerReason($offer) : null) ?? $this->clinicReason($clinic, $org, $user);
             abort_if($reason !== null, 422, $reason);
 
             if ($user->role !== 'clinic_owner') {
                 $user->forceFill(['role' => 'clinic_owner'])->save();
+            }
+
+            // У заявителя уже своя организация (зарегистрировался сам или это сеть): карточка становится её филиалом.
+            $own = $this->staffService->organizationFor($user);
+            if ($own !== null && (int) $own->id !== (int) $org->id) {
+                $clinic->forceFill(['organization_id' => $own->id])->save();
+                $this->logTransfer($offer, $clinic, $user);
+                if ($offer !== null) {
+                    $this->offerService->markConnected($offer, $user);
+                }
+
+                return $own->fresh();
             }
 
             $org->update([
@@ -68,21 +107,23 @@ class OrganizationClaimService
                 ['role' => OrganizationStaff::ROLE_OWNER, 'invited_at' => now(), 'revoked_at' => null],
             );
 
-            $this->offerService->markConnected($offer, $user);
-            Audit::log('offers.claimed', $offer, ['user_id' => $user->id, 'clinic_id' => $clinic->id]);
+            if ($offer !== null) {
+                $this->offerService->markConnected($offer, $user);
+            }
+            $this->logTransfer($offer, $clinic, $user);
 
             return $org->fresh();
         });
-
-        if ($request !== null) {
-            $this->demoSession->leave($request);
-            $request->session()->put('cabinet_branch', $clinic->id);
-        }
-
-        return $organization;
     }
 
-    private function claimableReason(Offer $offer, Clinic $clinic, ?Organization $org, ?User $user): ?string
+    private function logTransfer(?Offer $offer, Clinic $clinic, User $user): void
+    {
+        $offer !== null
+            ? Audit::log('offers.claimed', $offer, ['user_id' => $user->id, 'clinic_id' => $clinic->id])
+            : Audit::log('clinic.claimed', $clinic, ['user_id' => $user->id]);
+    }
+
+    private function offerReason(Offer $offer): ?string
     {
         if (! $offer->isAvailable()) {
             return 'Срок действия предложения истёк.';
@@ -90,8 +131,14 @@ class OrganizationClaimService
         if ($offer->status === 'connected') {
             return 'Клиника уже подключена к платформе.';
         }
-        if ($clinic->status !== 'draft') {
-            return 'Подключение доступно только для черновика клиники.';
+
+        return null;
+    }
+
+    private function clinicReason(Clinic $clinic, ?Organization $org, ?User $user): ?string
+    {
+        if (! in_array($clinic->status, Clinic::CLAIMABLE_STATUSES, true)) {
+            return 'Эту карточку сейчас нельзя подключить: '.mb_strtolower(Clinic::STATUS_LABELS[$clinic->status] ?? $clinic->status).'.';
         }
         if ($org === null) {
             return 'У клиники нет организации.';
@@ -105,8 +152,9 @@ class OrganizationClaimService
         }
         if ($user !== null) {
             $existing = $this->staffService->organizationFor($user);
-            if ($existing !== null && (int) $existing->id !== (int) $org->id) {
-                return 'У вашего аккаунта уже привязана другая организация.';
+            // Филиал в свою организацию добавляет только её владелец, не сотрудник.
+            if ($existing !== null && (int) $existing->id !== (int) $org->id && (int) $existing->owner_id !== (int) $user->id) {
+                return 'Забрать карточку может только владелец вашей организации в кабинете.';
             }
         }
 

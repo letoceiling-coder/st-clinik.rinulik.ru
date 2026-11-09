@@ -7,6 +7,7 @@ use App\Http\Resources\ClinicResource;
 use App\Http\Resources\ReviewResource;
 use App\Models\Clinic;
 use App\Models\HistoryEntry;
+use App\Models\Organization;
 use App\Repositories\Contracts\CatalogRepository;
 use App\Repositories\Contracts\ClinicRepository;
 use App\Repositories\Contracts\ReviewRepository;
@@ -76,6 +77,12 @@ class ClinicController extends Controller
                 'can_subscribe' => $request->user() !== null,
             ],
             'visit' => app(ClinicVisitInfo::class)->forClinic($clinic),
+            // Карточка без владельца собрана из открытых источников: честно помечаем и предлагаем клинике забрать её.
+            'ownership' => [
+                'claimed' => ! ($unclaimed = $clinic->organization_id !== null
+                    && Organization::query()->whereKey($clinic->organization_id)->whereNull('owner_id')->exists()),
+                'claim_url' => $unclaimed ? route('clinics.claim.show', $clinic->slug) : null,
+            ],
         ], $seoData);
     }
 

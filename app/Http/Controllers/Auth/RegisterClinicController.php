@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Clinic;
 use App\Models\Offer;
 use App\Models\Organization;
 use App\Models\OrganizationStaff;
@@ -40,9 +41,19 @@ class RegisterClinicController extends Controller
             }
         }
 
+        $claimClinic = null;
+        $claimSlug = (string) $request->query('claim', '');
+        if ($claimSlug !== '' && $offerPreview === null) {
+            $clinic = Clinic::query()->where('slug', $claimSlug)->with('organization')->first();
+            if ($clinic !== null && $clinic->isClaimable()) {
+                $claimClinic = ['slug' => $clinic->slug, 'name' => $clinic->name];
+            }
+        }
+
         return Inertia::render('Auth/RegisterClinic', [
             'seo' => $seo->private('Регистрация клиники'),
             'offer' => $offerPreview,
+            'claim' => $claimClinic,
         ]);
     }
 
@@ -55,9 +66,17 @@ class RegisterClinicController extends Controller
             'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
             'consent' => ['accepted'],
             'offer_token' => ['nullable', 'string', 'min:40', 'max:64'],
+            'claim_clinic' => ['nullable', 'string', 'max:200'],
         ];
 
-        if (! $request->filled('offer_token')) {
+        $claimClinic = $request->filled('claim_clinic') && ! $request->filled('offer_token')
+            ? Clinic::query()->where('slug', (string) $request->input('claim_clinic'))->with('organization')->first()
+            : null;
+        if ($claimClinic !== null && ! $claimClinic->isClaimable()) {
+            $claimClinic = null;
+        }
+
+        if (! $request->filled('offer_token') && $claimClinic === null) {
             $rules['organization_name'] = ['required', 'string', 'min:2', 'max:160'];
         }
 
@@ -86,6 +105,19 @@ class RegisterClinicController extends Controller
 
             return redirect()->route('verification.notice')
                 ->with('success', 'Аккаунт создан. Подтвердите e-mail — после этого вы вернётесь к подключению клиники.');
+        }
+
+        if ($claimClinic !== null) {
+            // Организация уже есть в каталоге: создаём только аккаунт, права — после подтверждения e-mail и проверки.
+            $user->save();
+            event(new Registered($user));
+            Auth::login($user);
+            $request->session()->regenerate();
+            $request->session()->put('url.intended', route('clinics.claim.show', $claimClinic->slug));
+            Audit::log('auth.register_clinic_claim', $claimClinic, ['user_id' => $user->id]);
+
+            return redirect()->route('verification.notice')
+                ->with('success', 'Аккаунт создан. Подтвердите e-mail — после этого вы вернётесь к подтверждению прав на клинику.');
         }
 
         $organization = DB::transaction(function () use ($user, $data): Organization {

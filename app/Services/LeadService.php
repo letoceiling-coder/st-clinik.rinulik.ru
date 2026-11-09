@@ -95,7 +95,16 @@ class LeadService
             'ip_hash' => hash('sha256', (request()->ip() ?? '').config('app.key')),
         ]);
 
-        if (! $assistantBroadcast && $clinic->organization !== null) {
+        // У клиники нет владельца — заявку некому принять в кабинете: её получают операторы платформы.
+        if (! $assistantBroadcast && $clinic->organization?->owner_id === null) {
+            app(PlatformStaffNotifier::class)->notify(
+                'admin.appointments',
+                'lead_unclaimed',
+                'Заявка в клинику без владельца',
+                "Новая заявка в «{$clinic->name}». У клиники нет кабинета — свяжитесь с клиникой и пациентом.",
+                '/admin/leads/unclaimed',
+            );
+        } elseif (! $assistantBroadcast && $clinic->organization !== null) {
             // Всем сотрудникам с доступом к заявкам — в кабинет и в их каналы (MAX, push, почта): чем быстрее звонок, тем больше записей.
             app(ClinicStaffNotifier::class)->notify(
                 $clinic->organization,

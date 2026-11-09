@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Clinic;
+use App\Models\ClinicClaimRequest;
 use App\Models\ClinicDocument;
+use App\Services\Audit;
 use App\Services\ClinicModerationDossier;
 use App\Services\ContentModerationSettings;
 use App\Services\ModerationQueue;
@@ -12,6 +14,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Response;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ModerationController extends AdminController
@@ -52,8 +55,17 @@ class ModerationController extends AdminController
             'approve_photos' => 'boolean',
             'next' => 'boolean',
         ]);
-        if ($data['decision'] === 'reject' && blank($data['note'] ?? null) && in_array($type, ['clinic', 'revision', 'doctor', 'post', 'document', 'review', 'review_reply'], true)) {
+        if ($data['decision'] === 'reject' && blank($data['note'] ?? null) && in_array($type, ['clinic', 'claim', 'revision', 'doctor', 'post', 'document', 'review', 'review_reply'], true)) {
             return back()->withErrors(['note' => 'Укажите причину отклонения — её увидит автор.']);
+        }
+        if ($type === 'claim') {
+            try {
+                $moderation->decide($type, $id, $data['decision'], $data['note'] ?? null);
+            } catch (RuntimeException $e) {
+                return back()->with('error', $e->getMessage());
+            }
+
+            return back()->with('success', $data['decision'] === 'approve' ? 'Права переданы: представитель получил доступ к кабинету клиники.' : 'Заявка отклонена.');
         }
 
         $approve = $data['decision'] === 'approve';
@@ -99,6 +111,19 @@ class ModerationController extends AdminController
         abort_unless($document->path && Storage::disk('local')->exists($document->path), 404);
 
         return Storage::disk('local')->download($document->path);
+    }
+
+    /** Документ из заявки на права: открывается только в админке, на сайт не попадает. */
+    public function viewClaimDocument(ClinicClaimRequest $claim): StreamedResponse
+    {
+        abort_unless($claim->document_path && Storage::disk('local')->exists($claim->document_path), 404);
+        Audit::log('clinic.claim_document_viewed', $claim->clinic, ['request_id' => $claim->id]);
+
+        return Storage::disk('local')->response($claim->document_path, null, [
+            'Content-Disposition' => 'inline',
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-store',
+        ]);
     }
 
     /** Файл документа для просмотра прямо в браузере (PDF или изображение), без скачивания. */

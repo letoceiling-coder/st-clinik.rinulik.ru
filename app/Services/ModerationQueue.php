@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Http\Controllers\Cabinet\MediaController;
 use App\Models\Clinic;
+use App\Models\ClinicClaimRequest;
 use App\Models\ClinicDocument;
 use App\Models\ClinicPhoto;
 use App\Models\ClinicPost;
@@ -23,6 +24,7 @@ class ModerationQueue
 
     public const TYPE_LABELS = [
         'clinic' => 'Клиника',
+        'claim' => 'Права на клинику',
         'revision' => 'Изменения',
         'doctor' => 'Врач',
         'post' => 'Публикация',
@@ -35,6 +37,7 @@ class ModerationQueue
     /** Что проверить модератору по каждому типу. */
     public const HINTS = [
         'clinic' => 'Откройте полную проверку: там все данные, фото, график, услуги, врачи и документы. Сверьте название, адрес и контакты. Клинику с владельцем он опубликует сам из кабинета; клинику без владельца можно сразу одобрить и опубликовать.',
+        'claim' => 'Представитель просит доступ к карточке без владельца. Сверьте документ с клиникой: в выписке ЕГРЮЛ — название и руководитель, в доверенности — кто и кому её выдал. При сомнениях позвоните по телефону из карточки клиники, а не по номеру заявителя. После одобрения заявитель получит кабинет, карточка останется на сайте.',
         'revision' => 'Сравните «было» и «стало». До решения на сайте показывается прежняя версия; после одобрения изменения сразу опубликуются, при отклонении клиника увидит причину.',
         'revision_post' => 'Эти изменения уже на сайте (цены и график публикуются сразу). Проверьте их: при отклонении клиника получит вашу причину и должна будет исправить данные.',
         'doctor' => 'Проверьте ФИО, должность и описание: без рекламных обещаний и чужих контактов. После одобрения врач появится на странице клиники.',
@@ -54,6 +57,7 @@ class ModerationQueue
     {
         $items = [
             ...$this->clinics(),
+            ...$this->claims(),
             ...$this->revisions(),
             ...$this->doctors(),
             ...$this->posts(),
@@ -161,6 +165,38 @@ class ModerationQueue
         }
 
         return null;
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function claims(): array
+    {
+        return ClinicClaimRequest::query()->pending()->with(['clinic:id,name,slug,phone,address,organization_id', 'clinic.organization:id,name,inn', 'user:id,name,email'])
+            ->latest('updated_at')->limit(self::LIMIT)->get()
+            ->map(function (ClinicClaimRequest $claim): array {
+                $extension = strtolower(pathinfo((string) $claim->document_path, PATHINFO_EXTENSION));
+                $hasFile = $claim->document_path && Storage::disk('local')->exists($claim->document_path);
+                $others = ClinicClaimRequest::query()->pending()->where('clinic_id', $claim->clinic_id)->whereKeyNot($claim->id)->count();
+
+                return $this->item('claim', $claim->id, $claim->clinic?->name ?? 'Клиника', $claim->clinic, $claim->updated_at, [
+                    'facts' => $this->facts([
+                        'Заявитель' => $claim->user?->name,
+                        'E-mail заявителя' => $claim->user?->email,
+                        'Должность' => $claim->position,
+                        'Телефон заявителя' => $claim->phone,
+                        'Телефон из карточки' => $claim->clinic?->phone,
+                        'Организация' => $claim->clinic?->organization?->name,
+                        'ИНН в карточке' => $claim->clinic?->organization?->inn,
+                        'Другие заявки на эту клинику' => $others > 0 ? (string) $others : null,
+                    ]),
+                    'body' => $claim->comment,
+                    'body_label' => 'Комментарий',
+                    'media' => $hasFile
+                        ? ['kind' => $extension === 'pdf' ? 'pdf' : 'image', 'url' => '/admin/moderation/claims/'.$claim->id.'/document', 'caption' => 'Документ о полномочиях']
+                        : ['kind' => 'missing', 'caption' => 'Документ не приложен.'],
+                    'links' => $claim->clinic ? [['label' => 'Карточка на сайте', 'url' => '/clinics/'.$claim->clinic->slug, 'external' => true]] : [],
+                    'review_url' => null,
+                ]);
+            })->all();
     }
 
     /** @return list<array<string, mixed>> */

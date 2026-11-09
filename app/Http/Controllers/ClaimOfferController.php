@@ -41,6 +41,7 @@ class ClaimOfferController extends Controller
             'offer_token' => $token,
             'clinic_name' => $preview['clinic_name'],
             'organization_name' => $preview['organization_name'],
+            'published' => in_array($offer->clinic->status, ['approved', 'published', 'hidden'], true),
             'authenticated' => $user !== null,
             'email_verified' => (bool) $user?->hasVerifiedEmail(),
             'email' => $user?->email,
@@ -109,7 +110,17 @@ class ClaimOfferController extends Controller
         }
 
         $organization = $claims->claim($offer, $user, $request);
-        $trial = $trials->request($organization, $offer->clinic->fresh(), $user, $request);
+        $clinic = $offer->clinic->fresh();
+        $trial = $trials->request($organization, $clinic, $user, $request);
+
+        // Карточка уже прошла модерацию и видна на сайте: она остаётся опубликованной, правки владельца пойдут через модерацию.
+        if (in_array($clinic->status, ['approved', 'published', 'hidden'], true)) {
+            $trialStarted = $trial && $trials->activateIfRequested($clinic) !== null;
+
+            return redirect()->route('cabinet.dashboard')->with('success', $trialStarted
+                ? 'Клиника подключена, пробный период уже действует. Изменения в карточке публикуются после проверки модератором.'
+                : 'Клиника подключена. Изменения в карточке публикуются после проверки модератором.');
+        }
 
         return redirect()->route('cabinet.dashboard')->with('success', $trial
             ? 'Клиника подключена и отправлена на проверку. Пробный период начнётся сразу после одобрения модератором.'

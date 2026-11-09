@@ -34,6 +34,9 @@ class Clinic extends Model
 
     public const HIDDEN_BY_SUBSCRIPTION = 'subscription';
 
+    /** Статусы, в которых карточку без владельца можно передать клинике (по КП или заявке «Это ваша клиника?»). */
+    public const CLAIMABLE_STATUSES = ['draft', 'pending', 'approved', 'published', 'hidden'];
+
     protected $guarded = [];
 
     protected static function booted(): void
@@ -93,6 +96,22 @@ class Clinic extends Model
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('clinics.status', 'published');
+    }
+
+    /** Карточки, у организации которых нет владельца: собраны парсером или админом, клиника их ещё не подтвердила. */
+    public function scopeOwnerless(Builder $query): Builder
+    {
+        return $query->whereHas('organization', fn (Builder $q) => $q->whereNull('owner_id'));
+    }
+
+    public function isOwnerless(): bool
+    {
+        return $this->organization !== null && $this->organization->owner_id === null;
+    }
+
+    public function isClaimable(): bool
+    {
+        return $this->isOwnerless() && in_array($this->status, self::CLAIMABLE_STATUSES, true);
     }
 
     /** Премиум-карточка: включённый бонус с triggers_premium и заполненными текстами в ЛК. */

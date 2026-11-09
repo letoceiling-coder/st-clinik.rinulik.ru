@@ -9,6 +9,7 @@ import DashboardShell, { type NavItem } from './DashboardShell';
 const ALL: (NavItem & { perm: string })[] = [
     { href: '/admin', label: 'Обзор', icon: 'home', exact: true, group: 'Работа', perm: 'admin.dashboard' },
     { href: '/admin/appointments', label: 'Записи', icon: 'calendar', group: 'Работа', perm: 'admin.appointments' },
+    { href: '/admin/leads/unclaimed', label: 'Заявки без владельца', icon: 'phone', group: 'Работа', perm: 'admin.appointments' },
     { href: '/admin/reports', label: 'Отчёты', icon: 'file', group: 'Работа', perm: 'admin.reports' },
     { href: '/admin/analytics', label: 'Аналитика', icon: 'chart', group: 'Работа', perm: 'admin.analytics' },
     { href: '/admin/geography', label: 'География', icon: 'pin', group: 'Справочники', perm: 'admin.dictionaries' },

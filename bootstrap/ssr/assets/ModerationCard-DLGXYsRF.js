@@ -275,7 +275,7 @@ function ModerationCard({ item, compact = false }) {
 										size: 16
 									}),
 									" ",
-									isClinic ? "Только одобрить" : item.type === "revision" ? "Одобрить изменения" : "Одобрить и опубликовать"
+									isClinic ? "Только одобрить" : item.type === "revision" ? "Одобрить изменения" : item.type === "claim" ? "Передать права" : "Одобрить и опубликовать"
 								]
 							}),
 							/* @__PURE__ */ jsx(Button, {
@@ -389,4 +389,4 @@ function MediaPreview({ media, title }) {
 //#endregion
 export { PhotoViewer as n, ModerationCard as t };
 
-//# sourceMappingURL=ModerationCard-BhEmf8ao.js.map
+//# sourceMappingURL=ModerationCard-DLGXYsRF.js.map

@@ -2,7 +2,7 @@ import { t as Icon } from "./Icon-_sloiNX5.js";
 import { n as Button } from "./Button-C2BxTtRt.js";
 import { _ as EmptyState, w as Check } from "../app.js";
 import { r as PageHead } from "./Dash-C_HMp027.js";
-import { t as ModerationCard } from "./ModerationCard-BhEmf8ao.js";
+import { t as ModerationCard } from "./ModerationCard-DLGXYsRF.js";
 import { Link, useForm, usePage } from "@inertiajs/react";
 import { jsx, jsxs } from "react/jsx-runtime";
 //#region resources/js/pages/Admin/Moderation.tsx
@@ -89,4 +89,4 @@ function ModerationSettings({ initial }) {
 //#endregion
 export { Moderation as default };
 
-//# sourceMappingURL=Moderation-GACve_Xa.js.map
+//# sourceMappingURL=Moderation-D7drazgN.js.map

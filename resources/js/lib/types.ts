@@ -70,6 +70,7 @@ export interface SharedProps {
             skipped: number;
             errors: { row: number; message: string }[];
         } | null;
+        duplicates?: { slug: string; name: string; address: string | null; reason: string; claim_url: string }[] | null;
     };
     seo?: SeoProps;
     errors: Record<string, string>;

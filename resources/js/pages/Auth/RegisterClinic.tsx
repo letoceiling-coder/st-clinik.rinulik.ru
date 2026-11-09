@@ -14,10 +14,12 @@ interface OfferPreview {
 
 interface Props {
     offer?: OfferPreview | null;
+    claim?: { slug: string; name: string } | null;
 }
 
-export default function RegisterClinic({ offer = null }: Props) {
+export default function RegisterClinic({ offer = null, claim = null }: Props) {
     const claimMode = Boolean(offer?.claimable);
+    const catalogMode = !claimMode && claim !== null;
     const form = useForm({
         name: '',
         organization_name: offer?.organization_name ?? '',
@@ -27,6 +29,7 @@ export default function RegisterClinic({ offer = null }: Props) {
         password_confirmation: '',
         consent: false,
         offer_token: claimMode ? offer?.token ?? '' : '',
+        claim_clinic: catalogMode ? claim?.slug ?? '' : '',
     });
 
     const submit = (e: FormEvent) => {
@@ -37,16 +40,20 @@ export default function RegisterClinic({ offer = null }: Props) {
     return (
         <form onSubmit={submit} className="auth-card card card--shadow stack" noValidate>
             <div>
-                <h1 className="auth-card__title">{claimMode ? 'Регистрация и подключение' : 'Регистрация клиники'}</h1>
+                <h1 className="auth-card__title">{claimMode || catalogMode ? 'Регистрация и подключение' : 'Регистрация клиники'}</h1>
                 <p className="text-muted">
                     {claimMode
                         ? `Создайте аккаунт и заберите черновик «${offer?.clinic_name}» (${offer?.organization_name}).`
+                        : catalogMode
+                          ? `Создайте аккаунт, подтвердите e-mail и права — и управляйте карточкой «${claim?.name}».`
                         : 'Создайте организацию и добавьте первый филиал в кабинете.'}
                 </p>
             </div>
             {offer && !offer.claimable && offer.reason ? <Alert tone="warning">{offer.reason}</Alert> : null}
             <TextField label="Ваше имя" required autoComplete="name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} error={form.errors.name} />
-            {!claimMode ? (
+            {catalogMode ? (
+                <TextField label="Клиника" value={claim?.name ?? ''} readOnly disabled />
+            ) : !claimMode ? (
                 <TextField
                     label="Название организации"
                     required
@@ -70,7 +77,7 @@ export default function RegisterClinic({ offer = null }: Props) {
             />
             <Check checked={form.data.consent} onChange={(e) => form.setData('consent', e.target.checked)} error={form.errors.consent} label="Согласие на обработку персональных данных" />
             <Button type="submit" block loading={form.processing} disabled={Boolean(offer && !offer.claimable)}>
-                {claimMode ? 'Зарегистрироваться и забрать черновик' : 'Зарегистрировать клинику'}
+                {claimMode ? 'Зарегистрироваться и забрать черновик' : catalogMode ? 'Зарегистрироваться' : 'Зарегистрировать клинику'}
             </Button>
             <p className="text-sm text-center">
                 <Link href="/register" className="link">

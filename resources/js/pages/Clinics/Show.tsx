@@ -1,4 +1,4 @@
-import { router, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import ClinicCard, { ClinicFeatures } from '@/components/ClinicCard';
 import { Gallery, PriceTable, PriceTableGrouped, RatingSummary, ScheduleView, documentTitle } from '@/components/ClinicParts';
@@ -29,6 +29,7 @@ interface Props {
     clinic_follow: { subscribed: boolean; can_subscribe: boolean };
     /** Ближайшее свободное время и скорость ответа клиники; нет в предпросмотре. */
     visit?: { next_slot: { date: string; time: string; label: string } | null; response: string | null };
+    ownership?: { claimed: boolean; claim_url: string | null };
     /** Предпросмотр черновика из КП: запись и отзывы отключены. */
     preview?: { note: string; back_url: string; back_label: string } | null;
 }
@@ -97,7 +98,7 @@ function PostCard({ post }: { post: ClinicPostData }) {
     );
 }
 
-export default function ClinicShow({ clinic, reviews, review_filters, distribution, similar, concerns, review_options, breadcrumbs, clinic_follow, visit, preview = null }: Props) {
+export default function ClinicShow({ clinic, reviews, review_filters, distribution, similar, concerns, review_options, breadcrumbs, clinic_follow, visit, ownership, preview = null }: Props) {
     const isPreview = preview !== null;
     const lead = useLead();
     const { url } = usePage();
@@ -222,6 +223,17 @@ export default function ClinicShow({ clinic, reviews, review_filters, distributi
                             )}
                         </div>
                     </header>
+
+                    {ownership && !ownership.claimed && !preview ? (
+                        <Alert tone="muted" icon="info">
+                            Данные собраны из открытых источников, клиника их пока не подтвердила. Цены и расписание уточняйте по телефону.{' '}
+                            {ownership.claim_url ? (
+                                <Link href={ownership.claim_url} className="link">
+                                    Это ваша клиника?
+                                </Link>
+                            ) : null}
+                        </Alert>
+                    ) : null}
 
                     <Gallery photos={clinic.photos} name={clinic.name} />
                 </div>

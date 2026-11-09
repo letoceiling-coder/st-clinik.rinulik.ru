@@ -71,6 +71,7 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
                 'import_report' => fn () => $request->session()->get('import_report'),
+                'duplicates' => fn () => $request->session()->get('duplicates'),
             ],
             'display' => [
                 'premium_clinic_card_variant' => fn () => $cardDisplay->premiumVariant(),

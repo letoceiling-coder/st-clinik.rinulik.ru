@@ -447,7 +447,7 @@
     "/build/assets/ReviewCard-Bk2PPweK.js"
   ],
   "resources/js/components/ReviewForm.tsx": [
-    "/build/assets/Show-Bhz7EVjT.js"
+    "/build/assets/Show-C93RiHLr.js"
   ],
   "resources/js/components/SearchBox.tsx": [
     "/build/assets/geist-cyrillic-ext-400-normal-9PYOMWMR.woff2",
@@ -622,10 +622,10 @@
     "/build/assets/geist-latin-600-normal-DsPlZH-9.woff"
   ],
   "resources/js/components/moderation/ModerationCard.tsx": [
-    "/build/assets/ModerationCard-BhEmf8ao.js"
+    "/build/assets/ModerationCard-DLGXYsRF.js"
   ],
   "resources/js/components/moderation/PhotoViewer.tsx": [
-    "/build/assets/ModerationCard-BhEmf8ao.js"
+    "/build/assets/ModerationCard-DLGXYsRF.js"
   ],
   "resources/js/components/offers/OfferSendPanels.tsx": [
     "/build/assets/Offer-D7cAEtNh.js"
@@ -1519,10 +1519,10 @@
     "/build/assets/MaxPublish-pkmDI4GD.js"
   ],
   "resources/js/pages/Admin/Moderation.tsx": [
-    "/build/assets/Moderation-GACve_Xa.js"
+    "/build/assets/Moderation-D7drazgN.js"
   ],
   "resources/js/pages/Admin/ModerationClinic.tsx": [
-    "/build/assets/ModerationClinic-B5TitqUL.js"
+    "/build/assets/ModerationClinic-DfuVaLlg.js"
   ],
   "resources/js/pages/Admin/Offer.tsx": [
     "/build/assets/Offer-D7cAEtNh.js"
@@ -1560,6 +1560,9 @@
   "resources/js/pages/Admin/Tariffs.tsx": [
     "/build/assets/Tariffs-Es3y9NmB.js"
   ],
+  "resources/js/pages/Admin/UnclaimedLeads.tsx": [
+    "/build/assets/UnclaimedLeads-BRZwdq19.js"
+  ],
   "resources/js/pages/Admin/UserShow.tsx": [
     "/build/assets/UserShow-DYygDRAY.js"
   ],
@@ -1585,7 +1588,7 @@
     "/build/assets/Register-J82sZCv-.js"
   ],
   "resources/js/pages/Auth/RegisterClinic.tsx": [
-    "/build/assets/RegisterClinic-BLuay0LN.js"
+    "/build/assets/RegisterClinic-DcLKuh_b.js"
   ],
   "resources/js/pages/Auth/ResetPassword.tsx": [
     "/build/assets/ResetPassword-PXeNoFkA.js"
@@ -1600,7 +1603,7 @@
     "/build/assets/Show-B82nVWat.js"
   ],
   "resources/js/pages/Cabinet/BranchForm.tsx": [
-    "/build/assets/BranchForm-C5YIfrrC.js"
+    "/build/assets/BranchForm-BGNlMAdQ.js"
   ],
   "resources/js/pages/Cabinet/Branches.tsx": [
     "/build/assets/Branches-iJYtMC2c.js"
@@ -1665,11 +1668,14 @@
   "resources/js/pages/Cabinet/Stats.tsx": [
     "/build/assets/Stats-CN5u6Xni.js"
   ],
+  "resources/js/pages/Clinics/Claim.tsx": [
+    "/build/assets/Claim-CSslVYvr.js"
+  ],
   "resources/js/pages/Clinics/Index.tsx": [
     "/build/assets/Index-mdbIL-Rz.js"
   ],
   "resources/js/pages/Clinics/Show.tsx": [
-    "/build/assets/Show-Bhz7EVjT.js"
+    "/build/assets/Show-C93RiHLr.js"
   ],
   "resources/js/pages/Collections/Compare.tsx": [
     "/build/assets/Compare-BWaur99W.js"
@@ -1702,7 +1708,7 @@
     "/build/assets/Appointments-Bi-_opc9.js"
   ],
   "resources/js/pages/Max/ClinicShow.tsx": [
-    "/build/assets/ClinicShow-n2Z17wRJ.js"
+    "/build/assets/ClinicShow-CAaWO7jV.js"
   ],
   "resources/js/pages/Max/Clinics.tsx": [
     "/build/assets/Clinics-CHzrSek7.js"
@@ -1711,7 +1717,7 @@
     "/build/assets/Home-Da3ItB9X.js"
   ],
   "resources/js/pages/Offer/Claim.tsx": [
-    "/build/assets/Claim-CTKQwBqQ.js"
+    "/build/assets/Claim-BCljoPyN.js"
   ],
   "resources/js/pages/Offer/Show.tsx": [
     "/build/assets/Show-DtX7Yl8E.js"

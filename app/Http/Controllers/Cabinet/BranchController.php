@@ -8,6 +8,7 @@ use App\Models\UserNotification;
 use App\Services\Audit;
 use App\Services\Clinics\AddressGeocoder;
 use App\Services\Clinics\ClinicProfileForm;
+use App\Services\Clinics\OwnerlessClinicMatcher;
 use App\Services\ContentRevisionService;
 use App\Services\ModerationService;
 use App\Services\Monetization\ClinicSubscriptionService;
@@ -81,6 +82,23 @@ class BranchController extends CabinetController
         $clinic->status = 'draft';
         $clinic->art_seed = random_int(1, 12);
         app(AddressGeocoder::class)->fillCoordinates($clinic);
+
+        // Карточка этой клиники уже может быть в каталоге (собрана из открытых источников) — предлагаем забрать её, а не плодить дубль.
+        if (! $request->boolean('not_duplicate')) {
+            $duplicates = app(OwnerlessClinicMatcher::class)->find($clinic);
+            if ($duplicates !== []) {
+                Audit::log('branch.duplicate_suggested', null, ['organization_id' => $org->id, 'clinic_ids' => array_column($duplicates, 'id')]);
+
+                return back()->withInput()->with('duplicates', array_map(fn (array $d) => [
+                    'slug' => $d['slug'],
+                    'name' => $d['name'],
+                    'address' => $d['address'],
+                    'reason' => $d['reason'],
+                    'claim_url' => route('clinics.claim.show', $d['slug']),
+                ], $duplicates));
+            }
+        }
+
         $clinic->save();
         $clinic->specialties()->sync($data['specialty_ids'] ?? []);
         app(ClinicSubscriptionService::class)->assignDefaultIfNeeded($clinic);

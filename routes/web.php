@@ -20,6 +20,7 @@ use App\Http\Controllers\Cabinet;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\ClaimOfferController;
+use App\Http\Controllers\ClinicClaimController;
 use App\Http\Controllers\ClinicController;
 use App\Http\Controllers\ClinicFollowController;
 use App\Http\Controllers\CollectionController;
@@ -88,6 +89,13 @@ Route::post('/offer/{token}/apply', [OfferController::class, 'apply'])->where('t
 Route::get('/offer/{token}/claim', [ClaimOfferController::class, 'show'])->where('token', '[A-Za-z0-9_-]{40,64}')->name('offer.claim.show');
 Route::post('/offer/{token}/claim', [ClaimOfferController::class, 'store'])->where('token', '[A-Za-z0-9_-]{40,64}')->middleware(['auth', 'throttle:auth'])->name('offer.claim.store');
 Route::post('/offer/{token}/claim/code', [ClaimOfferController::class, 'sendCode'])->where('token', '[A-Za-z0-9_-]{40,64}')->middleware(['auth', 'verified', 'throttle:3,10'])->name('offer.claim.code');
+// «Это ваша клиника?» — карточка без владельца на сайте.
+Route::get('/clinics/{slug}/claim', [ClinicClaimController::class, 'show'])->name('clinics.claim.show');
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::post('/clinics/{slug}/claim', [ClinicClaimController::class, 'store'])->middleware('throttle:auth')->name('clinics.claim.store');
+    Route::post('/clinics/{slug}/claim/code', [ClinicClaimController::class, 'sendCode'])->middleware('throttle:3,10')->name('clinics.claim.code');
+    Route::post('/clinics/{slug}/claim/sms', [ClinicClaimController::class, 'confirmSms'])->middleware('throttle:auth')->name('clinics.claim.sms');
+});
 Route::post('/demo-exit', [OfferController::class, 'leaveDemo'])->name('demo.leave');
 
 Route::post('/webhooks/max', MaxWebhookController::class)->name('webhooks.max');
@@ -308,6 +316,8 @@ Route::middleware(['clinic.owner', 'cabinet.ability'])->prefix('clinic-cabinet')
 Route::middleware(['auth', 'perm:admin.dashboard'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [Admin\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/appointments', [Admin\AppointmentController::class, 'index'])->middleware('perm:admin.appointments')->name('appointments');
+    Route::get('/leads/unclaimed', [Admin\UnclaimedLeadController::class, 'index'])->middleware('perm:admin.appointments')->name('leads.unclaimed');
+    Route::put('/leads/unclaimed/{lead}', [Admin\UnclaimedLeadController::class, 'update'])->middleware('perm:admin.appointments')->name('leads.unclaimed.update')->whereNumber('lead');
     Route::middleware('perm:admin.reports')->group(function () {
         Route::get('/reports', [Admin\ReportController::class, 'index'])->name('reports');
         Route::post('/reports', [Admin\ReportController::class, 'store'])->name('reports.store');
@@ -360,6 +370,7 @@ Route::middleware(['auth', 'perm:admin.dashboard'])->prefix('admin')->name('admi
         Route::post('/moderation/{type}/{id}', [Admin\ModerationController::class, 'decide'])->name('moderation.decide')->whereNumber('id');
         Route::get('/moderation/documents/{document}', [Admin\ModerationController::class, 'document'])->name('moderation.document')->whereNumber('document');
         Route::get('/moderation/documents/{document}/view', [Admin\ModerationController::class, 'viewDocument'])->name('moderation.document.view')->whereNumber('document');
+        Route::get('/moderation/claims/{claim}/document', [Admin\ModerationController::class, 'viewClaimDocument'])->name('moderation.claim.document')->whereNumber('claim');
     });
 
     Route::middleware('perm:admin.duplicates')->group(function () {

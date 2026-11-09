@@ -44,7 +44,7 @@ class CampaignService
     ) {}
 
     /**
-     * Черновики клиник под фильтры кампании.
+     * Карточки без владельца (черновики и уже опубликованные) под фильтры кампании.
      *
      * @param  array{city_id?: int|null, rating_min?: float|null, has?: list<string>, not_offered?: bool, ids?: list<int>}  $filters
      * @return Builder<Clinic>
@@ -54,7 +54,7 @@ class CampaignService
         $contactsOf = fn (string $type) => OrganizationContact::query()->select('clinic_id')
             ->whereNotNull('clinic_id')->where('type', $type)->where('do_not_contact', false);
 
-        return Clinic::query()->where('status', 'draft')
+        return Clinic::query()->whereIn('status', Clinic::CLAIMABLE_STATUSES)->ownerless()
             ->when($filters['ids'] ?? [], fn (Builder $q, array $ids) => $q->whereIn('id', $ids))
             ->when($filters['city_id'] ?? null, fn (Builder $q, int $id) => $q->where('city_id', $id))
             ->when($filters['rating_min'] ?? null, fn (Builder $q, float $min) => $q->whereIn(
