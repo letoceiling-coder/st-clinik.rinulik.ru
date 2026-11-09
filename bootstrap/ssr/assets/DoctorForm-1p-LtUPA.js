@@ -2,10 +2,11 @@ import { n as Button } from "./Button-C2BxTtRt.js";
 import { A as TextField, k as TextArea, w as Check } from "../app.js";
 import { r as PageHead } from "./Dash-C_HMp027.js";
 import { t as FileDropzone } from "./FileDropzone-CZ2V2XXS.js";
+import { t as PendingChanges } from "./PendingChanges-Dr8zQiSs.js";
 import { useForm } from "@inertiajs/react";
 import { jsx, jsxs } from "react/jsx-runtime";
 //#region resources/js/pages/Cabinet/DoctorForm.tsx
-function DoctorForm({ doctorForm, specialties, weekdays }) {
+function DoctorForm({ doctorForm, pendingRevision, specialties, weekdays }) {
 	const d = doctorForm ?? {};
 	const photoUrl = d.photo_url ?? null;
 	const form = useForm({
@@ -48,6 +49,7 @@ function DoctorForm({ doctorForm, specialties, weekdays }) {
 		onSubmit: submit,
 		children: [
 			/* @__PURE__ */ jsx(PageHead, { title: d.id ? "Редактирование врача" : "Новый врач" }),
+			/* @__PURE__ */ jsx(PendingChanges, { revision: pendingRevision }),
 			/* @__PURE__ */ jsx(FileDropzone, {
 				label: "Фото врача",
 				hint: "JPG, PNG или WebP до 5 МБ. Квадратное фото смотрится лучше всего.",
@@ -150,4 +152,4 @@ function DoctorForm({ doctorForm, specialties, weekdays }) {
 //#endregion
 export { DoctorForm as default };
 
-//# sourceMappingURL=DoctorForm-BfCQihy2.js.map
+//# sourceMappingURL=DoctorForm-1p-LtUPA.js.map

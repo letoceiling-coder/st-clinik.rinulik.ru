@@ -1,7 +1,8 @@
 import { n as Button } from "./Button-C2BxTtRt.js";
-import { A as TextField, O as SelectField, _ as EmptyState, h as Badge, k as TextArea, w as Check } from "../app.js";
+import { A as TextField, O as SelectField, _ as EmptyState, h as Badge, k as TextArea, p as Alert, w as Check } from "../app.js";
 import { r as PageHead, s as StatusBadge } from "./Dash-C_HMp027.js";
 import { t as FileDropzone } from "./FileDropzone-CZ2V2XXS.js";
+import { t as PendingChanges } from "./PendingChanges-Dr8zQiSs.js";
 import { router, useForm } from "@inertiajs/react";
 import { useState } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
@@ -58,6 +59,11 @@ function PostCard({ post, types }) {
 					/* @__PURE__ */ jsx(StatusBadge, { status: post.status })
 				]
 			}),
+			post.status === "draft" && post.moderation_note ? /* @__PURE__ */ jsxs(Alert, {
+				tone: "danger",
+				children: ["Отклонено модератором: ", post.moderation_note]
+			}) : null,
+			/* @__PURE__ */ jsx(PendingChanges, { revision: post.pending_revision }),
 			/* @__PURE__ */ jsx("h3", {
 				className: "post-card__title",
 				children: post.title
@@ -311,4 +317,4 @@ function Posts({ posts, types }) {
 //#endregion
 export { Posts as default };
 
-//# sourceMappingURL=Posts-CP7uA0E3.js.map
+//# sourceMappingURL=Posts-CDusXJFE.js.map

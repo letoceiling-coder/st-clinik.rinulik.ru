@@ -121,8 +121,9 @@ function ProfileWizard({ percent, items }) {
 }
 //#endregion
 //#region resources/js/pages/Cabinet/Dashboard.tsx
-function Dashboard({ completeness, kpi, moderation, recent_leads, subscription }) {
+function Dashboard({ completeness, kpi, moderation, recent_leads, subscription, cabinet }) {
 	const percent = completeness.percent ?? 0;
+	const canSeeLeads = !cabinet?.abilities || cabinet.abilities.includes("manage_operations");
 	return /* @__PURE__ */ jsxs("div", {
 		className: "stack-lg",
 		children: [
@@ -207,7 +208,7 @@ function Dashboard({ completeness, kpi, moderation, recent_leads, subscription }
 					})]
 				})]
 			}),
-			/* @__PURE__ */ jsxs("section", {
+			canSeeLeads ? /* @__PURE__ */ jsxs("section", {
 				className: "card stack",
 				children: [/* @__PURE__ */ jsxs("div", {
 					className: "row row--between",
@@ -231,7 +232,7 @@ function Dashboard({ completeness, kpi, moderation, recent_leads, subscription }
 						]
 					})] }), /* @__PURE__ */ jsx(StatusBadge, { status: l.status })]
 				}, l.id))]
-			}),
+			}) : null,
 			/* @__PURE__ */ jsx(LinkButton, {
 				href: "/clinic-cabinet/stats",
 				variant: "outline",
@@ -243,4 +244,4 @@ function Dashboard({ completeness, kpi, moderation, recent_leads, subscription }
 //#endregion
 export { Dashboard as default };
 
-//# sourceMappingURL=Dashboard-D-dx8vP5.js.map
+//# sourceMappingURL=Dashboard-Cq4-eI6f.js.map

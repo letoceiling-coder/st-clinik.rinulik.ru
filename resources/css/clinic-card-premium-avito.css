@@ -177,7 +177,7 @@
 
 .clinic-card--premium-avito .clinic-card__promos--premium-grid .clinic-card__promos-list li {
     color: var(--avito-ink);
-    font-size: 11px;
+    font-size: var(--fs-2xs);
     font-weight: 600;
     line-height: 1.25;
     padding: 6px 8px;

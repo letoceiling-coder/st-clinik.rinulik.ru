@@ -79,6 +79,7 @@
 
     /* Типографика — Geist 400/500/600 */
     --font-sans: 'Geist', system-ui, -apple-system, sans-serif;
+    --fs-2xs: 0.6875rem;
     --fs-xs: 0.8125rem;
     --fs-caption: 0.75rem;
     --fs-sm: 0.9375rem;

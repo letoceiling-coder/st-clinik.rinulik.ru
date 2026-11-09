@@ -138,6 +138,49 @@ function ModerationCard({ item, compact = false }) {
 						className: "mod-facts",
 						children: item.facts.map((f) => /* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx("dt", { children: f.label }), /* @__PURE__ */ jsx("dd", { children: f.value })] }, f.label))
 					}) : null,
+					item.diff.length > 0 ? /* @__PURE__ */ jsxs("div", {
+						className: "mod-diff",
+						role: "table",
+						"aria-label": "Что изменилось",
+						children: [/* @__PURE__ */ jsxs("div", {
+							className: "mod-diff__row mod-diff__row--head",
+							role: "row",
+							children: [
+								/* @__PURE__ */ jsx("span", {
+									role: "columnheader",
+									children: "Поле"
+								}),
+								/* @__PURE__ */ jsx("span", {
+									role: "columnheader",
+									children: "Было"
+								}),
+								/* @__PURE__ */ jsx("span", {
+									role: "columnheader",
+									children: "Стало"
+								})
+							]
+						}), item.diff.map((row) => /* @__PURE__ */ jsxs("div", {
+							className: "mod-diff__row",
+							role: "row",
+							children: [
+								/* @__PURE__ */ jsx("span", {
+									role: "cell",
+									className: "mod-diff__label",
+									children: row.label
+								}),
+								/* @__PURE__ */ jsx("span", {
+									role: "cell",
+									className: "mod-diff__before",
+									children: row.before
+								}),
+								/* @__PURE__ */ jsx("span", {
+									role: "cell",
+									className: "mod-diff__after",
+									children: row.after
+								})
+							]
+						}, row.label))]
+					}) : null,
 					item.context ? /* @__PURE__ */ jsxs("div", {
 						className: "mod-text mod-text--context",
 						children: [/* @__PURE__ */ jsx("span", {
@@ -232,7 +275,7 @@ function ModerationCard({ item, compact = false }) {
 										size: 16
 									}),
 									" ",
-									isClinic ? "Только одобрить" : "Одобрить и опубликовать"
+									isClinic ? "Только одобрить" : item.type === "revision" ? "Одобрить изменения" : "Одобрить и опубликовать"
 								]
 							}),
 							/* @__PURE__ */ jsx(Button, {
@@ -346,4 +389,4 @@ function MediaPreview({ media, title }) {
 //#endregion
 export { PhotoViewer as n, ModerationCard as t };
 
-//# sourceMappingURL=ModerationCard-CZ4TOH-W.js.map
+//# sourceMappingURL=ModerationCard-BhEmf8ao.js.map

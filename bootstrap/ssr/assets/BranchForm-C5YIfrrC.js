@@ -2,10 +2,11 @@ import { n as Button } from "./Button-C2BxTtRt.js";
 import { p as Alert } from "../app.js";
 import { r as PageHead } from "./Dash-C_HMp027.js";
 import { n as useClinicProfileForm, t as ClinicProfileFields } from "./ClinicProfileFields-CUdlYRCi.js";
+import { t as PendingChanges } from "./PendingChanges-Dr8zQiSs.js";
 import { Link } from "@inertiajs/react";
 import { jsx, jsxs } from "react/jsx-runtime";
 //#region resources/js/pages/Cabinet/BranchForm.tsx
-function BranchForm({ branchForm, ...options }) {
+function BranchForm({ branchForm, pendingRevision, ...options }) {
 	const b = branchForm ?? {};
 	const { form, prepare } = useClinicProfileForm(branchForm, options.propertyTypes);
 	const submit = (e) => {
@@ -22,6 +23,7 @@ function BranchForm({ branchForm, ...options }) {
 				title: b.id ? "Редактирование филиала" : "Новый филиал",
 				text: "Не публикуйте диагнозы и сканы паспортов пациентов. Лицензию загружайте в «Документы»."
 			}),
+			/* @__PURE__ */ jsx(PendingChanges, { revision: pendingRevision }),
 			b.id ? /* @__PURE__ */ jsxs(Alert, {
 				tone: "muted",
 				icon: "image",
@@ -53,4 +55,4 @@ function BranchForm({ branchForm, ...options }) {
 //#endregion
 export { BranchForm as default };
 
-//# sourceMappingURL=BranchForm-c94jYCE5.js.map
+//# sourceMappingURL=BranchForm-C5YIfrrC.js.map

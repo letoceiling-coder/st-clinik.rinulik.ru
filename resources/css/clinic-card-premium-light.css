@@ -90,7 +90,7 @@
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    font-size: 10px;
+    font-size: var(--fs-2xs);
     font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -98,7 +98,7 @@
 }
 
 .clinic-card__premium-badge-sub {
-    font-size: 9px;
+    font-size: var(--fs-2xs);
     font-weight: 600;
     letter-spacing: 0.02em;
     color: color-mix(in srgb, var(--ivory-gold-text, #80551b) 78%, #171717);
@@ -186,7 +186,7 @@
 
 .clinic-card--premium-ivory .clinic-card__promos--premium-grid .clinic-card__promos-list li{
     color: var(--ivory-ink);
-    font-size: 11px;
+    font-size: var(--fs-2xs);
     font-weight: 600;
     line-height: 1.25;
     padding: 6px 8px;
