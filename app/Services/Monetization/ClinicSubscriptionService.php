@@ -248,7 +248,7 @@ class ClinicSubscriptionService
         }
 
         if ($action === 'hide' && $clinic->status === 'published') {
-            $clinic->update(['status' => 'hidden']);
+            $clinic->update(['status' => 'hidden', 'hidden_reason' => Clinic::HIDDEN_BY_SUBSCRIPTION]);
         }
 
         if ($action === 'downgrade') {

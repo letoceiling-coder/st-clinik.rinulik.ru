@@ -91,6 +91,10 @@ class ClinicModerationFlowTest extends TestCase
         $this->assertSame('clinic_owner', $owner->role);
         $this->assertDatabaseHas('organization_staff', ['user_id' => $owner->id, 'role' => OrganizationStaff::ROLE_OWNER]);
 
+        // Until the e-mail is confirmed the cabinet only offers verification.
+        $this->actingAs($owner)->get(route('cabinet.branches.create'))->assertRedirect(route('verification.notice'));
+        $owner->markEmailAsVerified();
+
         $this->actingAs($owner)->post(route('cabinet.branches.store'), [
             'name' => 'Улыбка на Ленина',
             'city_id' => (int) City::query()->where('name', 'Краснодар')->value('id'),

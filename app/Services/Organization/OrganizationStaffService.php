@@ -50,10 +50,8 @@ class OrganizationStaffService
 
     public function canManageStaff(User $user, Organization $organization): bool
     {
-        return in_array($this->roleFor($user, $organization), [
-            OrganizationStaff::ROLE_OWNER,
-            OrganizationStaff::ROLE_ADMIN,
-        ], true);
+        // ТЗ §6: права сотрудникам выдаёт и отзывает владелец.
+        return $this->roleFor($user, $organization) === OrganizationStaff::ROLE_OWNER;
     }
 
     public function invite(Organization $organization, User $inviter, ?string $email, ?string $phone, string $role): StaffInvitation

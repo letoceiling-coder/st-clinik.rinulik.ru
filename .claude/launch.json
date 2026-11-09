@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "laravel",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "set SESSION_DOMAIN=null&& set SESSION_SECURE_COOKIE=false&& set APP_URL=http://127.0.0.1:8000&& php artisan serve --host=127.0.0.1 --port=8000"],
+      "port": 8000
+    }
+  ]
+}

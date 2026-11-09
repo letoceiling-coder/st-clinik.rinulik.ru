@@ -157,11 +157,21 @@ class BranchController extends CabinetController
         return "Профиль заполнен на {$readiness['percent']}%, для модерации нужно ".ProfileMetrics::MODERATION_MIN_PERCENT.'%. Добавьте: '.implode(', ', $needed).'.';
     }
 
-    /** Публикация одобренного модератором (или скрытого) филиала в каталоге. */
-    public function publish(Request $request, Clinic $clinic, ModerationService $moderation): RedirectResponse
+    /**
+     * Публикация одобренного модератором филиала в каталоге.
+     * Скрытый модерацией филиал возвращает только админка; скрытый из-за тарифа — владелец после продления.
+     */
+    public function publish(Request $request, Clinic $clinic, ModerationService $moderation, ClinicSubscriptionService $subscriptions): RedirectResponse
     {
         $this->authorizeBranch($request, $clinic);
-        if (! in_array($clinic->status, ['approved', 'hidden'], true)) {
+        if ($clinic->status === 'hidden') {
+            if ($clinic->hidden_reason !== Clinic::HIDDEN_BY_SUBSCRIPTION) {
+                return back()->with('error', 'Филиал скрыт модератором. Вернуть его в каталог может только администрация сайта.');
+            }
+            if ($subscriptions->activeSubscription($clinic) === null) {
+                return back()->with('error', 'Филиал скрыт из-за окончания тарифа. Продлите тариф, чтобы снова опубликовать его.');
+            }
+        } elseif ($clinic->status !== 'approved') {
             return back()->with('error', 'Опубликовать можно только филиал, одобренный модератором.');
         }
 

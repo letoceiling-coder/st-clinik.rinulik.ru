@@ -236,6 +236,12 @@ class PromotionService
         }
 
         DB::transaction(function () use ($order) {
+            // Повторное уведомление банка не должно создать продвижение второй раз.
+            $locked = PromotionOrder::query()->lockForUpdate()->findOrFail($order->id);
+            if ($locked->isPaid()) {
+                return;
+            }
+
             $order->update(['status' => 'paid', 'paid_at' => now()]);
             $ledger = $this->payments->syncFromPromotionOrder($order);
             $ledger->update(['status' => Payment::STATUS_PAID, 'paid_at' => now()]);

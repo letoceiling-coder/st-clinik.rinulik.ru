@@ -30,10 +30,26 @@ class Clinic extends Model
     /** @var list<string> */
     public const VISIBLE_STATUSES = ['published'];
 
+    public const HIDDEN_BY_MODERATION = 'moderation';
+
+    public const HIDDEN_BY_SUBSCRIPTION = 'subscription';
+
     protected $guarded = [];
 
     protected static function booted(): void
     {
+        // Любое скрытие без явной причины считается решением модерации: снять его может только админка.
+        static::saving(function (self $clinic) {
+            if (! $clinic->isDirty('status')) {
+                return;
+            }
+            if ($clinic->status === 'hidden') {
+                $clinic->hidden_reason ??= self::HIDDEN_BY_MODERATION;
+            } else {
+                $clinic->hidden_reason = null;
+            }
+        });
+
         static::saved(function (self $clinic) {
             if ($clinic->wasChanged(['schedule', 'is_24_7'])) {
                 app(SlotAvailabilityService::class)->invalidate($clinic);

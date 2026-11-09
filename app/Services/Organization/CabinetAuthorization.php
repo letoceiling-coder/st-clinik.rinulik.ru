@@ -23,17 +23,26 @@ class CabinetAuthorization
 
     public const ABILITY_MANAGE_SCHEDULE = 'manage_schedule';
 
-    /** @var array<string, list<string>> */
+    /**
+     * Матрица ролей по ТЗ §6. Организация, сотрудники, оплата и продвижение — только владелец.
+     *
+     * @var array<string, list<string>>
+     */
     private const ROLE_ABILITIES = [
         OrganizationStaff::ROLE_OWNER => ['*'],
-        OrganizationStaff::ROLE_ADMIN => ['*'],
-        OrganizationStaff::ROLE_MANAGER => [
+        // Записи, пациенты, врачи, услуги, расписание.
+        OrganizationStaff::ROLE_ADMIN => [
             self::ABILITY_MANAGE_OPERATIONS,
-            self::ABILITY_MANAGE_SCHEDULE,
-        ],
-        OrganizationStaff::ROLE_CONTENT => [
             self::ABILITY_MANAGE_CONTENT,
             self::ABILITY_MANAGE_SCHEDULE,
+        ],
+        // Заявки, записи, пациенты.
+        OrganizationStaff::ROLE_MANAGER => [
+            self::ABILITY_MANAGE_OPERATIONS,
+        ],
+        // Описание, фото, врачи, услуги, цены, акции (публикации клиники).
+        OrganizationStaff::ROLE_CONTENT => [
+            self::ABILITY_MANAGE_CONTENT,
         ],
     ];
 

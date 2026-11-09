@@ -10,6 +10,7 @@ use App\Models\Doctor;
 use App\Models\Lead;
 use App\Models\Review;
 use App\Services\Monetization\ClinicSubscriptionService;
+use App\Services\Organization\CabinetAuthorization;
 use App\Services\ProfileMetrics;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -63,7 +64,8 @@ class DashboardController extends CabinetController
                 'ends_at' => $subscription->ends_at->format('d.m.Y'),
                 'days_left' => max(0, now()->diffInDays($subscription->ends_at, false)),
             ] : null,
-            'recent_leads' => Lead::where('clinic_id', $branch->id)->with(['service:id,name', 'doctor:id,name'])->latest()->limit(5)->get()->map(fn ($l) => [
+            // Имена и телефоны пациентов — только ролям, работающим с заявками.
+            'recent_leads' => ! $this->can($request, CabinetAuthorization::ABILITY_MANAGE_OPERATIONS) ? [] : Lead::where('clinic_id', $branch->id)->with(['service:id,name', 'doctor:id,name'])->latest()->limit(5)->get()->map(fn ($l) => [
                 'id' => $l->id, 'name' => $l->name, 'phone' => $l->phone, 'status' => $l->status,
                 'status_label' => Lead::STATUSES[$l->status] ?? $l->status, 'service' => $l->service?->name,
                 'created_at' => $l->created_at?->format('d.m H:i'),

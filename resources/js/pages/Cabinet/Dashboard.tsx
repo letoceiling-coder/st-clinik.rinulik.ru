@@ -3,6 +3,7 @@ import { Kpis, PageHead, StatusBadge } from '@/components/Dash';
 import ProfileWizard, { type CompletenessItem } from '@/components/ProfileWizard';
 import { LinkButton } from '@/components/ui/Button';
 import { Alert, EmptyState } from '@/components/ui/Misc';
+import type { CabinetProps } from '@/layouts/CabinetLayout';
 
 export default function Dashboard({
     completeness,
@@ -10,7 +11,9 @@ export default function Dashboard({
     moderation,
     recent_leads,
     subscription,
+    cabinet,
 }: {
+    cabinet?: CabinetProps;
     completeness: { percent: number; items?: CompletenessItem[] };
     kpi: {
         leads_30d: number;
@@ -28,6 +31,7 @@ export default function Dashboard({
     subscription: { tariff: string; ends_at: string; days_left: number } | null;
 }) {
     const percent = completeness.percent ?? 0;
+    const canSeeLeads = !cabinet?.abilities || cabinet.abilities.includes('manage_operations');
     return (
         <div className="stack-lg">
             <PageHead title="Обзор филиала" text="Полнота профиля влияет на выдачу в каталоге и скорость модерации." />
@@ -59,7 +63,7 @@ export default function Dashboard({
                     <span className="text-sm text-muted">врачи: {moderation.doctors_pending} · фото: {moderation.photos_pending} · документы: {moderation.documents_pending}</span>
                 </div>
             </section>
-            <section className="card stack">
+            {canSeeLeads ? <section className="card stack">
                 <div className="row row--between">
                     <h2 className="card-title" style={{ margin: 0 }}>Последние заявки</h2>
                     <Link href="/clinic-cabinet/leads" className="link">Все заявки</Link>
@@ -73,7 +77,7 @@ export default function Dashboard({
                         <StatusBadge status={l.status} />
                     </div>
                 ))}
-            </section>
+            </section> : null}
             <LinkButton href="/clinic-cabinet/stats" variant="outline">Открыть статистику</LinkButton>
         </div>
     );

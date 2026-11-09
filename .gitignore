@@ -31,3 +31,4 @@ Thumbs.db
 /st-clinik-deploy.tgz
 /test-results
 /tests/playwright/screenshots
+/.claude/hooks/.state.json

@@ -60,7 +60,9 @@ class OrganizationStaffTest extends TestCase
             'invited_at' => now(),
         ]);
 
-        $this->actingAs($member)->get('/clinic-cabinet/staff')->assertOk();
+        $this->actingAs($member)->get('/clinic-cabinet')->assertRedirect(route('cabinet.branches.create'));
+        // Staff management belongs to the owner only (ТЗ §6).
+        $this->actingAs($member)->get('/clinic-cabinet/staff')->assertForbidden();
     }
 
     public function test_owner_can_invite_staff_by_phone_without_sms(): void

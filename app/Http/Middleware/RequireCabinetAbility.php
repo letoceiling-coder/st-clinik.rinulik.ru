@@ -22,7 +22,8 @@ class RequireCabinetAbility
         }
 
         $routeName = $request->route()?->getName();
-        $ability = $routeName ? config('cabinet_abilities.'.$routeName) : null;
+        // Route names contain dots, so they cannot be used as config dot-notation keys.
+        $ability = $routeName ? (config('cabinet_abilities')[$routeName] ?? null) : null;
         if ($ability === null) {
             return $next($request);
         }

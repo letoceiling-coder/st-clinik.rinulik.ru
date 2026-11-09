@@ -48,6 +48,12 @@ class OrganizationClaimService
         abort_if($reason !== null, 422, $reason);
 
         $organization = DB::transaction(function () use ($offer, $user, $org, $clinic): Organization {
+            // Две одновременные попытки подключения по одному КП: вторая увидит уже назначенного владельца.
+            $org = Organization::query()->lockForUpdate()->findOrFail($org->id);
+            $offer = Offer::query()->lockForUpdate()->findOrFail($offer->id);
+            $reason = $this->claimableReason($offer, $clinic, $org, $user);
+            abort_if($reason !== null, 422, $reason);
+
             if ($user->role !== 'clinic_owner') {
                 $user->forceFill(['role' => 'clinic_owner'])->save();
             }

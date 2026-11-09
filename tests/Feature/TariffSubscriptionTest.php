@@ -121,4 +121,39 @@ class TariffSubscriptionTest extends TestCase
         $this->assertSame(Payment::STATUS_PAID, $payment->fresh()->status);
         $this->assertNotNull(app(ClinicSubscriptionService::class)->activeSubscription($clinic));
     }
+
+    public function test_duplicate_bank_notification_extends_subscription_only_once(): void
+    {
+        $owner = User::factory()->create();
+        $org = Organization::create(['owner_id' => $owner->id, 'name' => 'Twice org']);
+        $clinic = Clinic::create([
+            'organization_id' => $org->id,
+            'city_id' => City::query()->firstOrFail()->id,
+            'name' => 'Twice clinic',
+            'slug' => 'twice-clinic-'.uniqid(),
+            'address' => 'Test',
+            'status' => 'draft',
+            'is_24_7' => false,
+        ]);
+        $tariff = Tariff::query()->where('slug', 'standard')->firstOrFail();
+        $payment = Payment::query()->create([
+            'organization_id' => $org->id,
+            'clinic_id' => $clinic->id,
+            'user_id' => $owner->id,
+            'kind' => Payment::KIND_TARIFF,
+            'tariff_id' => $tariff->id,
+            'amount' => $tariff->price,
+            'status' => Payment::STATUS_PENDING,
+            'payment_provider' => 'tbank',
+            'payment_id' => '999002',
+        ]);
+        // Two webhook handlers loaded the same pending payment before either committed.
+        $staleCopy = Payment::query()->findOrFail($payment->id);
+
+        app(PaymentService::class)->markPaid($payment);
+        $endsAfterFirst = app(ClinicSubscriptionService::class)->activeSubscription($clinic)->ends_at;
+        app(PaymentService::class)->markPaid($staleCopy);
+
+        $this->assertEquals($endsAfterFirst, app(ClinicSubscriptionService::class)->activeSubscription($clinic)->ends_at);
+    }
 }

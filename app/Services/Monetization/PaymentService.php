@@ -240,7 +240,14 @@ class PaymentService
             return;
         }
 
-        DB::transaction(function () use ($payment, $remote): void {
+        // Банк может прислать несколько уведомлений одновременно: блокируем строку и перепроверяем статус,
+        // чтобы тариф или продвижение не продлились дважды.
+        $activated = DB::transaction(function () use (&$payment, $remote): bool {
+            $payment = Payment::query()->lockForUpdate()->findOrFail($payment->id);
+            if ($payment->isPaid()) {
+                return false;
+            }
+
             $payment->update([
                 'status' => Payment::STATUS_PAID,
                 'paid_at' => now(),
@@ -271,9 +278,13 @@ class PaymentService
                     app(PromotionService::class)->markPaid($order);
                 }
             }
+
+            return true;
         });
 
-        $this->recordPurchaseAnalytics($payment->fresh(['clinic.city:id,slug']));
+        if ($activated) {
+            $this->recordPurchaseAnalytics($payment->fresh(['clinic.city:id,slug']));
+        }
     }
 
     private function recordPurchaseAnalytics(Payment $payment): void

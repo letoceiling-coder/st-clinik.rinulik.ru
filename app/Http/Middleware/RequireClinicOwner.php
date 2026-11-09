@@ -36,6 +36,10 @@ class RequireClinicOwner
         if ($user === null) {
             return redirect()->guest(route('login'));
         }
+        if (! $user->hasVerifiedEmail()) {
+            return redirect()->guest(route('verification.notice'))
+                ->with('error', 'Подтвердите e-mail, чтобы работать в кабинете клиники.');
+        }
         $org = $this->staffService->organizationFor($user);
         abort_unless($org, 403, 'К вашей учётной записи не привязана организация.');
         abort_if($org->status === 'blocked', 403, 'Доступ организации заблокирован. Обратитесь в поддержку.');
