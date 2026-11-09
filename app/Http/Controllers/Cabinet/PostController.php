@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Cabinet;
 
 use App\Models\ClinicPost;
 use App\Services\Audit;
+use App\Services\ContentRevisionService;
 use App\Support\Text;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -49,13 +50,13 @@ class PostController extends CabinetController
             'starts_at' => $data['starts_at'] ?? null,
             'ends_at' => $data['ends_at'] ?? null,
             'is_pinned' => (bool) ($data['is_pinned'] ?? false),
-            'status' => 'published',
+            'status' => 'pending',
             'sort' => 100,
         ]);
 
         Audit::log('post.created', $branch, ['title' => $data['title']]);
 
-        return back()->with('success', 'Публикация добавлена.');
+        return back()->with('success', 'Публикация отправлена на модерацию и появится на сайте после проверки.');
     }
 
     public function update(Request $request, ClinicPost $post): RedirectResponse
@@ -72,6 +73,26 @@ class PostController extends CabinetController
             'ends_at' => $data['ends_at'] ?? null,
             'is_pinned' => (bool) ($data['is_pinned'] ?? false),
         ];
+
+        // Опубликованная публикация меняется через модерацию: на сайте остаётся прежний текст.
+        $revisions = app(ContentRevisionService::class);
+        if ($revisions->requiresModeration($post)) {
+            if ($request->hasFile('image')) {
+                $updates['image_path'] = $request->file('image')->store("clinic-posts/{$post->clinic_id}", 'public');
+            } elseif ($request->boolean('remove_image')) {
+                $updates['image_path'] = null;
+            }
+            $revision = $revisions->propose($post, 'post', $updates, $request->user());
+            Audit::log('post.update_proposed', $post->clinic, ['title' => $post->title]);
+
+            return back()->with('success', $revision ? 'Изменения отправлены на модерацию.' : 'Изменений нет.');
+        }
+
+        // Отклонённая публикация после исправления снова уходит на проверку.
+        if ($post->status === 'draft') {
+            $updates['status'] = 'pending';
+            $updates['moderation_note'] = null;
+        }
 
         if ($request->boolean('remove_image') && $post->image_path) {
             Storage::disk('public')->delete($post->image_path);
@@ -139,7 +160,9 @@ class PostController extends CabinetController
     /** @return array<string, mixed> */
     private function payload(ClinicPost $post): array
     {
-        return [
+        $revisions = app(ContentRevisionService::class);
+
+        return $revisions->overlay($post, [
             'id' => $post->id,
             'type' => $post->type,
             'title' => $post->title,
@@ -152,6 +175,7 @@ class PostController extends CabinetController
             'status' => $post->status,
             'image_url' => $post->image_path ? Storage::disk('public')->url($post->image_path) : null,
             'published_at' => $post->created_at?->format('d.m.Y'),
-        ];
+            'moderation_note' => $post->moderation_note,
+        ]) + ['pending_revision' => $revisions->pendingSummary($post)];
     }
 }

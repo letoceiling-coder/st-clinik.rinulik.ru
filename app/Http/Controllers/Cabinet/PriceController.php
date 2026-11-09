@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Cabinet;
 use App\Models\ClinicService;
 use App\Models\Service;
 use App\Services\Cabinet\PriceListExcel;
+use App\Services\ContentRevisionService;
 use App\Services\ProfileMetrics;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -53,6 +54,7 @@ class PriceController extends CabinetController
             'file.max' => 'Размер файла — не более 5 МБ.',
         ]);
 
+        $this->trackPriceChange($request);
         $report = $excel->import($branch, $data['file']);
         app(ProfileMetrics::class)->recalcClinic($branch);
 
@@ -76,6 +78,7 @@ class PriceController extends CabinetController
             ...$this->rules(),
         ], ['service_id.unique' => 'Эта услуга уже есть в прайсе.', 'service_id.required' => 'Выберите услугу.']);
 
+        $this->trackPriceChange($request);
         $branch->clinicServices()->create($this->normalize($data));
         app(ProfileMetrics::class)->recalcClinic($branch);
 
@@ -86,6 +89,7 @@ class PriceController extends CabinetController
     {
         $this->ownedBy($request, $price);
         $data = $request->validate($this->rules());
+        $this->trackPriceChange($request);
         $price->update($this->normalize($data));
         app(ProfileMetrics::class)->recalcClinic($this->branch($request));
 
@@ -95,10 +99,17 @@ class PriceController extends CabinetController
     public function destroy(Request $request, ClinicService $price): RedirectResponse
     {
         $this->ownedBy($request, $price);
+        $this->trackPriceChange($request);
         $price->delete();
         app(ProfileMetrics::class)->recalcClinic($this->branch($request));
 
         return back()->with('success', 'Услуга удалена из прайса.');
+    }
+
+    /** Цены публикуются сразу, модератор проверяет их постфактум (фиксируем прайс до первой правки). */
+    private function trackPriceChange(Request $request): void
+    {
+        app(ContentRevisionService::class)->trackPostModeration($this->branch($request), 'prices', $request->user());
     }
 
     /** @return array<string,mixed> */

@@ -52,7 +52,7 @@ class ModerationController extends AdminController
             'approve_photos' => 'boolean',
             'next' => 'boolean',
         ]);
-        if ($data['decision'] === 'reject' && blank($data['note'] ?? null) && in_array($type, ['clinic', 'doctor', 'document', 'review', 'review_reply'], true)) {
+        if ($data['decision'] === 'reject' && blank($data['note'] ?? null) && in_array($type, ['clinic', 'revision', 'doctor', 'post', 'document', 'review', 'review_reply'], true)) {
             return back()->withErrors(['note' => 'Укажите причину отклонения — её увидит автор.']);
         }
 

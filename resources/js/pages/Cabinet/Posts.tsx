@@ -4,7 +4,8 @@ import { PageHead, StatusBadge } from '@/components/Dash';
 import { Button } from '@/components/ui/Button';
 import FileDropzone from '@/components/ui/FileDropzone';
 import { Check, SelectField, TextArea, TextField } from '@/components/ui/Fields';
-import { Badge, EmptyState } from '@/components/ui/Misc';
+import { Alert, Badge, EmptyState } from '@/components/ui/Misc';
+import PendingChanges, { type PendingRevision } from '@/components/PendingChanges';
 
 interface Post {
     id: number;
@@ -19,6 +20,8 @@ interface Post {
     status: string;
     image_url: string | null;
     published_at: string | null;
+    moderation_note: string | null;
+    pending_revision: PendingRevision | null;
 }
 
 function PostCard({ post, types }: { post: Post; types: Record<string, string> }) {
@@ -57,6 +60,8 @@ function PostCard({ post, types }: { post: Post; types: Record<string, string> }
                 {post.is_pinned ? <Badge tone="success">Закреплено</Badge> : null}
                 <StatusBadge status={post.status} />
             </div>
+            {post.status === 'draft' && post.moderation_note ? <Alert tone="danger">Отклонено модератором: {post.moderation_note}</Alert> : null}
+            <PendingChanges revision={post.pending_revision} />
             <h3 className="post-card__title">{post.title}</h3>
             {post.excerpt ? <p className="text-sm text-muted">{post.excerpt}</p> : null}
             <p className="text-xs text-muted">{post.published_at}{post.ends_at ? ` · до ${post.ends_at.split('-').reverse().join('.')}` : ''}</p>

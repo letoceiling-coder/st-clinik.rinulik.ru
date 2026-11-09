@@ -1,16 +1,19 @@
 import { useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { PageHead } from '@/components/Dash';
+import PendingChanges, { type PendingRevision } from '@/components/PendingChanges';
 import { Button } from '@/components/ui/Button';
 import { Check, TextArea, TextField } from '@/components/ui/Fields';
 import FileDropzone from '@/components/ui/FileDropzone';
 
 export default function DoctorForm({
     doctorForm,
+    pendingRevision,
     specialties,
     weekdays,
 }: {
     doctorForm: Record<string, unknown> | null;
+    pendingRevision?: PendingRevision | null;
     specialties: { id: number; name: string }[];
     weekdays: Record<string, string>;
 }) {
@@ -53,6 +56,7 @@ export default function DoctorForm({
     return (
         <form className="card stack" onSubmit={submit}>
             <PageHead title={d.id ? 'Редактирование врача' : 'Новый врач'} />
+            <PendingChanges revision={pendingRevision} />
             <FileDropzone
                 label="Фото врача"
                 hint="JPG, PNG или WebP до 5 МБ. Квадратное фото смотрится лучше всего."

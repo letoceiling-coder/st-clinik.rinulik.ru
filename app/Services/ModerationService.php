@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\Clinic;
 use App\Models\ClinicDocument;
 use App\Models\ClinicPhoto;
+use App\Models\ClinicPost;
+use App\Models\ContentRevision;
 use App\Models\Doctor;
 use App\Models\Review;
 use App\Models\UserNotification;
@@ -16,7 +18,7 @@ use InvalidArgumentException;
 /** Единая точка решений модерации: клиники, врачи, фото, документы, отзывы. */
 class ModerationService
 {
-    public const TYPES = ['clinic', 'doctor', 'photo', 'document', 'review', 'review_reply'];
+    public const TYPES = ['clinic', 'revision', 'doctor', 'post', 'photo', 'document', 'review', 'review_reply'];
 
     public function __construct(private readonly ProfileMetrics $metrics) {}
 
@@ -29,6 +31,8 @@ class ModerationService
 
         match ($type) {
             'clinic' => $this->clinic(Clinic::findOrFail($id), $approve, $note),
+            'revision' => $this->revision(ContentRevision::findOrFail($id), $approve, $note),
+            'post' => $this->post(ClinicPost::with('clinic')->findOrFail($id), $approve, $note),
             'doctor' => $this->doctor(Doctor::with('clinic')->findOrFail($id), $approve, $note),
             'photo' => $this->photo(ClinicPhoto::with('clinic')->findOrFail($id), $approve),
             'document' => $this->document(ClinicDocument::with('clinic')->findOrFail($id), $approve, $note),
@@ -63,6 +67,27 @@ class ModerationService
         $this->metrics->recalcClinic($clinic);
         $this->notifyOwner($clinic, 'Филиал опубликован', "«{$clinic->name}» доступен в каталоге.");
         Audit::log('moderation.clinic.published', $clinic);
+    }
+
+    private function revision(ContentRevision $revision, bool $approve, ?string $note): void
+    {
+        $revisions = app(ContentRevisionService::class);
+        $moderator = auth()->user();
+
+        $approve
+            ? $revisions->approve($revision, $moderator)
+            : $revisions->reject($revision, $moderator, (string) $note);
+    }
+
+    private function post(ClinicPost $post, bool $approve, ?string $note): void
+    {
+        abort_unless($post->status === 'pending', 422, 'Публикация не ожидает модерации.');
+
+        // Отклонённая публикация возвращается клинике черновиком с причиной.
+        $post->update(['status' => $approve ? 'published' : 'draft', 'moderation_note' => $approve ? null : $note]);
+        $this->notifyOwner($post->clinic, $approve ? 'Публикация одобрена' : 'Публикация отклонена', $approve
+            ? "«{$post->title}» опубликована на странице клиники."
+            : "«{$post->title}» не прошла модерацию. ".($note ?? ''));
     }
 
     private function doctor(Doctor $doctor, bool $approve, ?string $note): void

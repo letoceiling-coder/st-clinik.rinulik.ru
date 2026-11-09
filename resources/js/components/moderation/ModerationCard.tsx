@@ -33,6 +33,7 @@ export interface ModerationItem {
     links: { label: string; url: string; external?: boolean }[];
     flags: string[];
     rating: number | null;
+    diff: { label: string; before: string; after: string }[];
     note_required: boolean;
     gallery: { id: number; url: string; status: string }[];
     gallery_total: number;
@@ -105,6 +106,23 @@ export function ModerationCard({ item, compact = false }: { item: ModerationItem
                     </dl>
                 ) : null}
 
+                {item.diff.length > 0 ? (
+                    <div className="mod-diff" role="table" aria-label="Что изменилось">
+                        <div className="mod-diff__row mod-diff__row--head" role="row">
+                            <span role="columnheader">Поле</span>
+                            <span role="columnheader">Было</span>
+                            <span role="columnheader">Стало</span>
+                        </div>
+                        {item.diff.map((row) => (
+                            <div key={row.label} className="mod-diff__row" role="row">
+                                <span role="cell" className="mod-diff__label">{row.label}</span>
+                                <span role="cell" className="mod-diff__before">{row.before}</span>
+                                <span role="cell" className="mod-diff__after">{row.after}</span>
+                            </div>
+                        ))}
+                    </div>
+                ) : null}
+
                 {item.context ? (
                     <div className="mod-text mod-text--context">
                         <span className="mod-text__label">{item.context_label}</span>
@@ -167,7 +185,8 @@ export function ModerationCard({ item, compact = false }: { item: ModerationItem
                         </Button>
                     ) : null}
                     <Button size="sm" variant={isClinic && item.can_publish ? 'outline' : 'primary'} loading={form.processing} onClick={() => send('approve')}>
-                        {isClinic && item.can_publish ? null : <Icon name="check" size={16} />} {isClinic ? 'Только одобрить' : 'Одобрить и опубликовать'}
+                        {isClinic && item.can_publish ? null : <Icon name="check" size={16} />}{' '}
+                        {isClinic ? 'Только одобрить' : item.type === 'revision' ? 'Одобрить изменения' : 'Одобрить и опубликовать'}
                     </Button>
                     <Button size="sm" variant="danger" loading={form.processing} onClick={() => send('reject')}>
                         Отклонить

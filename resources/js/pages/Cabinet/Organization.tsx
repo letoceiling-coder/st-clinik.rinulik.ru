@@ -1,10 +1,17 @@
 import { useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { PageHead } from '@/components/Dash';
+import PendingChanges, { type PendingRevision } from '@/components/PendingChanges';
 import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/Fields';
 
-export default function Organization({ organization }: { organization: Record<string, string | null> }) {
+export default function Organization({
+    organization,
+    pendingRevision,
+}: {
+    organization: Record<string, string | null>;
+    pendingRevision?: PendingRevision | null;
+}) {
     const form = useForm({ ...organization });
 
     const submit = (e: FormEvent) => {
@@ -15,6 +22,7 @@ export default function Organization({ organization }: { organization: Record<st
     return (
         <>
             <PageHead title="Организация" />
+            <PendingChanges revision={pendingRevision} />
             <form className="card stack" onSubmit={submit}>
                 <TextField label="Отображаемое название" required value={form.data.name ?? ''} onChange={(e) => form.setData('name', e.target.value)} error={form.errors.name} />
                 <TextField label="Юридическое название" value={form.data.legal_name ?? ''} onChange={(e) => form.setData('legal_name', e.target.value)} />

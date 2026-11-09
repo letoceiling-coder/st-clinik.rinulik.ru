@@ -6,6 +6,8 @@ use App\Http\Controllers\Cabinet\MediaController;
 use App\Models\Clinic;
 use App\Models\ClinicDocument;
 use App\Models\ClinicPhoto;
+use App\Models\ClinicPost;
+use App\Models\ContentRevision;
 use App\Models\Doctor;
 use App\Models\Review;
 use Illuminate\Support\Carbon;
@@ -21,7 +23,9 @@ class ModerationQueue
 
     public const TYPE_LABELS = [
         'clinic' => 'Клиника',
+        'revision' => 'Изменения',
         'doctor' => 'Врач',
+        'post' => 'Публикация',
         'document' => 'Документ',
         'photo' => 'Фото',
         'review' => 'Отзыв',
@@ -31,7 +35,10 @@ class ModerationQueue
     /** Что проверить модератору по каждому типу. */
     public const HINTS = [
         'clinic' => 'Откройте полную проверку: там все данные, фото, график, услуги, врачи и документы. Сверьте название, адрес и контакты. Клинику с владельцем он опубликует сам из кабинета; клинику без владельца можно сразу одобрить и опубликовать.',
+        'revision' => 'Сравните «было» и «стало». До решения на сайте показывается прежняя версия; после одобрения изменения сразу опубликуются, при отклонении клиника увидит причину.',
+        'revision_post' => 'Эти изменения уже на сайте (цены и график публикуются сразу). Проверьте их: при отклонении клиника получит вашу причину и должна будет исправить данные.',
         'doctor' => 'Проверьте ФИО, должность и описание: без рекламных обещаний и чужих контактов. После одобрения врач появится на странице клиники.',
+        'post' => 'Новость или акция клиники: без недостоверных обещаний, медицинских гарантий и чужих контактов; сроки акции должны быть понятны. После одобрения публикация появится на странице клиники.',
         'document' => 'Откройте файл и сверьте с ним тип, номер и даты. Номер лицензии можно проверить в реестре Росздравнадзора. На сайте публикуются только номер и отметка о проверке, сам файл пациенты не видят.',
         'photo' => 'Фото должно относиться к клинике: без чужих логотипов, водяных знаков, людей без согласия и медицинских снимков пациентов. После одобрения фото появится в галерее клиники.',
         'review' => 'Проверьте, что отзыв о реальном визите: без оскорблений, чужих персональных данных и рекламы. После одобрения отзыв опубликуется, при отклонении автор увидит причину.',
@@ -47,7 +54,9 @@ class ModerationQueue
     {
         $items = [
             ...$this->clinics(),
+            ...$this->revisions(),
             ...$this->doctors(),
+            ...$this->posts(),
             ...$this->documents(),
             ...$this->photos(),
             ...$this->reviews(),
@@ -106,6 +115,70 @@ class ModerationQueue
                     ['label' => 'Карточка в админке', 'url' => '/admin/clinics/'.$c->id],
                     ['label' => 'Как увидят пациенты', 'url' => '/clinics/'.$c->slug, 'external' => true],
                 ],
+            ]))->all();
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function revisions(): array
+    {
+        $service = app(ContentRevisionService::class);
+
+        return ContentRevision::query()->pending()
+            ->with(['clinic:id,name,slug,organization_id', 'organization:id,name', 'subject', 'submitter:id,name'])
+            ->latest('updated_at')->limit(self::LIMIT)->get()
+            ->map(function (ContentRevision $revision) use ($service): ?array {
+                $diff = $service->diff($revision);
+                if ($diff === []) {
+                    // Правку вернули к исходным значениям — проверять нечего.
+                    $revision->update(['status' => ContentRevision::STATUS_WITHDRAWN]);
+
+                    return null;
+                }
+                $isPost = ! $revision->isPreModeration();
+
+                return $this->item('revision', $revision->id, $service->label($revision), $revision->clinic, $revision->updated_at, [
+                    'facts' => $this->facts([
+                        'Организация' => $revision->organization?->name,
+                        'Проверка' => $isPost ? 'после публикации — уже на сайте' : 'до публикации — на сайте прежняя версия',
+                        'Отправил' => $revision->submitter?->name,
+                    ]),
+                    'diff' => $diff,
+                    'media' => $this->revisionImage($revision),
+                    'hint' => self::HINTS[$isPost ? 'revision_post' : 'revision'],
+                    'links' => $revision->clinic ? [['label' => 'Как видят пациенты', 'url' => '/clinics/'.$revision->clinic->slug, 'external' => true]] : [],
+                ]);
+            })->filter()->values()->all();
+    }
+
+    /** @return array<string, string>|null Новое изображение из предложенной правки (фото врача, обложка, фото галереи). */
+    private function revisionImage(ContentRevision $revision): ?array
+    {
+        foreach (['path', 'photo_path', 'image_path'] as $key) {
+            $path = $revision->payload[$key] ?? null;
+            if (is_string($path) && $path !== '') {
+                return ['kind' => 'image', 'url' => Storage::disk('public')->url($path), 'caption' => 'Новое изображение'];
+            }
+        }
+
+        return null;
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function posts(): array
+    {
+        return ClinicPost::where('status', 'pending')->with('clinic:id,name,slug')
+            ->latest('updated_at')->limit(self::LIMIT)->get()
+            ->map(fn (ClinicPost $p) => $this->item('post', $p->id, $p->title, $p->clinic, $p->updated_at, [
+                'facts' => $this->facts([
+                    'Тип' => ClinicPost::TYPES[$p->type] ?? $p->type,
+                    'Период' => $p->starts_at || $p->ends_at
+                        ? trim(($p->starts_at ? 'с '.$p->starts_at->format('d.m.Y') : '').' '.($p->ends_at ? 'по '.$p->ends_at->format('d.m.Y') : ''))
+                        : null,
+                    'Анонс' => $p->excerpt,
+                ]),
+                'body' => $p->body,
+                'body_label' => 'Текст',
+                'media' => $p->image_path ? ['kind' => 'image', 'url' => Storage::disk('public')->url($p->image_path), 'caption' => 'Обложка'] : null,
             ]))->all();
     }
 
@@ -243,6 +316,7 @@ class ModerationQueue
             'links' => [],
             'flags' => [],
             'rating' => null,
+            'diff' => [],
             'note_required' => $type !== 'photo',
             ...$extra,
         ];

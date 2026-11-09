@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Cabinet;
 use App\Models\Doctor;
 use App\Models\Specialty;
 use App\Services\Audit;
+use App\Services\ContentRevisionService;
 use App\Services\Monetization\ClinicSubscriptionService;
 use App\Services\ProfileMetrics;
 use App\Support\Schedule;
@@ -44,14 +45,17 @@ class DoctorController extends CabinetController
 
     private function form(Request $request, ?Doctor $doctor): Response
     {
+        $revisions = app(ContentRevisionService::class);
+
         return $this->render($request, 'Cabinet/DoctorForm', $doctor ? 'Редактирование врача' : 'Новый врач', [
-            'doctorForm' => $doctor ? array_merge($doctor->only([
+            'pendingRevision' => $doctor ? $revisions->pendingSummary($doctor) : null,
+            'doctorForm' => $doctor ? $revisions->overlay($doctor, array_merge($doctor->only([
                 'id', 'name', 'position', 'experience_years', 'bio', 'education', 'achievements', 'schedule_days',
                 'accepts_children', 'children_age_from', 'consult_price', 'status', 'moderation_note', 'art_seed',
             ]), [
                 'specialty_ids' => $doctor->specialties()->pluck('specialties.id'),
                 'photo_url' => $doctor->photo_path ? Storage::disk('public')->url($doctor->photo_path) : null,
-            ]) : null,
+            ])) : null,
             'specialties' => Specialty::orderBy('name')->get(['id', 'name']),
             'weekdays' => Schedule::DAYS,
         ]);
@@ -85,6 +89,23 @@ class DoctorController extends CabinetController
     {
         $this->ownedBy($request, $doctor);
         $data = $this->validated($request);
+
+        // Опубликованный врач меняется через модерацию: на сайте остаётся проверенный профиль.
+        $revisions = app(ContentRevisionService::class);
+        if ($revisions->requiresModeration($doctor)) {
+            $attributes = $this->fields($data);
+            if ($request->hasFile('photo')) {
+                $attributes['photo_path'] = $request->file('photo')->store("doctor-photos/{$doctor->id}", 'public');
+            } elseif ($request->boolean('remove_photo')) {
+                $attributes['photo_path'] = null;
+            }
+            $revision = $revisions->propose($doctor, 'doctor', $attributes, $request->user(), $data['specialty_ids']);
+            Audit::log('doctor.update_proposed', $doctor);
+
+            return back()->with('success', $revision
+                ? 'Изменения отправлены на модерацию. До проверки на сайте показывается прежний профиль врача.'
+                : 'Изменений нет.');
+        }
 
         $doctor->update($this->fields($data));
         $doctor->specialties()->sync($data['specialty_ids']);

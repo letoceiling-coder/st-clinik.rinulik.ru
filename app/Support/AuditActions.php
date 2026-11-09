@@ -30,6 +30,12 @@ final class AuditActions
         'auth.social_unlinked' => 'Отвязал соцсеть',
         'branch.created' => 'Создан филиал',
         'branch.updated' => 'Изменён филиал',
+        'branch.update_proposed' => 'Изменения филиала отправлены на модерацию',
+        'organization.update_proposed' => 'Изменения реквизитов отправлены на модерацию',
+        'doctor.update_proposed' => 'Изменения врача отправлены на модерацию',
+        'post.update_proposed' => 'Изменения публикации отправлены на модерацию',
+        'photo.update_proposed' => 'Изменения фото отправлены на модерацию',
+        'revision.withdrawn' => 'Клиника отозвала изменения с модерации',
         'branch.submitted' => 'Филиал отправлен на модерацию',
         'broadcasts.created' => 'Создана рассылка',
         'broadcasts.updated' => 'Изменена рассылка',
@@ -122,6 +128,7 @@ final class AuditActions
     /** Объекты модерации и справочников в коде действия. */
     private const OBJECTS = [
         'clinic' => 'клиника', 'doctor' => 'врач', 'document' => 'документ', 'photo' => 'фото',
+        'revision' => 'изменения из кабинета', 'post' => 'публикация',
         'review' => 'отзыв', 'review_reply' => 'ответ на отзыв', 'promotion' => 'продвижение', 'broadcast' => 'рассылка',
         'cities' => 'город', 'City' => 'город', 'districts' => 'район', 'District' => 'район',
         'regions' => 'регион', 'Region' => 'регион', 'specialties' => 'направление', 'Specialty' => 'направление',
@@ -134,7 +141,7 @@ final class AuditActions
     private const VERBS = [
         'approve' => 'одобрено', 'approved' => 'одобрено', 'published' => 'опубликовано',
         'reject' => 'отклонено', 'rejected' => 'отклонено', 'hide' => 'скрыто', 'hidden' => 'скрыто',
-        'restore' => 'восстановлено', 'saved' => 'сохранено', 'deleted' => 'удалено',
+        'restore' => 'восстановлено', 'saved' => 'сохранено', 'deleted' => 'удалено', 'applied' => 'применено на сайте',
     ];
 
     /** Разделы журнала: префикс кода действия => название для фильтра. */
@@ -150,6 +157,8 @@ final class AuditActions
         'document' => 'Документы',
         'post' => 'Публикации',
         'moderation' => 'Модерация',
+        'organization' => 'Организация',
+        'revision' => 'Изменения на модерации',
         'review' => 'Отзывы',
         'complaint' => 'Жалобы',
         'duplicate' => 'Дубликаты',

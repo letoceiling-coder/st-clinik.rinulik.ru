@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Cabinet;
 use App\Models\ClinicDocument;
 use App\Models\ClinicPhoto;
 use App\Services\Audit;
+use App\Services\ContentRevisionService;
 use App\Services\ProfileMetrics;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -75,6 +76,18 @@ class MediaController extends CabinetController
             'kind' => $data['kind'],
             'caption' => $data['caption'] ?? null,
         ];
+
+        // Одобренное фото остаётся в галерее, пока модератор не проверит новую подпись или новый файл.
+        $revisions = app(ContentRevisionService::class);
+        if ($revisions->requiresModeration($photo)) {
+            if ($request->hasFile('photo')) {
+                $updates['path'] = $request->file('photo')->store("clinic-photos/{$photo->clinic_id}", 'public');
+            }
+            $revision = $revisions->propose($photo, 'photo', $updates, $request->user());
+            Audit::log('photo.update_proposed', $photo->clinic);
+
+            return back()->with('success', $revision ? 'Изменения фото отправлены на модерацию. До проверки в галерее прежнее фото.' : 'Изменений нет.');
+        }
 
         if ($request->hasFile('photo')) {
             if ($photo->path) {

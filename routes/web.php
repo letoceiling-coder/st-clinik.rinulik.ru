@@ -217,6 +217,7 @@ Route::middleware(['clinic.owner', 'cabinet.ability'])->prefix('clinic-cabinet')
 
     Route::get('/organization', [Cabinet\OrganizationController::class, 'edit'])->name('organization.edit');
     Route::put('/organization', [Cabinet\OrganizationController::class, 'update'])->name('organization.update');
+    Route::post('/revisions/{revision}/withdraw', [Cabinet\RevisionController::class, 'withdraw'])->name('revisions.withdraw')->whereNumber('revision');
     Route::get('/settings', [Cabinet\SettingsController::class, 'index'])->name('settings');
     Route::put('/settings/notifications', [Cabinet\SettingsController::class, 'updateNotifications'])->name('settings.notifications');
     Route::put('/settings/assistant-leads', [Cabinet\SettingsController::class, 'updateAssistantLeads'])->name('settings.assistant-leads');

@@ -2,10 +2,15 @@ import { Link } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import ClinicProfileFields, { useClinicProfileForm, type ClinicProfile, type ClinicProfileOptions } from '@/components/ClinicProfileFields';
 import { PageHead } from '@/components/Dash';
+import PendingChanges, { type PendingRevision } from '@/components/PendingChanges';
 import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Misc';
 
-export default function BranchForm({ branchForm, ...options }: { branchForm: ClinicProfile | null } & ClinicProfileOptions) {
+export default function BranchForm({
+    branchForm,
+    pendingRevision,
+    ...options
+}: { branchForm: ClinicProfile | null; pendingRevision?: PendingRevision | null } & ClinicProfileOptions) {
     const b = branchForm ?? {};
     const { form, prepare } = useClinicProfileForm(branchForm, options.propertyTypes);
 
@@ -19,6 +24,7 @@ export default function BranchForm({ branchForm, ...options }: { branchForm: Cli
     return (
         <form className="stack-lg" onSubmit={submit}>
             <PageHead title={b.id ? 'Редактирование филиала' : 'Новый филиал'} text="Не публикуйте диагнозы и сканы паспортов пациентов. Лицензию загружайте в «Документы»." />
+            <PendingChanges revision={pendingRevision} />
             {b.id ? (
                 <Alert tone="muted" icon="image">
                     Фотографии филиала (фасад, интерьер, кабинеты) загружаются в разделе{' '}

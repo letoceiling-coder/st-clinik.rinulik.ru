@@ -8,6 +8,7 @@ use App\Models\UserNotification;
 use App\Services\Audit;
 use App\Services\Clinics\AddressGeocoder;
 use App\Services\Clinics\ClinicProfileForm;
+use App\Services\ContentRevisionService;
 use App\Services\ModerationService;
 use App\Services\Monetization\ClinicSubscriptionService;
 use App\Services\ProfileMetrics;
@@ -48,7 +49,14 @@ class BranchController extends CabinetController
 
     private function form(Request $request, ?Clinic $clinic): Response
     {
-        return $this->render($request, 'Cabinet/BranchForm', $clinic ? 'Редактирование филиала' : 'Новый филиал', app(ClinicProfileForm::class)->props($clinic));
+        $props = app(ClinicProfileForm::class)->props($clinic);
+        if ($clinic) {
+            $revisions = app(ContentRevisionService::class);
+            $props['branchForm'] = $revisions->overlay($clinic, $props['branchForm']);
+            $props['pendingRevision'] = $revisions->pendingSummary($clinic);
+        }
+
+        return $this->render($request, 'Cabinet/BranchForm', $clinic ? 'Редактирование филиала' : 'Новый филиал', $props);
     }
 
     public function store(Request $request): RedirectResponse
@@ -89,6 +97,17 @@ class BranchController extends CabinetController
         $this->authorizeBranch($request, $clinic);
         $profile = app(ClinicProfileForm::class);
         $data = $profile->validate($request);
+
+        // Одобренный филиал меняется только через модерацию: на сайте остаётся проверенная версия.
+        $revisions = app(ContentRevisionService::class);
+        if ($revisions->requiresModeration($clinic)) {
+            $revision = $revisions->propose($clinic, 'profile', $profile->attributes($data), $request->user(), $data['specialty_ids'] ?? []);
+            Audit::log('branch.update_proposed', $clinic);
+
+            return back()->with('success', $revision
+                ? 'Изменения отправлены на модерацию. До проверки на сайте показывается прежняя версия.'
+                : 'Изменений нет — на сайте актуальные данные.');
+        }
 
         $clinic->fill($profile->attributes($data));
         if ($clinic->status === 'rejected') {
@@ -209,6 +228,8 @@ class BranchController extends CabinetController
             'days.*.open' => ['nullable', 'regex:/^([01]\d|2[0-3]):[0-5]\d$/'],
             'days.*.close' => ['nullable', 'regex:/^(([01]\d|2[0-3]):[0-5]\d|24:00)$/'],
         ], ['days.*.open.regex' => 'Время — в формате ЧЧ:ММ.', 'days.*.close.regex' => 'Время — в формате ЧЧ:ММ.']);
+
+        app(ContentRevisionService::class)->trackPostModeration($branch, 'schedule', $request->user());
 
         $schedule = [];
         foreach (array_keys(Schedule::DAYS) as $key) {

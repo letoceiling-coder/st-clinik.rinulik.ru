@@ -2,25 +2,32 @@
 
 namespace App\Http\Controllers\Cabinet;
 
+use App\Services\Audit;
+use App\Services\ContentRevisionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Response;
 
 class OrganizationController extends CabinetController
 {
-    public function edit(Request $request): Response
+    private const FIELDS = [
+        'id', 'name', 'legal_name', 'inn', 'ogrn', 'kpp', 'legal_address',
+        'license_number', 'license_issuer', 'license_date',
+    ];
+
+    public function edit(Request $request, ContentRevisionService $revisions): Response
     {
         $org = $request->attributes->get('org');
+        $values = $org->only(self::FIELDS);
+        $values['license_date'] = $org->license_date?->toDateString();
 
         return $this->render($request, 'Cabinet/Organization', 'Организация', [
-            'organization' => $org->only([
-                'id', 'name', 'legal_name', 'inn', 'ogrn', 'kpp', 'legal_address',
-                'license_number', 'license_issuer', 'license_date',
-            ]),
+            'organization' => $revisions->overlay($org, $values),
+            'pendingRevision' => $revisions->pendingSummary($org),
         ]);
     }
 
-    public function update(Request $request): RedirectResponse
+    public function update(Request $request, ContentRevisionService $revisions): RedirectResponse
     {
         $org = $request->attributes->get('org');
 
@@ -35,6 +42,16 @@ class OrganizationController extends CabinetController
             'license_issuer' => ['nullable', 'string', 'max:160'],
             'license_date' => ['nullable', 'date'],
         ]);
+
+        // Реквизиты организации с одобренными филиалами меняются только после проверки модератором.
+        if ($revisions->requiresModeration($org)) {
+            $revision = $revisions->propose($org, 'organization', $data, $request->user());
+            Audit::log('organization.update_proposed', $org);
+
+            return back()->with('success', $revision
+                ? 'Изменения реквизитов отправлены на модерацию. До проверки действуют прежние данные.'
+                : 'Изменений нет.');
+        }
 
         $org->update($data);
 

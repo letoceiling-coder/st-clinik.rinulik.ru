@@ -4419,6 +4419,18 @@
 .mod-facts dd { margin: 0; font-weight: 500; overflow-wrap: anywhere; }
 .mod-text { display: grid; gap: 4px; padding: var(--space-3) var(--space-4); border-radius: var(--radius-12); background: var(--color-surface-muted); }
 .mod-text p { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
+.mod-diff { display: grid; border: 1px solid var(--color-border); border-radius: var(--radius-12); overflow: hidden; }
+.mod-diff__row { display: grid; grid-template-columns: minmax(110px, 0.6fr) 1fr 1fr; gap: var(--space-3); padding: var(--space-2) var(--space-3); border-top: 1px solid var(--color-border); }
+.mod-diff__row:first-child { border-top: 0; }
+.mod-diff__row--head { background: var(--color-surface-muted); color: var(--color-muted); font-size: var(--fs-sm); }
+.mod-diff__label { color: var(--color-muted); font-size: var(--fs-sm); }
+.mod-diff__before, .mod-diff__after { white-space: pre-line; overflow-wrap: anywhere; }
+.mod-diff__before { color: var(--color-muted); text-decoration: line-through; text-decoration-color: var(--color-danger); }
+.mod-diff__after { font-weight: 500; }
+@media (max-width: 640px) {
+    .mod-diff__row { grid-template-columns: 1fr; gap: var(--space-1); }
+    .mod-diff__row--head { display: none; }
+}
 .mod-text--context { background: transparent; border: 1px solid var(--color-border); }
 .mod-text__label { color: var(--color-muted); font-size: var(--fs-sm); font-weight: 500; }
 .mod-hint, .mod-flags { display: flex; gap: 8px; align-items: flex-start; margin: 0; font-size: var(--fs-sm); line-height: 1.45; }
