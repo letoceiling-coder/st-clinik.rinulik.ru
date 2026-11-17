@@ -17,7 +17,11 @@ class VkWebhookController extends Controller
         $type = (string) ($payload['type'] ?? '');
 
         $groupId = config('services.vk_community.group_id');
-        if (filled($groupId) && (string) ($payload['group_id'] ?? '') !== (string) $groupId) {
+        // Интеграция не настроена — событиям от кого угодно доверять нельзя: подписки не меняем.
+        if (blank($groupId)) {
+            return response('ok', 200)->header('Content-Type', 'text/plain; charset=UTF-8');
+        }
+        if ((string) ($payload['group_id'] ?? '') !== (string) $groupId) {
             abort(403);
         }
 

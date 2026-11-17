@@ -30,6 +30,17 @@ class VkCommunityNotificationTest extends TestCase
         ]);
     }
 
+    public function test_events_are_ignored_while_the_integration_is_not_configured(): void
+    {
+        config(['services.vk_community.group_id' => null]);
+        $user = User::factory()->create();
+        SocialAccount::factory()->create(['user_id' => $user->id, 'provider' => 'vk', 'provider_user_id' => '4242']);
+
+        $this->postJson('/webhooks/vk', ['type' => 'message_allow', 'object' => ['user_id' => 4242]])->assertOk();
+
+        $this->assertNull(app(NotificationSubscriptionService::class)->activeVkUserId($user));
+    }
+
     public function test_callback_confirmation_returns_code(): void
     {
         $this->postJson('/webhooks/vk', ['type' => 'confirmation', 'group_id' => 777, 'secret' => 'cb-secret'])
