@@ -29,10 +29,17 @@ class AssistantKbEmbeddingService
             ])->saveQuietly();
 
             if (PgVector::isAvailable()) {
-                DB::statement(
-                    'UPDATE assistant_kb_entries SET embedding_vector = ?::vector WHERE id = ?',
-                    [PgVector::literal($vector), $entry->id],
-                );
+                // pgvector — ускоритель поиска; JSON-вектор уже сохранён, поэтому сбой здесь
+                // (например, другая размерность модели) не делает индексацию неудачной.
+                try {
+                    // Вложенная транзакция (savepoint): неудачный UPDATE не ломает внешнюю транзакцию PostgreSQL.
+                    DB::transaction(fn () => DB::statement(
+                        'UPDATE assistant_kb_entries SET embedding_vector = ?::vector WHERE id = ?',
+                        [PgVector::literal($vector), $entry->id],
+                    ));
+                } catch (Throwable $e) {
+                    report($e);
+                }
             }
 
             return true;
