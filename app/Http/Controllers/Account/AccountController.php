@@ -92,6 +92,7 @@ class AccountController extends Controller
                 'in_app' => 'На сайте',
                 'email' => 'Email',
                 'max' => 'MAX',
+                'vk' => 'VK',
                 'web_push' => 'Браузер',
             ],
             'clinic_follows' => $clinicFollowers->listForUser($u),

@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Clinic;
 use App\Models\Doctor;
 use App\Models\UserCollection;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class CollectionController extends Controller
 {

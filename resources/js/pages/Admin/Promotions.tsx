@@ -177,7 +177,13 @@ export default function AdminPromotions({ products, packages, prices, settings, 
                                 </a>
                             </p>
                             <div className="row row--wrap" style={{ gap: 8 }}>
-                                <Button type="button" onClick={() => router.post(`/admin/promotions/orders/${o.id}/approve`, {}, { preserveScroll: true })}>
+                                <Button
+                                    type="button"
+                                    onClick={async () => {
+                                        const erid = await promptDialog({ title: 'Опубликовать баннер', label: 'Токен ERID из ОРД (можно оставить пустым и добавить позже)', confirmLabel: 'Опубликовать' });
+                                        if (erid !== null) router.post(`/admin/promotions/orders/${o.id}/approve`, { erid: erid.trim() }, { preserveScroll: true });
+                                    }}
+                                >
                                     Опубликовать
                                 </Button>
                                 <Button

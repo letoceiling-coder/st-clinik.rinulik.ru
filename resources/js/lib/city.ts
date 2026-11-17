@@ -20,7 +20,7 @@ export function useCity() {
 
             return `/${slug}/${section}${qs}`;
         },
-        direction: (specialty: string) => `/${slug}/directions/${specialty}`,
+        direction: (specialty: string) => `/${slug}/${specialty}`,
         concern: (concern: string) => `/${slug}/concerns/${concern}`,
     };
 }

@@ -313,9 +313,9 @@ class PromotionService
         $order->update(['moderation_status' => null]);
     }
 
-    public function approveOrder(PromotionOrder $order, ?string $note = null): void
+    public function approveOrder(PromotionOrder $order, ?string $note = null, ?string $erid = null): void
     {
-        DB::transaction(function () use ($order, $note) {
+        DB::transaction(function () use ($order, $note, $erid) {
             $duration = $this->durationDays($order->priceable_type, $order->priceable_id);
             $startsAt = now();
             $endsAt = now()->addDays($duration);
@@ -324,6 +324,7 @@ class PromotionService
                 ->where('status', 'pending_moderation')
                 ->update([
                     'status' => 'active',
+                    'erid' => filled($erid) ? $erid : null,
                     'starts_at' => $startsAt,
                     'ends_at' => $endsAt,
                 ]);
@@ -363,7 +364,7 @@ class PromotionService
             ->active()
             ->where('city_id', $cityId)
             ->where('product_code', $slot)
-            ->with(['clinic:id,slug,name'])
+            ->with(['clinic:id,slug,name,organization_id', 'clinic.organization:id,name,legal_name,inn'])
             ->orderByDesc('starts_at')
             ->get();
     }

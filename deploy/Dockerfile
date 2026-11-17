@@ -8,6 +8,17 @@ COPY vite.config.ts tsconfig.json ./
 COPY public ./public
 RUN npm run build
 
+# Inertia SSR: отдельный лёгкий Node-контейнер. Бандл bootstrap/ssr/app.js сам поднимает HTTP-сервер на :13714,
+# а react / @inertiajs/react подтягивает из node_modules (только prod-зависимости).
+FROM node:22-bookworm-slim AS ssr
+ENV NODE_ENV=production
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm ci --omit=dev --ignore-scripts
+COPY --from=assets /app/bootstrap/ssr ./bootstrap/ssr
+EXPOSE 13714
+CMD ["node", "bootstrap/ssr/app.js"]
+
 FROM composer:2 AS vendor
 WORKDIR /app
 COPY composer.json composer.lock ./
@@ -33,6 +44,7 @@ WORKDIR /var/www/html
 COPY . .
 COPY --from=vendor /app/vendor ./vendor
 COPY --from=assets /app/public/build ./public/build
+COPY --from=assets /app/bootstrap/ssr ./bootstrap/ssr
 RUN composer dump-autoload -o --no-dev --no-interaction
 
 RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs storage/app/public database \

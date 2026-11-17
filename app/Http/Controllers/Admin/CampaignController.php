@@ -18,6 +18,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Response;
+use OpenSpout\Common\Entity\Row;
+use OpenSpout\Writer\XLSX\Options as XlsxOptions;
+use OpenSpout\Writer\XLSX\Writer as XlsxWriter;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /** Кампании КП: подбор черновиков, автоматическая отправка email/SMS, ручные каналы, воронка и экспорт. */
@@ -195,11 +198,32 @@ class CampaignController extends AdminController
         return back()->with('success', 'Получатель снова в очереди.');
     }
 
-    /** CSV (UTF-8 с BOM, разделитель «;» — открывается в Excel). */
-    public function export(Campaign $campaign): StreamedResponse
+    /** CSV (UTF-8 с BOM, разделитель «;») по умолчанию; ?format=xlsx — файл Excel. */
+    public function export(Request $request, Campaign $campaign): StreamedResponse
     {
         Audit::log('campaigns.exported', $campaign);
         $columns = ['ID', 'Клиника', 'Город', 'Канал', 'Контакт', 'Статус', 'Отправлено', 'Открыто', 'Переход на КП', 'Демо', 'Заявка', 'Подключение', 'Ошибка'];
+
+        if ($request->query('format') === 'xlsx') {
+            return response()->streamDownload(function () use ($campaign, $columns): void {
+                $writer = new XlsxWriter(new XlsxOptions);
+                $writer->openToFile('php://output');
+                $writer->addRow(Row::fromValues($columns));
+                $campaign->recipients()->with('clinic:id,name,city_id', 'clinic.city:id,name')->orderBy('id')
+                    ->chunk(500, function ($rows) use ($writer): void {
+                        foreach ($rows as $r) {
+                            $writer->addRow(Row::fromValues([
+                                $r->id, $r->clinic?->name, $r->clinic?->city?->name, Campaign::CHANNELS[$r->channel] ?? $r->channel, $r->contact,
+                                CampaignRecipient::STATUSES[$r->status] ?? $r->status,
+                                $r->sent_at?->format('d.m.Y H:i'), $r->opened_at?->format('d.m.Y H:i'), $r->clicked_at?->format('d.m.Y H:i'),
+                                $r->demo_opened_at?->format('d.m.Y H:i'), $r->replied_at?->format('d.m.Y H:i'), $r->connected_at?->format('d.m.Y H:i'),
+                                $r->error,
+                            ]));
+                        }
+                    });
+                $writer->close();
+            }, "campaign-{$campaign->id}.xlsx", ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']);
+        }
 
         return response()->streamDownload(function () use ($campaign, $columns): void {
             $out = fopen('php://output', 'w');

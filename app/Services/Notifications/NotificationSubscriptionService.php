@@ -17,6 +17,27 @@ class NotificationSubscriptionService
         $this->revokeByExternal(NotificationSubscription::CHANNEL_MAX, $maxUserId);
     }
 
+    public function activateVk(User $user, string $vkUserId, ?array $meta = null): NotificationSubscription
+    {
+        return $this->activate($user, NotificationSubscription::CHANNEL_VK, $vkUserId, $meta);
+    }
+
+    public function revokeVk(string $vkUserId): void
+    {
+        $this->revokeByExternal(NotificationSubscription::CHANNEL_VK, $vkUserId);
+    }
+
+    public function activeVkUserId(User $user): ?string
+    {
+        $row = NotificationSubscription::query()
+            ->where('user_id', $user->id)
+            ->where('channel', NotificationSubscription::CHANNEL_VK)
+            ->where('status', NotificationSubscription::STATUS_ACTIVE)
+            ->value('external_id');
+
+        return is_string($row) && $row !== '' ? $row : null;
+    }
+
     public function activate(User $user, string $channel, string $externalId, ?array $meta = null): NotificationSubscription
     {
         $subscription = NotificationSubscription::query()->updateOrCreate(

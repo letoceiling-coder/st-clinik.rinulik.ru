@@ -20,6 +20,7 @@ use App\Services\Parser\ParserTaskService;
 use App\Services\ProfileMetrics;
 use App\Support\Text;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -150,9 +151,43 @@ class ParserController extends AdminController
             return back()->with('error', $e->getMessage());
         }
 
+        $note = $task->wasRecentlyCreated ? $service->collectWorkerNote() : null;
+
         return to_route('admin.parser.index', ['tab' => 'tasks'])->with('success', $task->wasRecentlyCreated
-            ? "Парсинг «{$data['city']}» запущен. Ход работы виден в индикаторе внизу экрана — можно переходить на другие страницы."
+            ? "Парсинг «{$data['city']}» запущен. Ход работы виден в индикаторе внизу экрана — можно переходить на другие страницы.".($note ? " Внимание: {$note}" : '')
             : "Такой парсинг уже запускался сегодня (задача #{$task->id}).");
+    }
+
+    /**
+     * Установщик ПК-воркера: создаёт ссылку у парсера и отдаёт готовые кнопки Windows / macOS.
+     * Ссылка действует сутки и ограничена числом запусков.
+     */
+    public function workerInstaller(Request $request): JsonResponse
+    {
+        $client = ParserOrganizationsClient::fromConfig();
+        if (! $client->configured()) {
+            return response()->json(['message' => 'Парсер не настроен: укажите адрес и API-ключ в разделе «Интеграции».'], 422);
+        }
+
+        try {
+            $links = $client->createWorkerInstall([
+                'taskTypes' => ['organizations.agent', 'yandex.orgs', 'page.html'],
+                'ttlHours' => 24,
+                'maxUses' => 5,
+            ]);
+        } catch (RequestException $e) {
+            $message = $e->response->status() === 403
+                ? 'У API-ключа парсера нет права «workers:install». Добавьте его ключу в парсере (раздел «API-ключи») и повторите.'
+                : 'Парсер не выдал ссылку установки: '.($e->response->json('error') ?? 'HTTP '.$e->response->status());
+
+            return response()->json(['message' => $message], 502);
+        } catch (Throwable $e) {
+            return response()->json(['message' => 'Парсер недоступен: '.$e->getMessage()], 502);
+        }
+
+        Audit::log('parser.worker_installer_created', null, ['worker_id' => $links['workerId'] ?? null]);
+
+        return response()->json($links);
     }
 
     /** Состояние задач для индикатора процессов на всех страницах админки. */

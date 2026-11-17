@@ -10,6 +10,10 @@ export interface AdBanner {
     image_url: string | null;
     click_url: string;
     impression_url: string;
+    /** Токен ЕРИР из ОРД (маркировка рекламы). */
+    erid?: string | null;
+    /** Рекламодатель: юрлицо и ИНН. */
+    advertiser?: string | null;
 }
 
 interface Props {
@@ -85,6 +89,11 @@ export default function AdSlot({ banners, label = 'Реклама', slot = 'home
                                   {b.title ?? b.clinic_name}
                                   <span className="ad-slot__mark">Реклама</span>
                               </span>
+                              {b.advertiser || b.erid ? (
+                                  <span className="ad-slot__legal">
+                                      {[b.advertiser, b.erid ? `erid: ${b.erid}` : null].filter(Boolean).join(' · ')}
+                                  </span>
+                              ) : null}
                           </a>
                       ))
                     : Array.from({ length: demoCount }).map((_, i) => <DemoBanner key={`demo-${slot}-${i}`} slot={slot} />)}

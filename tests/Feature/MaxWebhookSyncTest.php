@@ -22,6 +22,7 @@ class MaxWebhookSyncTest extends TestCase
         $this->seed(FoundationSeeder::class);
         config(['services.max_bot.api_url' => self::API, 'app.url' => 'https://mirklinik.ru']);
         url()->forceRootUrl('https://mirklinik.ru');
+        url()->forceScheme('https');
         Cache::flush();
     }
 

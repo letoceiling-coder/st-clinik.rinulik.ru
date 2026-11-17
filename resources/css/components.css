@@ -2239,3 +2239,21 @@ a.page-btn:hover {
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     }
 }
+.ad-slot__legal {
+    display: block;
+    margin-top: var(--space-1);
+    color: var(--color-muted);
+    font-size: var(--fs-xs);
+    overflow-wrap: anywhere;
+}
+.worker-install-cmd {
+    display: block;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-12);
+    background: var(--color-surface-muted);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: var(--fs-sm);
+    overflow-wrap: anywhere;
+    user-select: all;
+}

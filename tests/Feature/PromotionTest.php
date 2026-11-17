@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Resources\PromotionBannerResource;
 use App\Models\City;
 use App\Models\Clinic;
 use App\Models\ClinicPromotion;
@@ -123,6 +124,29 @@ class PromotionTest extends TestCase
             'order_id' => $order->id,
             'status' => 'active',
         ]);
+    }
+
+    public function test_approved_banner_carries_erid_and_advertiser_data(): void
+    {
+        [$owner, $clinic] = $this->clinicOwner();
+        $this->activatePublication($clinic, $owner);
+        $clinic->organization->update(['legal_name' => 'ООО Тест', 'inn' => '7701234567']);
+
+        $product = PromotionProduct::query()->where('code', 'banner_home')->firstOrFail();
+        $order = PromotionOrder::create([
+            'organization_id' => $clinic->organization_id, 'clinic_id' => $clinic->id, 'city_id' => $clinic->city_id,
+            'user_id' => $owner->id, 'priceable_type' => 'product', 'priceable_id' => $product->id, 'amount' => 990000,
+            'status' => 'paid', 'moderation_status' => 'pending', 'banner_title' => 'Test', 'banner_url' => 'https://example.test', 'paid_at' => now(),
+        ]);
+        app(PromotionService::class)->fulfillOrder($order);
+        app(PromotionService::class)->approveOrder($order, null, 'Ab12Cd34');
+
+        $this->assertDatabaseHas('clinic_promotions', ['order_id' => $order->id, 'status' => 'active', 'erid' => 'Ab12Cd34']);
+
+        $banners = app(PromotionService::class)->activeBanners($clinic->city_id, 'banner_home');
+        $resource = PromotionBannerResource::collection($banners)->resolve();
+        $this->assertSame('Ab12Cd34', $resource[0]['erid']);
+        $this->assertSame('ООО Тест, ИНН 7701234567', $resource[0]['advertiser']);
     }
 
     public function test_catalog_includes_recommended_block_when_boosted(): void

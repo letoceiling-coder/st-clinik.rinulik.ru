@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\City;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -32,10 +34,10 @@ abstract class Controller
     }
 
     /**
-     * @param  class-string<\Illuminate\Http\Resources\Json\JsonResource>  $resource
+     * @param  class-string<JsonResource>  $resource
      * @return array<string,mixed>
      */
-    protected function paged(\Illuminate\Contracts\Pagination\LengthAwarePaginator $paginator, string $resource): array
+    protected function paged(LengthAwarePaginator $paginator, string $resource): array
     {
         return $paginator->withQueryString()
             ->through(fn ($model) => $resource::make($model)->resolve())

@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\Audit;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use RuntimeException;
 
 class ParserTaskService
@@ -76,6 +77,29 @@ class ParserTaskService
         Audit::log('parser.task_created', $task, ['type' => ParserTask::COLLECT, 'city' => $params['city'], 'query' => $params['query'] ?? null, 'count' => $params['count']]);
 
         return $task;
+    }
+
+    /**
+     * Предупреждение для админа, если сейчас некому выполнять сбор: задача встанет в очередь парсера
+     * и стартует сама, когда подходящий воркер подключится. Сбой запроса не мешает запуску — вернёт null.
+     */
+    public function collectWorkerNote(): ?string
+    {
+        try {
+            $workers = collect($this->client()->workers())->where('connected', true);
+        } catch (\Throwable) {
+            return null;
+        }
+
+        $capable = $workers->filter(fn (array $w) => in_array('task:organizations.agent', $w['capabilities'] ?? [], true));
+        if ($capable->isEmpty()) {
+            return 'Сейчас ни один воркер не умеет собирать организации (онлайн: '.$workers->count().'). Задача ждёт в очереди и стартует, когда нужный воркер подключится.';
+        }
+        if ($capable->every(fn (array $w) => ! empty($w['lastError']))) {
+            return 'У подходящего воркера последняя задача завершилась ошибкой ('.Str::limit((string) $capable->first()['lastError'], 90).'). Если он не справится, парсер переключит задачу на другой воркер, когда он появится.';
+        }
+
+        return null;
     }
 
     public function launchEmailSearch(ParsedOrganization $organization, ?User $by): ParserTask
@@ -336,9 +360,25 @@ class ParserTaskService
     }
 
     /** @param array<string, mixed> $input */
+    /**
+     * Ключ идемпотентности: одинаковые параметры за сутки дают один ключ, и парсер вернёт ту же задачу.
+     * Если задача с таким ключом уже завершилась ошибкой, отменена или устарела, повтор должен создать НОВУЮ
+     * задачу, иначе парсер вернёт старый taskId и вставка нарушит уникальность parser_tasks.external_id.
+     * Поэтому для повтора к ключу добавляется номер попытки.
+     */
     private function idempotencyKey(string $type, array $input): string
     {
-        return sha1($type.'|'.json_encode($input).'|'.now()->toDateString());
+        $base = $type.'|'.json_encode($input).'|'.now()->toDateString();
+
+        for ($attempt = 0; $attempt < 50; $attempt++) {
+            $key = sha1($attempt === 0 ? $base : $base.'|retry'.$attempt);
+            $burned = ParserTask::query()->where('idempotency_key', $key)->whereIn('status', ['failed', 'cancelled', 'stale'])->exists();
+            if (! $burned) {
+                return $key;
+            }
+        }
+
+        return sha1($base.'|retry'.uniqid());
     }
 
     private function reusable(string $key): ?ParserTask

@@ -16,9 +16,24 @@ class PromotionBannerResource extends JsonResource
             'id' => $this->id,
             'title' => $this->banner_title,
             'clinic_name' => $this->clinic?->name,
+            'erid' => $this->erid,
+            // Данные рекламодателя для маркировки: юрлицо и ИНН организации клиники.
+            'advertiser' => $this->advertiserLabel(),
             'image_url' => $this->banner_image_path ? Storage::disk('public')->url($this->banner_image_path) : null,
             'click_url' => route('promotions.click', $this->id),
             'impression_url' => route('promotions.impression', $this->id),
         ];
+    }
+
+    private function advertiserLabel(): ?string
+    {
+        $organization = $this->clinic?->organization;
+        if ($organization === null) {
+            return null;
+        }
+
+        $name = $organization->legal_name ?: $organization->name;
+
+        return trim($name.($organization->inn ? ', ИНН '.$organization->inn : '')) ?: null;
     }
 }

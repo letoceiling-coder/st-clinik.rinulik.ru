@@ -35,6 +35,9 @@ class ClinicStaffAlertNotification extends Notification implements ShouldQueue
         if (in_array(NotificationSubscription::CHANNEL_MAX, $channels, true)) {
             $out[] = 'max';
         }
+        if (in_array(NotificationSubscription::CHANNEL_VK, $channels, true)) {
+            $out[] = 'vk';
+        }
         if (in_array(NotificationSubscription::CHANNEL_WEB_PUSH, $channels, true)) {
             $out[] = 'webpush';
         }
@@ -62,6 +65,16 @@ class ClinicStaffAlertNotification extends Notification implements ShouldQueue
     }
 
     public function toMax(object $notifiable): string
+    {
+        $text = $this->title."\n\n".$this->body;
+        if ($this->url !== null) {
+            $text .= "\n\n".$this->absoluteUrl();
+        }
+
+        return $text;
+    }
+
+    public function toVk(object $notifiable): string
     {
         $text = $this->title."\n\n".$this->body;
         if ($this->url !== null) {

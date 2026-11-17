@@ -36,6 +36,7 @@ class NotificationPreferenceService
         return collect([
             NotificationSubscription::CHANNEL_EMAIL,
             NotificationSubscription::CHANNEL_MAX,
+            NotificationSubscription::CHANNEL_VK,
             NotificationSubscription::CHANNEL_WEB_PUSH,
         ])
             ->filter(fn (string $channel) => $this->channelAvailable($user, $channel))
@@ -48,7 +49,7 @@ class NotificationPreferenceService
     {
         if ($eventKey === NotificationEvents::PLATFORM_MARKETING) {
             $channels = [];
-            foreach ([NotificationSubscription::CHANNEL_EMAIL, NotificationSubscription::CHANNEL_MAX, NotificationSubscription::CHANNEL_WEB_PUSH] as $channel) {
+            foreach ([NotificationSubscription::CHANNEL_EMAIL, NotificationSubscription::CHANNEL_MAX, NotificationSubscription::CHANNEL_VK, NotificationSubscription::CHANNEL_WEB_PUSH] as $channel) {
                 if ($this->channelAvailable($user, $channel)) {
                     $channels[] = $channel;
                 }
@@ -67,6 +68,10 @@ class NotificationPreferenceService
             $channels[] = NotificationSubscription::CHANNEL_MAX;
         }
 
+        if ($this->channelAvailable($user, NotificationSubscription::CHANNEL_VK)) {
+            $channels[] = NotificationSubscription::CHANNEL_VK;
+        }
+
         if ($this->channelAvailable($user, NotificationSubscription::CHANNEL_WEB_PUSH)) {
             $channels[] = NotificationSubscription::CHANNEL_WEB_PUSH;
         }
@@ -77,7 +82,7 @@ class NotificationPreferenceService
     /** @return list<array{key: string, label: string, channels: list<string>, available: list<string>}> */
     public function matrixFor(User $user): array
     {
-        $available = collect(['in_app', NotificationSubscription::CHANNEL_EMAIL, NotificationSubscription::CHANNEL_MAX, NotificationSubscription::CHANNEL_WEB_PUSH])
+        $available = collect(['in_app', NotificationSubscription::CHANNEL_EMAIL, NotificationSubscription::CHANNEL_MAX, NotificationSubscription::CHANNEL_VK, NotificationSubscription::CHANNEL_WEB_PUSH])
             ->filter(fn (string $channel) => $this->channelAvailable($user, $channel))
             ->values()
             ->all();
@@ -97,7 +102,7 @@ class NotificationPreferenceService
     /** @return list<array{key: string, label: string, channels: list<string>, available: list<string>}> */
     public function matrixForClinic(User $user): array
     {
-        $available = collect(['in_app', NotificationSubscription::CHANNEL_EMAIL, NotificationSubscription::CHANNEL_MAX, NotificationSubscription::CHANNEL_WEB_PUSH])
+        $available = collect(['in_app', NotificationSubscription::CHANNEL_EMAIL, NotificationSubscription::CHANNEL_MAX, NotificationSubscription::CHANNEL_VK, NotificationSubscription::CHANNEL_WEB_PUSH])
             ->filter(fn (string $channel) => $this->channelAvailable($user, $channel))
             ->values()
             ->all();
@@ -131,7 +136,7 @@ class NotificationPreferenceService
     {
         abort_unless(in_array($eventKey, self::allowedEventKeys(), true), 422);
 
-        $allowed = collect(['in_app', NotificationSubscription::CHANNEL_EMAIL, NotificationSubscription::CHANNEL_MAX, NotificationSubscription::CHANNEL_WEB_PUSH])
+        $allowed = collect(['in_app', NotificationSubscription::CHANNEL_EMAIL, NotificationSubscription::CHANNEL_MAX, NotificationSubscription::CHANNEL_VK, NotificationSubscription::CHANNEL_WEB_PUSH])
             ->filter(fn (string $channel) => $this->channelAvailable($user, $channel));
 
         $sanitized = collect($channels)
@@ -159,6 +164,7 @@ class NotificationPreferenceService
                 && ! $user->usesPlaceholderEmail()
                 && filled($user->email),
             NotificationSubscription::CHANNEL_MAX => $this->subscriptions->activeMaxUserId($user) !== null,
+            NotificationSubscription::CHANNEL_VK => $this->subscriptions->activeVkUserId($user) !== null,
             NotificationSubscription::CHANNEL_WEB_PUSH => $this->subscriptions->hasActiveWebPush($user),
             default => false,
         };

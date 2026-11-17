@@ -182,8 +182,8 @@ class PromotionController extends AdminController
     {
         abort_unless($order->status === 'paid' && $order->moderation_status === 'pending', 422);
 
-        $data = $request->validate(['note' => 'nullable|string|max:500']);
-        $promotions->approveOrder($order, $data['note'] ?? null);
+        $data = $request->validate(['note' => 'nullable|string|max:500', 'erid' => ['nullable', 'string', 'max:64', 'regex:/^[A-Za-z0-9]+$/']]);
+        $promotions->approveOrder($order, $data['note'] ?? null, $data['erid'] ?? null);
         Audit::log('promotion.order.approved', $order);
 
         return back()->with('success', 'Баннер опубликован.');

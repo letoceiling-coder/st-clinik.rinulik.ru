@@ -34,13 +34,23 @@ class SearchService
         return (new ClinicFilters(q: $q))->tokens();
     }
 
-    private function matchTokens(Builder $query, array $tokens, string $column = 'search_text'): Builder
+    private function matchTokens(Builder $query, array $tokens, string $column = 'search_text', bool $fuzzy = false): Builder
     {
         foreach ($tokens as $token) {
-            $query->whereLike($column, '%'.$token.'%');
+            if ($fuzzy) {
+                // pg_trgm: допускает опечатки («имплантация» ~ «имплатнация»); $column — внутренняя константа.
+                $query->whereRaw("word_similarity(?, {$column}) > 0.45", [$token]);
+            } else {
+                $query->whereLike($column, '%'.$token.'%');
+            }
         }
 
         return $query;
+    }
+
+    private function supportsFuzzy(): bool
+    {
+        return Clinic::query()->getConnection()->getDriverName() === 'pgsql';
     }
 
     /** Лёгкая выдача для выпадающего списка. */
@@ -52,14 +62,43 @@ class SearchService
             return $this->empty();
         }
 
-        $cities = $this->matchTokens(City::query()->where('is_active', true), $tokens)->limit(3)->get();
-        $clinics = $this->matchTokens(Clinic::published()->with('city:id,name,slug')->where('city_id', $city->id), $tokens)
+        $result = $this->suggestWith($q, $city, $tokens, false);
+
+        // Ничего не нашлось точным совпадением — пробуем нечёткий поиск (только PostgreSQL + pg_trgm).
+        if ($this->supportsFuzzy() && $this->isEmptyResult($result)) {
+            try {
+                $result = $this->suggestWith($q, $city, $tokens, true);
+            } catch (\Throwable) {
+                // расширение pg_trgm не установлено — остаёмся на точном поиске
+            }
+        }
+
+        return $result;
+    }
+
+    /** @param  array<string, mixed>  $result */
+    private function isEmptyResult(array $result): bool
+    {
+        foreach (['cities', 'clinics', 'doctors', 'services', 'concerns', 'specialties'] as $key) {
+            if (count($result[$key]) > 0) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /** @param  list<string>  $tokens */
+    private function suggestWith(string $q, City $city, array $tokens, bool $fuzzy): array
+    {
+        $cities = $this->matchTokens(City::query()->where('is_active', true), $tokens, 'search_text', $fuzzy)->limit(3)->get();
+        $clinics = $this->matchTokens(Clinic::published()->with('city:id,name,slug')->where('city_id', $city->id), $tokens, 'search_text', $fuzzy)
             ->orderByDesc('rating')->limit(4)->get();
-        $doctors = $this->matchTokens(Doctor::published()->with(['clinic:id,name,slug,city_id'])->whereHas('clinic', fn ($c) => $c->published()->where('city_id', $city->id)), $tokens)
+        $doctors = $this->matchTokens(Doctor::published()->with(['clinic:id,name,slug,city_id'])->whereHas('clinic', fn ($c) => $c->published()->where('city_id', $city->id)), $tokens, 'search_text', $fuzzy)
             ->orderByDesc('rating')->limit(4)->get();
-        $services = $this->matchTokens(Service::query()->where('is_active', true), $tokens)->limit(4)->get();
-        $concerns = $this->matchTokens(Concern::query()->where('is_active', true), $tokens)->limit(4)->get();
-        $specialties = $this->matchTokens(Specialty::query()->where('is_active', true), $tokens)->limit(3)->get();
+        $services = $this->matchTokens(Service::query()->where('is_active', true), $tokens, 'search_text', $fuzzy)->limit(4)->get();
+        $concerns = $this->matchTokens(Concern::query()->where('is_active', true), $tokens, 'search_text', $fuzzy)->limit(4)->get();
+        $specialties = $this->matchTokens(Specialty::query()->where('is_active', true), $tokens, 'search_text', $fuzzy)->limit(3)->get();
         $prices = $services->isEmpty() ? [] : $this->clinics->minPricesByService($city->id);
 
         return [

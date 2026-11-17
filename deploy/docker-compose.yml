@@ -26,6 +26,8 @@ services:
     environment:
       SEED_ON_BOOT: "false"
       CONTAINER_ROLE: app
+      INERTIA_SSR_ENABLED: "true"
+      INERTIA_SSR_URL: http://ssr:13714
     volumes:
       - /opt/st-clinik/.env:/var/www/html/.env:ro
       - st-clinik-storage:/var/www/html/storage
@@ -36,6 +38,22 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+
+  ssr:
+    image: st-clinik-ssr:local
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      target: ssr
+    container_name: st-clinik-ssr
+    restart: unless-stopped
+    networks:
+      - st-clinik_net
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('net').connect(13714, '127.0.0.1').on('connect', () => process.exit(0)).on('error', () => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
 
   queue:
     <<: *app-base

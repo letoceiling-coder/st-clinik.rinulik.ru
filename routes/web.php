@@ -39,11 +39,13 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SeoController;
 use App\Http\Controllers\StaffInvitationController;
 use App\Http\Controllers\Webhooks\MaxWebhookController;
+use App\Http\Controllers\Webhooks\VkWebhookController;
 use Illuminate\Support\Facades\Route;
 
 // --- SEO ---------------------------------------------------------------
 Route::get('/robots.txt', [SeoController::class, 'robots']);
 Route::get('/sitemap.xml', [SeoController::class, 'sitemap']);
+Route::get('/sitemap-{type}-{page}.xml', [SeoController::class, 'sitemapPart'])->where(['type' => 'pages|clinics|doctors', 'page' => '[0-9]+']);
 
 // --- Публичные страницы ------------------------------------------------
 Route::get('/', HomeController::class)->name('home');
@@ -99,6 +101,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::post('/demo-exit', [OfferController::class, 'leaveDemo'])->name('demo.leave');
 
 Route::post('/webhooks/max', MaxWebhookController::class)->name('webhooks.max');
+Route::post('/webhooks/vk', VkWebhookController::class)->middleware('throttle:120,1')->name('webhooks.vk');
 
 Route::middleware('throttle:60,1')->group(function () {
     Route::get('/max', [MaxMiniAppController::class, 'home'])->name('max.miniapp');
@@ -481,6 +484,7 @@ Route::middleware(['auth', 'perm:admin.dashboard'])->prefix('admin')->name('admi
         Route::get('/', [Admin\ParserController::class, 'index'])->name('index');
         Route::get('/activity', [Admin\ParserController::class, 'activity'])->middleware('throttle:60,1')->name('activity');
         Route::post('/tasks', [Admin\ParserController::class, 'storeTask'])->middleware('throttle:10,1')->name('tasks.store');
+        Route::post('/installer', [Admin\ParserController::class, 'workerInstaller'])->middleware('throttle:10,1')->name('installer');
         Route::post('/tasks/{task}/refresh', [Admin\ParserController::class, 'refreshTask'])->middleware('throttle:30,1')->name('tasks.refresh')->whereNumber('task');
         Route::post('/tasks/{task}/cancel', [Admin\ParserController::class, 'cancelTask'])->name('tasks.cancel')->whereNumber('task');
         Route::post('/sync', [Admin\ParserController::class, 'sync'])->middleware('throttle:10,1')->name('sync');
@@ -540,8 +544,10 @@ Route::prefix('{city}')->group(function () {
     Route::get('/clinics', [CatalogController::class, 'clinics'])->name('city.clinics');
     Route::get('/doctors', [CatalogController::class, 'doctors'])->name('city.doctors');
     Route::get('/directions', [CatalogController::class, 'directions'])->name('city.directions');
-    Route::get('/directions/{specialty}', [CatalogController::class, 'direction'])->name('city.direction');
+    Route::get('/directions/{specialty}', [CatalogController::class, 'legacyDirection'])->name('city.direction.legacy');
     Route::get('/prices', [CatalogController::class, 'prices'])->name('city.prices');
     Route::get('/reviews', [CatalogController::class, 'reviews'])->name('city.reviews');
     Route::get('/concerns/{concern}', [CatalogController::class, 'concern'])->name('city.concern');
+    // ЧПУ по ТЗ п. 74: /moskva/implantaciya/ — направление или услуга. Маршрут обязан идти последним.
+    Route::get('/{slug}', [CatalogController::class, 'slugPage'])->name('city.direction');
 });

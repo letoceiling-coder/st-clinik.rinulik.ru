@@ -20,6 +20,7 @@ use App\Services\SchemaOrg;
 use App\Services\Seo;
 use App\Support\SpecialtyCover;
 use App\Support\Text;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Response;
@@ -171,6 +172,26 @@ class CatalogController extends Controller
             'concerns' => $this->catalog->concerns()->take(10)->map(fn ($c) => ['slug' => $c->slug, 'name' => $c->name, 'hint' => $c->hint, 'icon' => $c->icon])->values(),
             'breadcrumbs' => $this->crumbs($city, 'Направления'),
         ], $seoData);
+    }
+
+    /** Старый адрес /{city}/directions/{slug} → 301 на ЧПУ /{city}/{slug}. */
+    public function legacyDirection(City $city, string $specialty): RedirectResponse
+    {
+        $this->catalog->specialty($specialty) ?? abort(404);
+
+        return redirect()->route('city.direction', [$city->slug, $specialty], 301);
+    }
+
+    /** /{city}/{slug}: направление (страница) или услуга (301 на каталог с фильтром). */
+    public function slugPage(City $city, string $slug): Response|RedirectResponse
+    {
+        if ($this->catalog->specialty($slug) !== null) {
+            return $this->direction($city, $slug);
+        }
+
+        $service = $this->catalog->services()->firstWhere('slug', $slug) ?? abort(404);
+
+        return redirect(route('city.clinics', $city->slug).'?service='.$service->slug, 301);
     }
 
     public function direction(City $city, string $specialty): Response

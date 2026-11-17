@@ -330,13 +330,101 @@ class ParserOrganizationsTest extends TestCase
         $task = ParserTask::query()->sole();
         $this->assertSame([ParserTask::COLLECT, 'remote-1', 'В очереди (позиция 1)'], [$task->type, $task->external_id, $task->stage()]);
         $this->assertSame('https://parser.test/status/remote-1/sig', $task->status_page_url);
-        Http::assertSentCount(1);
+        $this->assertCount(1, Http::recorded(fn ($request) => str_contains($request->url(), '/organizations/collect')));
         Http::assertSent(fn ($request) => $request->hasHeader('Idempotency-Key')
             && $request['city'] === 'Краснодар'
             && $request['category'] === ParserTask::CATEGORY
             && $request['query'] === 'детская стоматология'
             && $request['count'] === 45
             && $request['fields'] === 'all_available');
+    }
+
+    public function test_relaunch_after_failed_task_creates_new_task_with_new_idempotency_key(): void
+    {
+        Http::fake(['parser.test/api/v1/organizations/collect' => Http::sequence()
+            ->push(['taskId' => 'remote-1', 'status' => ['stage' => 'queued', 'progress' => 0]], 202)
+            ->push(['taskId' => 'remote-2', 'status' => ['stage' => 'queued', 'progress' => 0]], 202)]);
+        $admin = $this->admin();
+        $payload = ['city' => 'Краснодар', 'query' => 'детская стоматология', 'count' => 45];
+
+        $this->actingAs($admin)->post('/admin/parser/tasks', $payload)->assertSessionHas('success');
+        $first = ParserTask::query()->sole();
+        $first->update(['status' => 'failed', 'error' => 'NO_INTERACTIVE_SESSION']);
+
+        // Раньше парсер возвращал тот же taskId по тому же Idempotency-Key и вставка падала на unique(external_id).
+        $this->actingAs($admin)->post('/admin/parser/tasks', $payload)->assertSessionHas('success');
+
+        $this->assertSame(2, ParserTask::query()->count());
+        $second = ParserTask::query()->where('external_id', 'remote-2')->sole();
+        $this->assertNotSame($first->idempotency_key, $second->idempotency_key);
+        $keys = Http::recorded(fn ($request) => str_contains($request->url(), '/organizations/collect'))
+            ->map(fn (array $pair) => $pair[0]->header('Idempotency-Key')[0] ?? null);
+        $this->assertCount(2, $keys->unique());
+    }
+
+    public function test_admin_is_warned_when_no_worker_can_collect(): void
+    {
+        Http::fake([
+            'parser.test/api/v1/workers' => Http::response(['workers' => [
+                ['id' => 'pc-a', 'connected' => true, 'capabilities' => ['task:avito.agent'], 'lastError' => null],
+            ]]),
+            'parser.test/api/v1/organizations/collect' => Http::response(['taskId' => 'remote-9', 'status' => ['stage' => 'queued', 'progress' => 0]], 202),
+        ]);
+
+        $this->actingAs($this->admin())->post('/admin/parser/tasks', ['city' => 'Краснодар', 'query' => 'детская стоматология', 'count' => 45])
+            ->assertSessionHas('success', fn (string $message) => str_contains($message, 'ни один воркер'));
+    }
+
+    public function test_no_warning_when_a_healthy_capable_worker_is_online(): void
+    {
+        Http::fake([
+            'parser.test/api/v1/workers' => Http::response(['workers' => [
+                ['id' => 'pc-a', 'connected' => true, 'capabilities' => ['task:organizations.agent'], 'lastError' => null],
+            ]]),
+            'parser.test/api/v1/organizations/collect' => Http::response(['taskId' => 'remote-10', 'status' => ['stage' => 'queued', 'progress' => 0]], 202),
+        ]);
+
+        $this->actingAs($this->admin())->post('/admin/parser/tasks', ['city' => 'Краснодар', 'query' => 'детская стоматология', 'count' => 45])
+            ->assertSessionHas('success', fn (string $message) => ! str_contains($message, 'Внимание'));
+    }
+
+    public function test_admin_gets_worker_installer_links_for_windows_and_mac(): void
+    {
+        Http::fake(['parser.test/api/v1/worker-installs' => Http::response([
+            'workerId' => 'pc-a1b2c3',
+            'expiresAt' => now()->addDay()->toIso8601String(),
+            'maxUses' => 5,
+            'pageUrl' => 'https://parser.test/get/wit_x',
+            'windowsUrl' => 'https://parser.test/install/wit_x/windows.cmd',
+            'macUrl' => 'https://parser.test/install/wit_x/mac',
+            'macCommand' => "curl -fsSL 'https://parser.test/install/wit_x/mac' | bash",
+            'statusUrl' => 'https://parser.test/install/wit_x/status',
+        ], 201)]);
+
+        $this->actingAs($this->admin())->postJson('/admin/parser/installer')
+            ->assertOk()
+            ->assertJsonPath('workerId', 'pc-a1b2c3')
+            ->assertJsonPath('windowsUrl', 'https://parser.test/install/wit_x/windows.cmd')
+            ->assertJsonPath('macCommand', "curl -fsSL 'https://parser.test/install/wit_x/mac' | bash");
+
+        Http::assertSent(fn ($request) => str_ends_with($request->url(), '/api/v1/worker-installs') && $request->hasHeader('Authorization'));
+    }
+
+    public function test_worker_installer_explains_a_missing_api_key_scope(): void
+    {
+        Http::fake(['parser.test/api/v1/worker-installs' => Http::response(['error' => 'Forbidden'], 403)]);
+
+        $this->actingAs($this->admin())->postJson('/admin/parser/installer')
+            ->assertStatus(502)
+            ->assertJsonPath('message', fn (string $m) => str_contains($m, 'workers:install'));
+    }
+
+    public function test_worker_installer_requires_parser_permission(): void
+    {
+        Http::fake();
+
+        $this->assertNotSame(200, $this->actingAs(User::factory()->create())->postJson('/admin/parser/installer')->status());
+        Http::assertNothingSent();
     }
 
     public function test_launch_is_limited_to_what_fits_into_task_time_limit(): void

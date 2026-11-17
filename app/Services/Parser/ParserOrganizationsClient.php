@@ -113,6 +113,27 @@ class ParserOrganizationsClient
         return $request->post("{$this->baseUrl}/api/v1/organizations/collect", $body)->throw()->json();
     }
 
+    /**
+     * Воркеры парсера (ПК), подключённые и известные серверу.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function workers(): array
+    {
+        return (array) $this->http(15)->get("{$this->baseUrl}/api/v1/workers")->throw()->json('workers', []);
+    }
+
+    /**
+     * Ссылки установки нового ПК-воркера (Windows и macOS). Нужна область ключа парсера `workers:install`.
+     *
+     * @param  array<string, mixed>  $options
+     * @return array{workerId: string, expiresAt: string, maxUses: int, pageUrl: string, windowsUrl: string, macUrl: string, macCommand: string, statusUrl: string}
+     */
+    public function createWorkerInstall(array $options = []): array
+    {
+        return $this->http(20)->post("{$this->baseUrl}/api/v1/worker-installs", $options)->throw()->json();
+    }
+
     /** @return array<string, mixed> */
     public function collectStatus(string $id): array
     {

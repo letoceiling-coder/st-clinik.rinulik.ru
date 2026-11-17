@@ -94,6 +94,9 @@ export default function AdminCampaign({ campaign, recipients, channels, auto_cha
                         <AnchorButton href={`/admin/campaigns/${campaign.id}/export`} variant="outline" icon="file">
                             Экспорт CSV
                         </AnchorButton>
+                        <AnchorButton href={`/admin/campaigns/${campaign.id}/export?format=xlsx`} variant="outline" icon="file">
+                            Экспорт XLSX
+                        </AnchorButton>
                         {campaign.status !== 'completed' ? (
                             <Button variant="outline" icon="refresh" onClick={() => post('rebuild')}>
                                 Добрать получателей

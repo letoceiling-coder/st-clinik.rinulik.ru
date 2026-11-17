@@ -33,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'payments/tbank/webhook',
             'unsubscribe/*',
             'webhooks/max',
+            'webhooks/vk',
         ]);
 
         $middleware->web(append: [

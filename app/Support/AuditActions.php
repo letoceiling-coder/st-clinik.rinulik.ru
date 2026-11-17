@@ -103,6 +103,7 @@ final class AuditActions
         'parser.clinic_draft' => 'Парсер: клиника возвращена в черновики',
         'parser.clinic_pending' => 'Парсер: клиника отправлена на модерацию',
         'parser.task_created' => 'Парсер: создана задача',
+        'parser.worker_installer_created' => 'Парсер: создана ссылка установщика воркера',
         'parser.task_cancelled' => 'Парсер: задача отменена',
         'parser.email_search' => 'Парсер: поиск e-mail',
         'parser.contact_added' => 'Парсер: добавлен контакт',

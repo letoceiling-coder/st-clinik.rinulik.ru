@@ -78,9 +78,9 @@ if [ -d "${APP_DIR}/public/downloads" ]; then
 fi
 
 echo "==> Rebuilding and restarting containers"
-$COMPOSE build app
+$COMPOSE build app ssr
 $COMPOSE up -d postgres redis
-$COMPOSE up -d app web queue scheduler
+$COMPOSE up -d app web queue scheduler ssr
 # app.conf смонтирован файлом: после распаковки архива у него новый inode, nginx увидит его только в новом контейнере.
 $COMPOSE up -d --force-recreate --no-deps web
 
@@ -135,6 +135,15 @@ docker exec "$CONTAINER" php artisan queue:restart
 
 echo "==> Syncing MAX bot webhook with current domain"
 docker exec -u www-data "${CONTAINER}" php artisan max:sync-webhook || true
+
+echo "==> Checking SSR (server-rendered <h1> on the home page)"
+sleep 3
+APP_URL_VALUE="$(grep -E '^APP_URL=' "${APP_DIR}/.env" | head -1 | cut -d= -f2- | tr -d '"' )"
+if curl -skL -m 20 "${APP_URL_VALUE:-https://mirklinik.ru}/" | grep -q "<h1"; then
+    echo "SSR OK"
+else
+    echo "WARNING: SSR check failed (страницы отдаются без серверного рендера). docker logs st-clinik-ssr" >&2
+fi
 
 echo "Deploy finished. Assets:"
 grep -E 'app-.*\.(css|js)' "${APP_DIR}/public/build/manifest.json" | head -2 || true

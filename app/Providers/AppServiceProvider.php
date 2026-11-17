@@ -6,6 +6,7 @@ use App\Models\Clinic;
 use App\Models\Doctor;
 use App\Notifications\Channels\LoggedMailChannel;
 use App\Notifications\Channels\MaxChannel;
+use App\Notifications\Channels\VkChannel;
 use App\Notifications\Channels\WebPushChannel;
 use App\Repositories\Contracts\CatalogRepository;
 use App\Repositories\Contracts\ClinicRepository;
@@ -116,6 +117,7 @@ class AppServiceProvider extends ServiceProvider
         Notification::resolved(function (ChannelManager $manager): void {
             $manager->extend('logged_mail', fn ($app) => $app->make(LoggedMailChannel::class));
             $manager->extend('max', fn ($app) => $app->make(MaxChannel::class));
+            $manager->extend('vk', fn ($app) => $app->make(VkChannel::class));
             $manager->extend('webpush', fn ($app) => $app->make(WebPushChannel::class));
         });
     }

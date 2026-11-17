@@ -255,6 +255,9 @@ class OffersAndDemoTest extends TestCase
 
         $export = $this->actingAs($admin)->get("/admin/campaigns/{$campaign->id}/export")->assertOk();
         $this->assertStringContainsString('a@example.com', $export->streamedContent());
+
+        $xlsx = $this->actingAs($admin)->get("/admin/campaigns/{$campaign->id}/export?format=xlsx")->assertOk();
+        $this->assertStringStartsWith('PK', $xlsx->streamedContent());
     }
 
     public function test_offers_section_requires_permission(): void

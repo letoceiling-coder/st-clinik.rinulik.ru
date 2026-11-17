@@ -45,7 +45,12 @@ jobs:
           node-version: '22'
           cache: npm
       - run: composer install --no-interaction --prefer-dist --no-progress
-      - run: npm ci && npm run build
+      - run: vendor/bin/pint --test
+      - run: npm ci
+      # Известные старые ошибки типов (Dash.tsx, YandexMap.tsx, web-push.ts) не блокируют деплой; новые видны в логе.
+      - run: npx tsc --noEmit
+        continue-on-error: true
+      - run: npm run build
       - run: cp .env.example .env && php artisan key:generate
       - run: php artisan test --compact
 

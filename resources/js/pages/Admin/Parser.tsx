@@ -4,6 +4,7 @@ import { FilterBar, Kpis, PageHead, PagerSafe, Panel } from '@/components/Dash';
 import { Button, LinkButton } from '@/components/ui/Button';
 import { Check, CitySearchField, SearchInput, SelectField } from '@/components/ui/Fields';
 import { Alert, Badge, Tabs } from '@/components/ui/Misc';
+import WorkerInstaller from '@/components/WorkerInstaller';
 import ParserTaskProgress, { formatEta, type CollectInfo } from '@/components/ParserTaskProgress';
 import type { Paginated } from '@/lib/types';
 import { confirmDialog, type ConfirmOptions } from '@/lib/dialog';
@@ -152,7 +153,11 @@ export default function AdminParser(props: Props) {
 
     return (
         <div className="stack-lg">
-            <PageHead title="Парсер стоматологий" text="Собирает стоматологии с Яндекс Карт. Найденное не появляется на сайте само: выберите карточки и отправьте их в черновики, на модерацию или сразу в каталог." />
+            <PageHead
+                title="Парсер стоматологий"
+                text="Собирает стоматологии с Яндекс Карт. Найденное не появляется на сайте само: выберите карточки и отправьте их в черновики, на модерацию или сразу в каталог."
+                action={<WorkerInstaller disabled={!configured} />}
+            />
 
             {!configured ? (
                 <Alert tone="warning">
