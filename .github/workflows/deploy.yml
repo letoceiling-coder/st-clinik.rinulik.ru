@@ -72,4 +72,4 @@ jobs:
           script_stop: true
           script: |
             set -euo pipefail
-            /opt/st-clinik/scripts/deploy-production.sh
+            bash /opt/st-clinik/scripts/deploy-production.sh
