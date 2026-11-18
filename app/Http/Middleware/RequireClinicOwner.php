@@ -16,6 +16,24 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class RequireClinicOwner
 {
+    /**
+     * Действия, для которых нужен подтверждённый e-mail. Заполнять кабинет можно сразу после регистрации,
+     * а вот отправить клинику на проверку, платить, рассылать и звать сотрудников — только с подтверждённой почтой.
+     *
+     * @var list<string>
+     */
+    public const VERIFIED_ONLY_ROUTES = [
+        'cabinet.branches.submit',
+        'cabinet.branches.publish',
+        'cabinet.payments.checkout',
+        'cabinet.payments.auto-renew',
+        'cabinet.promotions.checkout',
+        'cabinet.broadcasts.store',
+        'cabinet.broadcasts.submit',
+        'cabinet.broadcasts.start',
+        'cabinet.staff.invite',
+    ];
+
     public function __construct(
         private readonly DemoSession $demo,
         private readonly OrganizationStaffService $staffService,
@@ -36,9 +54,9 @@ class RequireClinicOwner
         if ($user === null) {
             return redirect()->guest(route('login'));
         }
-        if (! $user->hasVerifiedEmail()) {
-            return redirect()->guest(route('verification.notice'))
-                ->with('error', 'Подтвердите e-mail, чтобы работать в кабинете клиники.');
+        if (! $user->hasVerifiedEmail() && in_array($request->route()?->getName(), self::VERIFIED_ONLY_ROUTES, true)) {
+            return redirect()->back(fallback: route('cabinet.dashboard'))
+                ->with('error', 'Подтвердите e-mail, чтобы выполнить это действие: письмо со ссылкой отправлено при регистрации.');
         }
         $org = $this->staffService->organizationFor($user);
         abort_unless($org, 403, 'К вашей учётной записи не привязана организация.');

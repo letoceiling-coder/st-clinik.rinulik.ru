@@ -142,8 +142,13 @@ class RegisterClinicController extends Controller
         event(new Registered($user));
         Auth::login($user);
         $request->session()->regenerate();
+        // После перехода по ссылке из письма пользователь возвращается в кабинет, а не в личный кабинет пациента.
+        $request->session()->put('url.intended', route('cabinet.dashboard'));
         Audit::log('auth.register_clinic', $organization, ['user_id' => $user->id]);
 
-        return redirect()->route('cabinet.branches.create')->with('success', 'Организация создана. Добавьте первый филиал клиники.');
+        return redirect()->route('cabinet.branches.create')->with(
+            'success',
+            'Кабинет создан — можно сразу заполнять карточку клиники. В каталоге она появится только после проверки модератором; чтобы отправить её на проверку, подтвердите e-mail по ссылке из письма.',
+        );
     }
 }

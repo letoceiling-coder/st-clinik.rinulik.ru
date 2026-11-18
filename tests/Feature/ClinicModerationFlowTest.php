@@ -91,9 +91,9 @@ class ClinicModerationFlowTest extends TestCase
         $this->assertSame('clinic_owner', $owner->role);
         $this->assertDatabaseHas('organization_staff', ['user_id' => $owner->id, 'role' => OrganizationStaff::ROLE_OWNER]);
 
-        // Until the e-mail is confirmed the cabinet only offers verification.
-        $this->actingAs($owner)->get(route('cabinet.branches.create'))->assertRedirect(route('verification.notice'));
-        $owner->markEmailAsVerified();
+        // Кабинет открыт сразу после регистрации, даже с неподтверждённым e-mail.
+        $this->assertFalse($owner->hasVerifiedEmail());
+        $this->actingAs($owner)->get(route('cabinet.branches.create'))->assertOk();
 
         $this->actingAs($owner)->post(route('cabinet.branches.store'), [
             'name' => 'Улыбка на Ленина',
@@ -107,6 +107,12 @@ class ClinicModerationFlowTest extends TestCase
         $this->assertEqualsWithDelta(45.0428, (float) $clinic->lat, 0.0001);
         $this->assertEqualsWithDelta(41.9734, (float) $clinic->lng, 0.0001);
 
+        // Отправить на проверку без подтверждённого e-mail нельзя.
+        $this->actingAs($owner)->post(route('cabinet.branches.submit', $clinic))
+            ->assertSessionHas('error', fn (string $message) => str_contains($message, 'Подтвердите e-mail'));
+        $this->assertSame('draft', $clinic->fresh()->status);
+
+        $owner->markEmailAsVerified();
         $this->actingAs($owner)->post(route('cabinet.branches.submit', $clinic))
             ->assertSessionHas('error', fn (string $message) => str_contains($message, 'Профиль заполнен на 12%')
                 && str_contains($message, 'минимум 3 фото (+15%), подтверждённая лицензия (+15%)'));

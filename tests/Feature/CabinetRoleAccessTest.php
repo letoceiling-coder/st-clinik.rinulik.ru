@@ -40,12 +40,42 @@ class CabinetRoleAccessTest extends TestCase
         ]);
     }
 
-    public function test_unverified_owner_is_sent_to_email_verification(): void
+    public function test_unverified_owner_can_fill_the_cabinet_but_not_submit_pay_or_invite(): void
     {
         $this->owner->forceFill(['email_verified_at' => null])->save();
+        $this->clinic->update(['status' => 'draft']);
 
-        $this->actingAs($this->owner)->get('/clinic-cabinet')->assertRedirect(route('verification.notice'));
-        $this->actingAs($this->owner)->post('/clinic-cabinet/branches', ['name' => 'X'])->assertRedirect(route('verification.notice'));
+        foreach (['/clinic-cabinet', '/clinic-cabinet/branches', '/clinic-cabinet/branches/create', '/clinic-cabinet/doctors', '/clinic-cabinet/prices', '/clinic-cabinet/photos'] as $url) {
+            $this->actingAs($this->owner)->get($url)->assertOk();
+        }
+        $this->actingAs($this->owner)->get('/clinic-cabinet')->assertInertia(fn (Assert $page) => $page->where('cabinet.email_verified', false));
+
+        $this->actingAs($this->owner)->post(route('cabinet.branches.submit', $this->clinic))
+            ->assertSessionHas('error', fn (string $message) => str_contains($message, 'Подтвердите e-mail'));
+        $this->assertSame('draft', $this->clinic->fresh()->status);
+
+        $this->actingAs($this->owner)->post('/clinic-cabinet/staff/invite', ['email' => 'new@example.test', 'role' => OrganizationStaff::ROLE_MANAGER])
+            ->assertSessionHas('error', fn (string $message) => str_contains($message, 'Подтвердите e-mail'));
+        $this->assertDatabaseMissing('staff_invitations', ['email' => 'new@example.test']);
+    }
+
+    public function test_verified_owner_is_not_blocked_by_the_email_rule(): void
+    {
+        $this->clinic->update(['status' => 'draft']);
+
+        $this->actingAs($this->owner)->post(route('cabinet.branches.submit', $this->clinic))
+            ->assertSessionHas('error', fn (string $message) => ! str_contains($message, 'Подтвердите e-mail'));
+    }
+
+    public function test_clinic_is_never_public_until_moderation_even_if_the_owner_fills_everything(): void
+    {
+        $this->owner->forceFill(['email_verified_at' => null])->save();
+        $this->clinic->update(['status' => 'draft']);
+
+        $this->get('/clinics/roles-clinic')->assertNotFound();
+        $this->actingAs($this->owner)->post(route('cabinet.branches.publish', $this->clinic));
+        $this->assertSame('draft', $this->clinic->fresh()->status);
+        $this->get('/clinics/roles-clinic')->assertNotFound();
     }
 
     public function test_content_manager_cannot_open_patient_sections(): void

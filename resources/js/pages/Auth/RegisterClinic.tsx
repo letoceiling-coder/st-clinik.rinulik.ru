@@ -40,13 +40,13 @@ export default function RegisterClinic({ offer = null, claim = null }: Props) {
     return (
         <form onSubmit={submit} className="auth-card card card--shadow stack" noValidate>
             <div>
-                <h1 className="auth-card__title">{claimMode || catalogMode ? 'Регистрация и подключение' : 'Регистрация клиники'}</h1>
+                <h1 className="auth-card__title">{claimMode || catalogMode ? 'Регистрация и подключение' : 'Заявка на подключение клиники'}</h1>
                 <p className="text-muted">
                     {claimMode
                         ? `Создайте аккаунт и заберите черновик «${offer?.clinic_name}» (${offer?.organization_name}).`
                         : catalogMode
                           ? `Создайте аккаунт, подтвердите e-mail и права — и управляйте карточкой «${claim?.name}».`
-                        : 'Создайте организацию и добавьте первый филиал в кабинете.'}
+                        : 'Оставьте заявку — кабинет откроется сразу, и вы сможете заполнить карточку клиники. В каталоге клиника появится после проверки модератором.'}
                 </p>
             </div>
             {offer && !offer.claimable && offer.reason ? <Alert tone="warning">{offer.reason}</Alert> : null}
@@ -77,7 +77,7 @@ export default function RegisterClinic({ offer = null, claim = null }: Props) {
             />
             <Check checked={form.data.consent} onChange={(e) => form.setData('consent', e.target.checked)} error={form.errors.consent} label="Согласие на обработку персональных данных" />
             <Button type="submit" block loading={form.processing} disabled={Boolean(offer && !offer.claimable)}>
-                {claimMode ? 'Зарегистрироваться и забрать черновик' : catalogMode ? 'Зарегистрироваться' : 'Зарегистрировать клинику'}
+                {claimMode ? 'Зарегистрироваться и забрать черновик' : catalogMode ? 'Зарегистрироваться' : 'Оставить заявку и открыть кабинет'}
             </Button>
             <p className="text-sm text-center">
                 <Link href="/register" className="link">

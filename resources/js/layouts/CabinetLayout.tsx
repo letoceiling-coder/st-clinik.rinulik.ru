@@ -1,7 +1,7 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { SelectField } from '@/components/ui/Fields';
-import { Badge } from '@/components/ui/Misc';
+import { Alert, Badge } from '@/components/ui/Misc';
 import type { SharedProps } from '@/lib/types';
 import DashboardShell, { type NavItem } from './DashboardShell';
 
@@ -10,6 +10,8 @@ export interface CabinetProps {
     branches: { id: number; name: string; address: string; status: string }[];
     branch: { id: number; name: string; status: string; slug: string; completeness: number } | null;
     abilities?: string[];
+    /** false — e-mail не подтверждён: кабинет доступен, но отправка на проверку, оплата и рассылки закрыты. */
+    email_verified?: boolean;
 }
 
 export const STATUS_LABEL: Record<string, string> = {
@@ -122,12 +124,24 @@ function visibleItems(items: CabinetNavItem[], abilities: string[] | undefined, 
     return list;
 }
 
+function VerifyEmailNotice() {
+    return (
+        <Alert tone="warning">
+            Подтвердите e-mail — иначе клинику нельзя отправить на проверку, а тарифы и рассылки недоступны. Заполнять карточку можно уже сейчас.{' '}
+            <button type="button" className="link" onClick={() => router.post('/email/verification-notification', {}, { preserveScroll: true })}>
+                Отправить письмо ещё раз
+            </button>
+        </Alert>
+    );
+}
+
 export default function CabinetLayout({ children }: { children: ReactNode }) {
     const { demo, cabinet } = usePage<SharedProps & { cabinet?: CabinetProps }>().props;
     const items = visibleItems(ITEMS, cabinet?.abilities, demo?.sections);
 
     return (
         <DashboardShell items={items} brandSuffix="для клиник" mobileBrandSuffix="Клиника" mobileLabel="Кабинет клиники" aside={<BranchSwitcher />}>
+            {cabinet && cabinet.email_verified === false ? <VerifyEmailNotice /> : null}
             {children}
         </DashboardShell>
     );

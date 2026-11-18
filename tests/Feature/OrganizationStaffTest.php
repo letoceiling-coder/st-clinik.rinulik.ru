@@ -36,10 +36,14 @@ class OrganizationStaffTest extends TestCase
             'password' => 'Password1',
             'password_confirmation' => 'Password1',
             'consent' => true,
-        ])->assertRedirect(route('cabinet.branches.create'));
+        ])->assertRedirect(route('cabinet.branches.create'))
+            ->assertSessionHas('url.intended', route('cabinet.dashboard'));
 
         $user = User::query()->where('email', 'owner-clinic@example.test')->firstOrFail();
         $this->assertSame('clinic_owner', $user->role);
+        // Кабинет открывается сразу, до подтверждения e-mail.
+        $this->assertFalse($user->hasVerifiedEmail());
+        $this->actingAs($user)->get(route('cabinet.branches.create'))->assertOk();
         $org = Organization::query()->where('owner_id', $user->id)->firstOrFail();
         $this->assertDatabaseHas('organization_staff', [
             'organization_id' => $org->id,

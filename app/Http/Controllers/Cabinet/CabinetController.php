@@ -40,6 +40,7 @@ abstract class CabinetController extends Controller
                     'completeness' => $metrics->completeness($branch)['percent'],
                 ] : null,
                 'abilities' => $this->grantedAbilities($request),
+                'email_verified' => $request->user()?->hasVerifiedEmail() ?? true,
             ],
         ], app(Seo::class)->private($title));
     }
